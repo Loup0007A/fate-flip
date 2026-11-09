@@ -42,15 +42,17 @@ Pendant un tirage, dépensez-les sur la colonne d'**atouts** à gauche (chacun u
 
 Toute votre collection, famille par famille : cartes découvertes, nombre de fois retournées et jouées, et l'identifiant de chaque carte (pour la désactiver dans la configuration).
 
-## 🌀 Les 67 cartes
+## 🌀 Les 88 cartes
 
 | Famille | Cartes |
 |---|---|
-| **Espace** (12) | Triptyque, Miroir, Antipodes, Taquin, Kaléidoscope, Vertige, Format vertical, Fenêtre baladeuse, Fonte, Tourbillon, Œil de poisson, Écran brisé |
-| **Vision** (21) | Film noir, Écarlate, Négatif, Vision thermique, 8 bits, Console de poche, Cassette VHS, Vieux téléviseur, Lunettes 3D, Ivresse, Vision tunnel, Carnet de croquis, Code source, Psychédélique, Myopie, Écholocation, Objectif mouillé, Bande dessinée, Cinémascope, Vision nocturne, Daltonisme |
-| **Esprit** (20) | Selfie, Tonneau, Longue-vue, Grand angle, Respiration, Hoquet, Mal de mer, Dinnerbone, Monde de papier, Proportions, Économiseur d'écran, Amnésie, Viseurs fantômes, Le Narrateur, Glyphes d'enchanteur, Paupières lourdes, Éclipse, Déluge, Purée de pois, Fête permanente |
-| **Contrôles** (6) | Touches mélangées, Souris inversée, Steadicam, Triple expresso, Barre capricieuse, Marche du crabe |
-| **Ouïe** (8) | Hélium, Voix d'outre-tombe, Orchestre, Zoo, Paranoïa, Écho, Silence de mort, Mauvais doublage |
+| **Espace** (16) | Triptyque, Miroir, Antipodes, Taquin, Kaléidoscope, Vertige, Format vertical, Fenêtre baladeuse, Fonte, Tourbillon, Œil de poisson, Écran brisé, *Mur d'écrans, Mise en abyme, Ricochet, Bug d'affichage* |
+| **Vision** (27) | Film noir, Écarlate, Négatif, Vision thermique, 8 bits, Console de poche, Cassette VHS, Vieux téléviseur, Lunettes 3D, Ivresse, Vision tunnel, Carnet de croquis, Code source, Psychédélique, Myopie, Écholocation, Objectif mouillé, Bande dessinée, Cinémascope, Vision nocturne, Daltonisme, *Ombres chinoises, Vitrail, Pointillisme, Rayons X, Hologramme, Maquette* |
+| **Esprit** (25) | Selfie, Tonneau, Longue-vue, Grand angle, Respiration, Hoquet, Mal de mer, Dinnerbone, Monde de papier, Proportions, Économiseur d'écran, Amnésie, Viseurs fantômes, Le Narrateur, Glyphes d'enchanteur, Paupières lourdes, Éclipse, Déluge, Purée de pois, Fête permanente, *Regard en arrière, Interface renversée, Succès absurdes, Apesanteur, Soirée disco* |
+| **Contrôles** (9) | Touches mélangées, Souris inversée, Steadicam, Triple expresso, Barre capricieuse, Marche du crabe, *Patinoire, Latence, Saut accroupi* |
+| **Ouïe** (11) | Hélium, Voix d'outre-tombe, Orchestre, Zoo, Paranoïa, Écho, Silence de mort, Mauvais doublage, *Oreilles croisées, Vinyle voilé, Musique d'ascenseur* |
+
+*En italique : les 21 cartes ajoutées en 2.1.*
 
 **Anti-triche** : tant qu'une carte « Contrôles » est active, l'écran des contrôles (touches et souris) est **scellé**. Les cartes ne modifient jamais vos touches enregistrées : elles réinterprètent seulement vos entrées pendant l'effet, rien n'est sauvegardé.
 
