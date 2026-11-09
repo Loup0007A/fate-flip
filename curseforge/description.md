@@ -6,7 +6,7 @@ Fate Flip — Stop or Draw?
 
 ## Summary
 
-Every 2 minutes, fate deals you 10 face-down cards. Flip one... then stop, or push your luck? 67 cards that twist how you see, hear and control Minecraft.
+Every 2 minutes, fate deals you 10 face-down cards. Flip one... then stop, or push your luck? 88 cards that twist how you see, hear and control Minecraft.
 
 ## Description (Markdown)
 
@@ -37,14 +37,14 @@ Daring pays off. Every card you keep earns **fate shards** ✦: +1 Gentle, +2 St
 ### ✦ The Grimoire (`K`)
 Your whole collection, family by family: discovered cards, how many times you flipped and played each one.
 
-### ✦ 67 cards, 5 families
+### ✦ 88 cards, 5 families
 | Family | Cards |
 |---|---|
-| **Space** | Triptych, Mirror, Down Under, Sliding Puzzle, Kaleidoscope, Vertigo, Vertical Video, Wandering Window, Meltdown, Whirlpool, Fisheye, Shattered |
-| **Vision** | Film Noir, Scarlet, Negative, Thermal Vision, 8-Bit, Pocket Console, Worn VHS, Old TV, 3D Glasses, Tipsy, Tunnel Vision, Sketchbook, Source Code, Psychedelic, Short-Sighted, Echolocation, Wet Lens, Comic Book, Cinemascope, Night-Vision Goggles, Colour Swap |
-| **Mind** | Selfie, Barrel Roll, Spyglass, Ultra-Wide, Breathing World, Hiccups, Seasick, Dinnerbone, Paper World, Wonky Scale, Screensaver, Amnesia, Ghost Crosshairs, The Narrator, Enchanter's Glyphs, Heavy Eyelids, Eclipse, Deluge, Pea Soup, Party Time |
-| **Controls** | Scrambled Keys, Inverted Mouse, Steadicam, Triple Espresso, Capricious Hotbar, Crab Walk |
-| **Hearing** | Helium, Deep Voice, Orchestra, Zoo, Paranoia, Echo, Dead Silence, Bad Dubbing |
+| **Space** | Triptych, Mirror, Down Under, Sliding Puzzle, Kaleidoscope, Vertigo, Vertical Video, Wandering Window, Meltdown, Whirlpool, Fisheye, Shattered, Video Wall, Droste Effect, Ripple, Glitch |
+| **Vision** | Film Noir, Scarlet, Negative, Thermal Vision, 8-Bit, Pocket Console, Worn VHS, Old TV, 3D Glasses, Tipsy, Tunnel Vision, Sketchbook, Source Code, Psychedelic, Short-Sighted, Echolocation, Wet Lens, Comic Book, Cinemascope, Night-Vision Goggles, Colour Swap, Shadow Play, Stained Glass, Pointillism, X-Ray, Hologram, Miniature |
+| **Mind** | Selfie, Barrel Roll, Spyglass, Ultra-Wide, Breathing World, Hiccups, Seasick, Dinnerbone, Paper World, Wonky Scale, Screensaver, Amnesia, Ghost Crosshairs, The Narrator, Enchanter's Glyphs, Heavy Eyelids, Eclipse, Deluge, Pea Soup, Party Time, Look Behind, Upside-Down HUD, Absurd Achievements, Zero Gravity, Disco Night |
+| **Controls** | Scrambled Keys, Inverted Mouse, Steadicam, Triple Espresso, Capricious Hotbar, Crab Walk, Ice Rink, Input Lag, Leapfrog |
+| **Hearing** | Helium, Deep Voice, Orchestra, Zoo, Paranoia, Echo, Dead Silence, Bad Dubbing, Crossed Ears, Warped Vinyl, Elevator Music |
 
 **No cheating**: while a *Controls* card is active, the Controls screen (keys and mouse) is **sealed**. Cards never rewrite your saved key bindings — they only reinterpret your inputs while active, so nothing is ever saved or broken.
 
@@ -62,6 +62,6 @@ Minecraft **1.21.1**, **Forge 52+**, Java 21. Client only.
 ---
 
 ### 🇫🇷 En français
-Toutes les deux minutes, le destin vous tend **dix cartes face cachée**. Retournez-en une : **STOP**, elle s'applique jusqu'au prochain tirage ; **ENCORE**, elle brûle et vous en retournez une autre — trois retournements au maximum, et **la dernière carte retournée s'applique toujours**. 67 cartes qui changent ce que vous voyez, entendez et la façon dont vos commandes répondent, jamais la partie elle-même. Nouveau en 2.0 : les **Atouts du destin**. Chaque carte gardée rapporte des éclats ✦ (plus encore si vous avez osé dire « encore »), à dépenser pendant les tirages : Clairvoyance, Sursis, Phénix et Demi-mesure. Mod 100 % client, entièrement traduit en français. Grimoire de collection sur la touche `K`.
+Toutes les deux minutes, le destin vous tend **dix cartes face cachée**. Retournez-en une : **STOP**, elle s'applique jusqu'au prochain tirage ; **ENCORE**, elle brûle et vous en retournez une autre — trois retournements au maximum, et **la dernière carte retournée s'applique toujours**. 88 cartes qui changent ce que vous voyez, entendez et la façon dont vos commandes répondent, jamais la partie elle-même. Nouveau en 2.0 : les **Atouts du destin**. Chaque carte gardée rapporte des éclats ✦ (plus encore si vous avez osé dire « encore »), à dépenser pendant les tirages : Clairvoyance, Sursis, Phénix et Demi-mesure. Mod 100 % client, entièrement traduit en français. Grimoire de collection sur la touche `K`.
 
 Source code & issues: https://github.com/Loup0007A/fate-flip — MIT licence.

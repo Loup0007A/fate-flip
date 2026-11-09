@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.1.0
+
+- **21 new cards** — the deck grows from 67 to **88 cards**.
+- Space: Video Wall, Droste Effect, Ripple, Glitch.
+- Vision: Shadow Play, Stained Glass, Pointillism, X-Ray, Hologram, Miniature (tilt-shift).
+- Mind: Look Behind, Upside-Down HUD, Absurd Achievements, Zero Gravity, Disco Night.
+- Controls: Ice Rink, Input Lag, Leapfrog.
+- Hearing: Crossed Ears, Warped Vinyl, Elevator Music.
+- 21 nouvelles cartes (88 au total), traduites en français et en anglais.
+
 ## 2.0.0
 
 - **New: Fate Powers / Atouts du destin.** Daring pays off: every card you keep earns **fate shards** ✦ (Gentle +1, Strange +2, Nightmare +3, and +1 for every AGAIN you dared during that draw).

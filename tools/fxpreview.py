@@ -42,6 +42,8 @@ def render(mode, t=3.0, params=(0, 0, 0, 0), params2=(0, 0, 0, 0), extra=None, i
 taq = [0, 1, 2, 3, 4, 5, 6, 7, 8]
 taq = [4, 0, 2, 8, 7, 1, 3, 6, 5]
 SPECS = {
+    42: dict(t=0.8),
+    43: dict(t=1.3),
     1: dict(params=(2 / 3, 0.0, 1 / 3, 0), params2=(0, 0, 0, 0)),
     4: dict(params=(5, 8, 3, 0.4), extra=[float(x) for x in taq] + [0.0] * 7),
     5: dict(params=(6, 0, 0, 0)),
@@ -52,7 +54,7 @@ SPECS = {
 NAMES = {1: 'triptych', 2: 'mirror', 3: 'antipodes', 4: 'taquin', 5: 'kaleido', 6: 'vertigo', 7: 'portrait', 8: 'wandering',
          9: 'melt', 10: 'whirl', 11: 'fisheye', 12: 'shatter', 13: 'noir', 14: 'scarlet', 15: 'negative', 16: 'thermal',
          17: 'eightbit', 18: 'pocket', 19: 'vhs', 20: 'crt', 21: 'anaglyph', 22: 'tipsy', 23: 'tunnel', 24: 'sketch',
-         25: 'source', 26: 'psyche', 27: 'myopia', 28: 'echo', 29: 'wetlens', 30: 'comic', 31: 'cinema', 32: 'goggles', 33: 'swap'}
+         25: 'source', 26: 'psyche', 27: 'myopia', 28: 'echo', 29: 'wetlens', 30: 'comic', 31: 'cinema', 32: 'goggles', 33: 'swap', 34: 'silhouette', 35: 'glass', 36: 'pointil', 37: 'xray', 38: 'holo', 39: 'tiltshift', 40: 'wall', 41: 'droste', 42: 'ripple', 43: 'glitch'}
 
 if __name__ == '__main__':
     modes = [int(a) for a in sys.argv[1:]] or list(NAMES)

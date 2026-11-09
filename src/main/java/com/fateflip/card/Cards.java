@@ -5,6 +5,7 @@ import com.fateflip.effect.CameraEffects;
 import com.fateflip.effect.ControlEffects;
 import com.fateflip.effect.EntityEffects;
 import com.fateflip.effect.HudEffects;
+import com.fateflip.effect.NewEffects;
 import com.fateflip.effect.ShaderEffects;
 import com.fateflip.effect.SoundFx;
 import com.fateflip.render.FxPass;
@@ -18,7 +19,7 @@ import java.util.Map;
 import static com.fateflip.card.Category.*;
 import static com.fateflip.card.Severity.*;
 
-/** Le jeu complet : 67 cartes. */
+/** Le jeu complet : 88 cartes (67 en 1.0, 21 ajoutées en 2.1). */
 public final class Cards {
 
     private Cards() {}
@@ -44,6 +45,10 @@ public final class Cards {
         add(Card.of("whirlpool", SPACE, STRANGE, "nautilus_shell", () -> ShaderEffects.full(FxPass.WHIRLPOOL)).motion().preview());
         add(Card.of("fisheye", SPACE, GENTLE, "tropical_fish", () -> ShaderEffects.full(FxPass.FISHEYE)).preview());
         add(Card.of("shattered", SPACE, STRANGE, "glass", ShaderEffects::shattered).preview());
+        add(Card.of("video_wall", SPACE, STRANGE, "redstone_lamp", () -> ShaderEffects.full(FxPass.VIDEO_WALL)).preview());
+        add(Card.of("droste", SPACE, STRANGE, "glow_item_frame", () -> ShaderEffects.full(FxPass.DROSTE)).preview());
+        add(Card.of("ripple", SPACE, GENTLE, "lily_pad", () -> ShaderEffects.full(FxPass.RIPPLE)).preview());
+        add(Card.of("glitch", SPACE, STRANGE, "redstone", () -> ShaderEffects.full(FxPass.GLITCH)).flashy().preview());
 
         // ── VISION : couleurs et matières ──
         add(Card.of("noir", VISION, GENTLE, "ink_sac", () -> ShaderEffects.world(FxPass.NOIR)).preview());
@@ -67,6 +72,12 @@ public final class Cards {
         add(Card.of("cinemascope", VISION, GENTLE, "painting", () -> ShaderEffects.world(FxPass.CINEMASCOPE)).preview());
         add(Card.of("night_goggles", VISION, GENTLE, "glow_ink_sac", () -> ShaderEffects.world(FxPass.NIGHT_GOGGLES)).preview());
         add(Card.of("colour_swap", VISION, GENTLE, "prismarine_crystals", () -> ShaderEffects.world(FxPass.COLOUR_SWAP)).preview());
+        add(Card.of("silhouette", VISION, GENTLE, "lantern", () -> ShaderEffects.world(FxPass.SILHOUETTE)).preview());
+        add(Card.of("stained_glass", VISION, GENTLE, "magenta_stained_glass", () -> ShaderEffects.world(FxPass.STAINED_GLASS)).preview());
+        add(Card.of("pointillism", VISION, GENTLE, "brush", () -> ShaderEffects.world(FxPass.POINTILLISM)).preview());
+        add(Card.of("xray", VISION, STRANGE, "skeleton_skull", () -> ShaderEffects.world(FxPass.XRAY)).preview());
+        add(Card.of("hologram", VISION, STRANGE, "end_crystal", () -> ShaderEffects.world(FxPass.HOLOGRAM)).flashy().preview());
+        add(Card.of("tilt_shift", VISION, GENTLE, "oak_sapling", () -> ShaderEffects.world(FxPass.TILT_SHIFT)).preview());
 
         // ── ESPRIT : caméra, interface et illusions ──
         add(Card.of("selfie", MIND, STRANGE, "player_head", CameraEffects.Selfie::new));
@@ -89,6 +100,11 @@ public final class Cards {
         add(Card.of("deluge", MIND, GENTLE, "trident", CameraEffects.Deluge::new).flashy());
         add(Card.of("pea_soup", MIND, STRANGE, "cobweb", CameraEffects.PeaSoup::new));
         add(Card.of("party", MIND, GENTLE, "firework_rocket", EntityEffects.Party::new));
+        add(Card.of("look_back", MIND, NIGHTMARE, "carved_pumpkin", NewEffects.LookBack::new).motion());
+        add(Card.of("upside_down_hud", MIND, STRANGE, "glass_pane", NewEffects.UpsideDownHud::new));
+        add(Card.of("fake_achievements", MIND, GENTLE, "experience_bottle", NewEffects.FakeAchievements::new));
+        add(Card.of("zero_gravity", MIND, GENTLE, "shulker_shell", NewEffects.ZeroGravity::new));
+        add(Card.of("disco", MIND, STRANGE, "music_disc_pigstep", NewEffects.Disco::new));
 
         // ── CONTRÔLES : la façon dont vos commandes sont lues ──
         add(Card.of("scrambled_keys", CONTROL, NIGHTMARE, "tripwire_hook", ControlEffects.ScrambledKeys::new));
@@ -97,6 +113,9 @@ public final class Cards {
         add(Card.of("coffee", CONTROL, STRANGE, "cocoa_beans", ControlEffects.Coffee::new));
         add(Card.of("hotbar_chaos", CONTROL, STRANGE, "bundle", ControlEffects.HotbarChaos::new));
         add(Card.of("crab_walk", CONTROL, STRANGE, "turtle_scute", ControlEffects.CrabWalk::new));
+        add(Card.of("ice_rink", CONTROL, STRANGE, "blue_ice", NewEffects.IceRink::new));
+        add(Card.of("input_lag", CONTROL, STRANGE, "honey_block", NewEffects.InputLag::new));
+        add(Card.of("leapfrog", CONTROL, GENTLE, "leather_boots", NewEffects.Leapfrog::new));
 
         // ── OUÏE : ce que vous entendez ──
         add(Card.of("helium", SOUND, GENTLE, "feather", () -> new SoundFx.Pitch(1.85f)));
@@ -107,6 +126,9 @@ public final class Cards {
         add(Card.of("echo", SOUND, GENTLE, "echo_shard", SoundFx.Echo::new));
         add(Card.of("dead_silence", SOUND, NIGHTMARE, "white_wool", SoundFx.DeadSilence::new));
         add(Card.of("bad_dubbing", SOUND, STRANGE, "jukebox", SoundFx.BadDubbing::new));
+        add(Card.of("crossed_ears", SOUND, GENTLE, "goat_horn", NewEffects.CrossedEars::new));
+        add(Card.of("warped_vinyl", SOUND, GENTLE, "music_disc_wait", NewEffects.WarpedVinyl::new));
+        add(Card.of("elevator_music", SOUND, GENTLE, "bell", NewEffects.ElevatorMusic::new));
     }
 
     public static Card get(String id) {

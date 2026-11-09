@@ -639,6 +639,172 @@ vec3 fxColourSwap(vec2 uv) {
     return hueRotate(tex(uv), (seg + f) * 2.0944);
 }
 
+// ───────────────────────── 2.1 : nouvelles cartes ─────────────────────────
+// 34 — Ombres chinoises : silhouettes noires sur un ciel de crépuscule
+vec3 fxSilhouette(vec2 uv) {
+    vec2 px = 1.5 / OutSize;
+    vec3 top = vec3(0.16, 0.05, 0.32), mid = vec3(0.95, 0.38, 0.22), low = vec3(1.0, 0.82, 0.42);
+    float y = uv.y;
+    vec3 sky = y > 0.55 ? mix(mid, top, smoothstep(0.55, 1.0, y)) : mix(low, mid, smoothstep(0.2, 0.55, y));
+    vec2 sunp = (uv - vec2(0.68, 0.42)) * vec2(aspect(), 1.0);
+    float sun = smoothstep(0.11, 0.1, length(sunp));
+    sky = mix(sky, vec3(1.0, 0.93, 0.7), sun) + vec3(1.0, 0.6, 0.3) * 0.25 * exp(-length(sunp) * 4.0);
+    if (isSky(uv)) return sky;
+    float d = linDepth(uv);
+    float rim = clamp(depthEdge(uv, px) * 5.0, 0.0, 1.0);
+    float haze = smoothstep(20.0, 120.0, d) * 0.55;
+    vec3 c = mix(vec3(0.02, 0.01, 0.03), sky * 0.55, haze);
+    return c + vec3(1.0, 0.55, 0.25) * rim * 0.35 * (1.0 - haze);
+}
+// 35 — Vitrail
+vec3 fxStainedGlass(vec2 uv) {
+    vec2 p = uv * vec2(aspect(), 1.0) * 11.0;
+    vec2 cell = floor(p);
+    float d1 = 9.0, d2 = 9.0;
+    vec2 bestC = vec2(0.0);
+    for (int y = -1; y <= 1; y++) for (int x = -1; x <= 1; x++) {
+        vec2 c = cell + vec2(float(x), float(y));
+        vec2 o = c + 0.15 + 0.7 * hash22(c);
+        float d = length(p - o);
+        if (d < d1) { d2 = d1; d1 = d; bestC = o; } else if (d < d2) d2 = d;
+    }
+    vec2 cuv = bestC / (vec2(aspect(), 1.0) * 11.0);
+    vec3 col = saturate3(tex(clamp(cuv, 0.0, 1.0)), 1.7) * 1.15;
+    col *= 0.85 + 0.25 * noise(uv * OutSize * 0.08 + bestC);
+    col += vec3(1.0, 0.95, 0.8) * 0.18 * smoothstep(0.6, 0.0, length(uv - vec2(0.3, 0.85)));
+    float lead = smoothstep(0.05, 0.11, d2 - d1);
+    return mix(vec3(0.05, 0.04, 0.05), col, lead);
+}
+// 36 — Pointillisme : deux trames de points ronds, le papier apparaît entre eux
+vec3 fxPointillism(vec2 uv) {
+    float cs = max(5.0, floor(OutSize.y / 80.0));
+    vec3 paper = vec3(0.97, 0.95, 0.89);
+    vec3 outc = paper;
+    float best = 9.0;
+    for (int layer = 0; layer < 2; layer++) {
+        vec2 off = vec2(float(layer) * 0.5);
+        vec2 pp = uv * OutSize / cs + off;
+        vec2 cell = floor(pp);
+        for (int y = -1; y <= 1; y++) for (int x = -1; x <= 1; x++) {
+            vec2 c = cell + vec2(float(x), float(y));
+            vec2 o = c + 0.5 + (hash22(c + float(layer) * 31.0) - 0.5) * 0.5;
+            float r = 0.42 + 0.14 * hash12(c + 7.0 + float(layer));
+            float d = length(pp - o) / r;
+            if (d < 1.0 && d < best) {
+                best = d;
+                vec3 col = saturate3(tex((o - off) * cs / OutSize), 1.7);
+                outc = col + (hash12(c + 3.0) - 0.5) * 0.1;
+            }
+        }
+    }
+    return mix(outc, paper, smoothstep(0.85, 1.0, best) * step(best, 1.0));
+}
+// 37 — Rayons X
+vec3 fxXray(vec2 uv) {
+    vec2 px = 1.5 / OutSize;
+    float l = lum(blur9(uv, 0.002));
+    float d = linDepth(uv);
+    float near = isSky(uv) ? 0.0 : 1.0 - smoothstep(2.0, 50.0, d);
+    float base = (1.0 - l) * 0.55 + near * 0.35;
+    float edge = isSky(uv) ? 0.0 : clamp(depthEdge(uv, px) * 4.0, 0.0, 1.0);
+    vec3 c = vec3(0.55, 0.82, 1.0) * base + vec3(0.9, 0.97, 1.0) * edge * 0.8;
+    c *= 0.9 + 0.1 * sin(uv.y * OutSize.y * 1.1);
+    return c * vignette(uv, 0.6) + vec3(0.0, 0.02, 0.05);
+}
+// 38 — Hologramme
+vec3 fxHologram(vec2 uv) {
+    float wild = 1.0 - 0.7 * Calm;
+    vec2 u = uv;
+    float band = step(0.93, noise(vec2(floor(uv.y * 40.0), floor(Time * 6.0)))) * wild;
+    u.x += band * 0.012;
+    float l = lum(tex(u));
+    float e = smoothstep(0.2, 0.7, sobelLum(u, 1.5 / OutSize));
+    vec3 c = vec3(0.25, 0.85, 1.0) * (0.25 + l * 0.9) + vec3(0.7, 1.0, 1.0) * e * 0.7;
+    c *= 0.75 + 0.25 * step(0.5, fract(uv.y * OutSize.y / 3.0 - Time * 2.0));
+    c *= 0.92 + 0.08 * sin(Time * 30.0) * wild;
+    c = mix(vec3(0.0, 0.04, 0.09), c, 0.9);
+    c.r = mix(c.r, lum(tex(u + vec2(0.004, 0.0))) * 0.3, 0.3);
+    return c;
+}
+// 39 — Maquette (tilt-shift)
+vec3 fxTiltShift(vec2 uv) {
+    float b = smoothstep(0.1, 0.42, abs(uv.y - 0.48));
+    vec3 c = b > 0.02 ? blurDisk(uv, 0.014 * b * Intensity) : tex(uv);
+    c = saturate3(c, 1.55);
+    c = smoothstep(0.02, 0.98, c);
+    return c * vignette(uv, 0.25);
+}
+// 40 — Mur d'écrans (3×3)
+vec3 fxVideoWall(vec2 uv) {
+    vec2 g = uv * 3.0;
+    vec2 cell = floor(g);
+    vec2 f = fract(g);
+    float bez = 0.035;
+    if (f.x < bez || f.y < bez || f.x > 1.0 - bez || f.y > 1.0 - bez) return vec3(0.04, 0.04, 0.05);
+    vec2 q = (f - bez) / (1.0 - 2.0 * bez);
+    float id = cell.x + cell.y * 3.0;
+    float slot = floor(Time / 3.0);
+    float noisy = floor(hash12(vec2(slot, 1.0)) * 9.0);
+    if (abs(id - noisy) < 0.5 && hash12(vec2(slot, 2.0)) > 0.4) {
+        float n = hash12(q * OutSize / 3.0 + floor(Time * 24.0));
+        return vec3(n * 0.8) * (0.7 + 0.3 * Calm);
+    }
+    vec3 c = tex(q);
+    c = hueRotate(c, (hash12(cell) - 0.5) * 0.6) * (0.85 + 0.25 * hash12(cell + 5.0));
+    c *= 0.88 + 0.12 * sin(q.y * OutSize.y);
+    return c;
+}
+// 41 — Mise en abyme (effet Droste en spirale)
+vec3 fxDroste(vec2 uv) {
+    vec2 a = vec2(aspect(), 1.0);
+    vec2 p = (uv - 0.5) * a;
+    float k = 0.48;
+    float th = 0.22 + 0.06 * sin(Time * 0.5);
+    float frameW = 0.012;
+    for (int i = 0; i < 7; i++) {
+        vec2 inner = 0.5 * a * k;
+        if (abs(p.x) < inner.x && abs(p.y) < inner.y) {
+            vec2 e = inner - abs(p);
+            if (min(e.x, e.y) < frameW * k) return vec3(0.83, 0.66, 0.3) * (0.7 + 0.3 * float(i % 2));
+            float c = cos(th), s = sin(th);
+            p = mat2(c, -s, s, c) * (p / k);
+        } else break;
+    }
+    return tex(p / a + 0.5);
+}
+// 42 — Ricochet : une onde part du centre toutes les 3 s
+vec3 fxRipple(vec2 uv) {
+    vec2 p = (uv - 0.5) * vec2(aspect(), 1.0);
+    float r = length(p);
+    float age = mod(Time, 3.0);
+    float ring = age * 0.55;
+    float env = exp(-pow((r - ring) * 9.0, 2.0)) * (1.0 - age / 3.0);
+    float w = sin((r - ring) * 60.0) * env;
+    vec2 dir = r > 0.0001 ? p / r : vec2(0.0);
+    vec2 q = uv + dir / vec2(aspect(), 1.0) * w * 0.018 * Intensity;
+    vec3 c = tex(q);
+    return c + vec3(0.9, 0.95, 1.0) * max(w, 0.0) * 0.18 * Intensity;
+}
+// 43 — Bug d'affichage
+vec3 fxGlitch(vec2 uv) {
+    float wild = 1.0 - 0.75 * Calm;
+    float tt = floor(Time * mix(4.0, 12.0, wild));
+    vec2 u = uv;
+    vec2 blk = floor(uv * vec2(8.0, 24.0));
+    float h = hash12(blk + tt);
+    float act = step(0.88, h) * step(0.35, hash12(vec2(tt, 2.0)));
+    u.x += act * (hash12(blk + tt + 3.0) - 0.5) * 0.18 * wild;
+    vec3 c;
+    float split = 0.004 + act * 0.02;
+    c.r = tex(u + vec2(split, 0.0)).r;
+    c.g = tex(u).g;
+    c.b = tex(u - vec2(split, 0.0)).b;
+    if (act > 0.5 && hash12(blk + tt + 9.0) > 0.6) c = 1.0 - c;
+    float line = step(0.985, hash12(vec2(floor(uv.y * OutSize.y / 2.0), tt)));
+    c = mix(c, vec3(hash12(uv + tt)), line * 0.6 * wild);
+    return c;
+}
+
 void main() {
     vec2 uv = texCoord;
     vec3 orig = texture(DiffuseSampler, uv).rgb;
@@ -676,9 +842,19 @@ void main() {
     else if (Mode == 31) c = fxCinemascope(uv);
     else if (Mode == 32) c = fxNightGoggles(uv);
     else if (Mode == 33) c = fxColourSwap(uv);
+    else if (Mode == 34) c = fxSilhouette(uv);
+    else if (Mode == 35) c = fxStainedGlass(uv);
+    else if (Mode == 36) c = fxPointillism(uv);
+    else if (Mode == 37) c = fxXray(uv);
+    else if (Mode == 38) c = fxHologram(uv);
+    else if (Mode == 39) c = fxTiltShift(uv);
+    else if (Mode == 40) c = fxVideoWall(uv);
+    else if (Mode == 41) c = fxDroste(uv);
+    else if (Mode == 42) c = fxRipple(uv);
+    else if (Mode == 43) c = fxGlitch(uv);
 
     // Les effets « géométriques » gèrent eux-mêmes l'intensité ; les autres sont fondus.
-    bool selfFaded = Mode == 9 || Mode == 10 || Mode == 11 || Mode == 12 || Mode == 22 || Mode == 23 || Mode == 27 || Mode == 31;
+    bool selfFaded = Mode == 9 || Mode == 10 || Mode == 11 || Mode == 12 || Mode == 22 || Mode == 23 || Mode == 27 || Mode == 31 || Mode == 39 || Mode == 42;
     if (!selfFaded) c = mix(orig, c, clamp(Intensity, 0.0, 1.0));
     fragColor = vec4(clamp(c, 0.0, 1.0), 1.0);
 }

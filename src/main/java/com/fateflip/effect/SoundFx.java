@@ -114,6 +114,37 @@ public final class SoundFx {
         }
     }
 
+    /** Délègue tout à un autre son, en changeant son volume. */
+    static final class Scaled implements SoundInstance {
+        private final SoundInstance inner;
+        private final float factor;
+
+        Scaled(SoundInstance inner, float factor) {
+            this.inner = inner;
+            this.factor = factor;
+            mark(this);
+        }
+
+        @Override public ResourceLocation getLocation() { return inner.getLocation(); }
+        @Override public WeighedSoundEvents resolve(SoundManager manager) { return inner.resolve(manager); }
+        @Override public Sound getSound() { return inner.getSound(); }
+        @Override public SoundSource getSource() { return inner.getSource(); }
+        @Override public boolean isLooping() { return inner.isLooping(); }
+        @Override public boolean isRelative() { return inner.isRelative(); }
+        @Override public int getDelay() { return inner.getDelay(); }
+        @Override public float getVolume() { return inner.getVolume() * factor; }
+        @Override public float getPitch() { return inner.getPitch(); }
+        @Override public double getX() { return inner.getX(); }
+        @Override public double getY() { return inner.getY(); }
+        @Override public double getZ() { return inner.getZ(); }
+        @Override public Attenuation getAttenuation() { return inner.getAttenuation(); }
+        @Override public boolean canStartSilent() { return inner.canStartSilent(); }
+        @Override public boolean canPlaySound() { return inner.canPlaySound(); }
+        @Override public CompletableFuture<AudioStream> getStream(SoundBufferLibrary lib, Sound sound, boolean looping) {
+            return inner.getStream(lib, sound, looping);
+        }
+    }
+
     // ───────────────────────── cartes ─────────────────────────
 
     /** Hélium / Voix d'outre-tombe : tous les sons changent de hauteur. */
