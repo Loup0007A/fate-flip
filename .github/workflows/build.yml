@@ -65,9 +65,8 @@ jobs:
           for i in $(seq 1 120); do grep -q "SELFTEST\] READY" selftest.log && break; sleep 5; done
           grep -E "\[SELFTEST\]|Exception|ERROR" selftest.log | head -100 > selftest-summary.log || true
           cat selftest-summary.log
-          # ---- Client (portablemc + Xvfb, rendu logiciel) — hors main, pour garder la release rapide ----
+          # ---- Client (portablemc + Xvfb, rendu logiciel) : un vrai tirage + chaque carte photographiée ----
           set +e
-          if [ "${GITHUB_REF_NAME}" != "main" ]; then
           sudo apt-get update -qq && sudo apt-get install -y -qq xvfb libgl1-mesa-dri mesa-utils > /dev/null
           pip install -q portablemc==5.0.6
           mkdir -p client/mods && cp "$JAR" client/mods/
@@ -80,12 +79,11 @@ jobs:
           grep -E "CLIENTTEST|FateFlip|Exception|ERROR|GL error|shader" clienttest.log | head -200
           grep -q "CLIENTTEST\] RESULT" clienttest.log || tail -60 clienttest.log
           ls -la client/screenshots
-          fi
           pkill -f "nogui" || true
           wait
           set -e
           grep -q "\[SELFTEST\] READY" selftest.log
-          if [ "${GITHUB_REF_NAME}" != "main" ]; then grep -q "\[CLIENTTEST\] RESULT: OK" clienttest.log; fi
+          grep -q "\[CLIENTTEST\] RESULT: OK" clienttest.log
 
       - name: Publish logs and screenshots to the ci-logs branch
         if: always()

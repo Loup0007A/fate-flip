@@ -83,6 +83,6 @@ Toute votre collection, famille par famille : cartes découvertes, nombre de foi
 - Java 21, Forge 1.21.1-52.0.7, mappings Parchment, `reobf = false`.
 - Tous les effets d'écran sont dans un seul shader : `assets/fateflip/shaders/core/screen_fx.fsh`. `tools/fxpreview.py` les rend hors jeu sur une scène de test.
 - Les textures des cartes et le logo sont générés par `tools/textures.py` et `tools/logo.py`, les traductions par `tools/lang.py`.
-- **CI GitHub Actions** : compilation, lancement d'un vrai serveur Forge, puis (hors `main`) d'un vrai client qui déroule un tirage et photographie chaque carte. Logs et captures sur la branche `ci-logs`. Sur `main` : release GitHub, jar copié dans `releases/` et, pour chaque nouvelle version, envoi sur **CurseForge** (voir [`curseforge/SETUP.md`](curseforge/SETUP.md)).
+- **CI GitHub Actions** (à chaque push sur `main`) : compilation, lancement d'un vrai serveur Forge puis d'un vrai client qui déroule un tirage et photographie chaque carte (logs et captures sur la branche `ci-logs`). Si tout passe : release GitHub, jar copié dans `releases/` et, pour chaque nouvelle version, envoi sur **CurseForge** (voir [`curseforge/SETUP.md`](curseforge/SETUP.md)).
 
 Licence MIT.
