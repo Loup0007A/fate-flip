@@ -279,14 +279,16 @@ public final class ShaderEffects {
             int alpha = (int) (255 * Math.min(1f, fade));
             if (alpha < 8) return;
             int color = (alpha << 24) | 0xFFFFFF;
-            g.pose().pushPose();
-            g.pose().translate(16, 14, 0);
-            g.pose().scale(1.6f, 1.6f, 1f);
-            if (((int) (t * 1.2f)) % 2 == 0 || fade < 1f) {
-                g.drawString(MC.font, Component.translatable("fateflip.vhs.play"), 0, 0, color, true);
-            }
             int secs = (int) t;
             String tc = String.format("SP  0:%02d:%02d", secs / 60, secs % 60);
+            Component play = Component.translatable("fateflip.vhs.play");
+            int tw = Math.max(MC.font.width(tc), MC.font.width(play));
+            g.pose().pushPose();
+            g.pose().translate(g.guiWidth() - 14 - tw * 1.6f, 14, 0);
+            g.pose().scale(1.6f, 1.6f, 1f);
+            if (((int) (t * 1.2f)) % 2 == 0 || fade < 1f) {
+                g.drawString(MC.font, play, 0, 0, color, true);
+            }
             g.drawString(MC.font, tc, 0, 11, color, true);
             g.pose().popPose();
         }

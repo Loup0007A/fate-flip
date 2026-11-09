@@ -60,7 +60,7 @@ public final class ServerSelfTest {
         };
         for (int i = 0; i < hotbar.length; i++) sp.getInventory().setItem(i, hotbar[i]);
         sp.getInventory().selected = 2;
-        EntityType<?>[] mobs = {EntityType.COW, EntityType.SHEEP, EntityType.VILLAGER, EntityType.PIG, EntityType.ZOMBIE, EntityType.CHICKEN};
+        EntityType<?>[] mobs = {EntityType.COW, EntityType.SHEEP, EntityType.VILLAGER, EntityType.PIG, EntityType.GOAT, EntityType.CHICKEN};
         for (int i = 0; i < mobs.length; i++) {
             int x = spawn.getX() - 5 + i * 2;
             int z = spawn.getZ() + 6 + (i % 2) * 2;

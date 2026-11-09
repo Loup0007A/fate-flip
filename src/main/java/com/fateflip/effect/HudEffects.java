@@ -151,7 +151,7 @@ public final class HudEffects {
             if (age < 100 && !MC.options.hideGui) {
                 int a = (int) (255 * Math.min(1f, (100 - age) / 30f) * fade);
                 if (a > 8) g.drawCenteredString(MC.font, alt(Component.translatable("fateflip.glyphs.hello")),
-                    g.guiWidth() / 2, g.guiHeight() / 2 - 40, (a << 24) | 0xB9F0FF);
+                    g.guiWidth() / 2, (int) (g.guiHeight() * 0.64f), (a << 24) | 0xB9F0FF);
             }
         }
     }

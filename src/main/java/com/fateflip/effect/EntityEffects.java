@@ -102,9 +102,15 @@ public final class EntityEffects {
         public void tick() {
             if (MC.player == null || MC.level == null) return;
             Vec3 p = MC.player.position();
-            for (int i = 0; i < 2; i++) {
-                double a = rng.nextDouble() * Math.PI * 2, d = 1.5 + rng.nextDouble() * 3;
-                MC.level.addParticle(confetti(), p.x + Math.cos(a) * d, p.y + 2.5 + rng.nextDouble(), p.z + Math.sin(a) * d, 0, -0.05, 0);
+            Vec3 look = MC.player.getLookAngle().multiply(1, 0, 1).normalize();
+            for (int i = 0; i < 4; i++) {
+                double fwd = 1.5 + rng.nextDouble() * 5, side = (rng.nextDouble() - 0.5) * 7;
+                double x = p.x + look.x * fwd - look.z * side, z = p.z + look.z * fwd + look.x * side;
+                MC.level.addParticle(confetti(), x, p.y + 0.5 + rng.nextDouble() * 2.5, z, 0, -0.03, 0);
+            }
+            if (age % 30 == 0) {
+                Vec3 at = MC.player.getEyePosition().add(look.scale(4)).add(0, 0.8, 0);
+                burst(at, 20, 0.25);
             }
             boolean onGround = MC.player.onGround();
             if (wasOnGround && !onGround && MC.player.getDeltaMovement().y > 0.2) {
