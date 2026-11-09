@@ -69,15 +69,16 @@ jobs:
           set +e
           if [ "${GITHUB_REF_NAME}" != "main" ]; then
           sudo apt-get update -qq && sudo apt-get install -y -qq xvfb libgl1-mesa-dri mesa-utils > /dev/null
-          pip install -q portablemc
+          pip install -q portablemc==5.0.6
           mkdir -p client/mods && cp "$JAR" client/mods/
           printf 'onboardAccessibility:false\npauseOnLostFocus:false\ntutorialStep:none\nsoundCategory_master:0.0\nnarrator:0\nguiScale:3\nskipMultiplayerWarning:true\njoinedFirstServer:true\nrenderDistance:8\n' > client/options.txt
           LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a -s "-screen 0 1280x720x24" timeout 1500 \
-            portablemc --main-dir "$PWD/mcmain" --work-dir "$PWD/client" start "forge:${FORGE}" \
-            -u Tester -s 127.0.0.1 --resolution 1280x720 \
-            --jvm-args="-Xmx3G -Dfateflip.clienttest=true" > clienttest.log 2>&1
+            portablemc --main-dir "$PWD/mcmain" start --mc-dir "$PWD/client" "forge::${FORGE}" \
+            -u Tester --join-server 127.0.0.1 --resolution 1280x720 \
+            --jvm-arg=-Xmx3G,-Dfateflip.clienttest=true > clienttest.log 2>&1
           echo "client exit $?"
           grep -E "CLIENTTEST|FateFlip|Exception|ERROR|GL error|shader" clienttest.log | head -200
+          grep -q "CLIENTTEST\] RESULT" clienttest.log || tail -60 clienttest.log
           ls -la client/screenshots
           fi
           pkill -f "nogui" || true
