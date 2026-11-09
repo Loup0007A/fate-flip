@@ -287,6 +287,7 @@ public class DrawScreen extends Screen {
                 if (t > 0.38f) {
                     focus.burned = true;
                     focus.burnStart = now();
+                    burnedCount++;
                     sound(SoundEvents.FIRECHARGE_USE, 0.8f, 0.5f);
                     setPhase(Phase.BURNING);
                 }
@@ -311,6 +312,7 @@ public class DrawScreen extends Screen {
 
     private boolean midpointDone;
     private boolean finaleBurst;
+    private int burnedCount;
     private int testHoverIndex = -1;
 
     // ───────────────────────── entrées ─────────────────────────
@@ -357,6 +359,7 @@ public class DrawScreen extends Screen {
         float dt = Mth.clamp(t - lastFrame, 0f, 0.1f);
         lastFrame = t;
         advance();
+        if (finished) return;
         particles.update(dt);
 
         float intro = easeOut(t / 0.45f);
@@ -442,7 +445,7 @@ public class DrawScreen extends Screen {
         g.pose().scale(2f, 2f, 1f);
         g.drawString(font, title, -font.width(title) / 2, 0, CardArt.withAlpha(0xF3D58A, a * dim), true);
         g.pose().popPose();
-        Component sub = flipsUsed == 0 ? Component.translatable("fateflip.draw.subtitle")
+        Component sub = burnedCount == 0 ? Component.translatable("fateflip.draw.subtitle")
             : Component.translatable("fateflip.draw.subtitle.again");
         g.drawCenteredString(font, sub, width / 2, (int) ty + 22, CardArt.withAlpha(0xD8CBEA, a * dim));
         // compteur de retournements
@@ -562,7 +565,7 @@ public class DrawScreen extends Screen {
         g.pose().translate(-32f, -48f, 0f);
         CardArt.shadow(g, alpha);
         CardArt.front(g, s.card, alpha, t, k > 0.6f, !preview, 1f);
-        if (s.isNew) CardArt.newRibbon(g, alpha);
+        if (s.isNew && k < 0.5f) CardArt.newRibbon(g, alpha * (1f - 2f * k));
         g.pose().popPose();
         g.flush();
 

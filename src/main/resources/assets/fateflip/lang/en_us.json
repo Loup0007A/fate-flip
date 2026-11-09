@@ -35,7 +35,7 @@
   "fateflip.glyphs.hello": "The world now speaks to you in glyphs.",
   "fateflip.narrator.name": "The Narrator",
   "fateflip.grimoire.title": "Grimoire of Fate",
-  "fateflip.grimoire.stats": "%s / %s cards discovered · cycle %s · %s draws",
+  "fateflip.grimoire.stats": "%s / %s cards discovered · cycle %s · draws: %s",
   "fateflip.grimoire.hint": "Hover a card to read it.",
   "fateflip.grimoire.footer": "Tab: next family · K or Esc: close",
   "fateflip.grimoire.seen": "Flipped %s times · played %s times",

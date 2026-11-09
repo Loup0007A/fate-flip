@@ -35,7 +35,7 @@
   "fateflip.glyphs.hello": "Le monde vous parle désormais en glyphes.",
   "fateflip.narrator.name": "Le Narrateur",
   "fateflip.grimoire.title": "Grimoire du Destin",
-  "fateflip.grimoire.stats": "%s / %s cartes découvertes · cycle %s · %s tirages",
+  "fateflip.grimoire.stats": "%s / %s cartes découvertes · cycle %s · tirages : %s",
   "fateflip.grimoire.hint": "Survolez une carte pour la lire.",
   "fateflip.grimoire.footer": "Tab : famille suivante · K ou Échap : fermer",
   "fateflip.grimoire.seen": "Retournée %s fois · jouée %s fois",

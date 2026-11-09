@@ -281,15 +281,41 @@ public final class Fate {
     @SubscribeEvent
     public static void onRenderTickPost(TickEvent.RenderTickEvent.Post event) {
         try {
+            float pt = MC.getTimer().getGameTimeDeltaPartialTick(false);
             if (current != null && MC.level != null && fullStageAllowed()) {
                 FxPass p = current.pass();
                 if (p != null && p.stage == FxPass.Stage.FULL) {
-                    float pt = MC.getTimer().getGameTimeDeltaPartialTick(false);
                     PostFx.apply(p, (current.age + pt) / 20f, current.fade);
                 }
             }
+            if (MC.level != null && MC.player != null && fullStageAllowed() && !MC.options.hideGui) drawOverlay(pt);
         } finally {
             PostFx.endFrame();
+        }
+    }
+
+    /** Le rappel de carte et l'annonce sont dessinés après l'effet plein écran : ils restent lisibles. */
+    private static void drawOverlay(float pt) {
+        try {
+            com.mojang.blaze3d.platform.Window win = MC.getWindow();
+            float far = net.minecraftforge.client.ForgeHooksClient.getGuiFarPlane();
+            org.joml.Matrix4f proj = new org.joml.Matrix4f().setOrtho(0f, (float) (win.getWidth() / win.getGuiScale()),
+                (float) (win.getHeight() / win.getGuiScale()), 0f, 1000f, far);
+            com.mojang.blaze3d.systems.RenderSystem.setProjectionMatrix(proj, com.mojang.blaze3d.vertex.VertexSorting.ORTHOGRAPHIC_Z);
+            org.joml.Matrix4fStack mv = com.mojang.blaze3d.systems.RenderSystem.getModelViewStack();
+            mv.pushMatrix();
+            mv.translation(0f, 0f, 10000f - far);
+            com.mojang.blaze3d.systems.RenderSystem.applyModelViewMatrix();
+            MC.getMainRenderTarget().bindWrite(true);
+            com.mojang.blaze3d.systems.RenderSystem.clear(org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT, Minecraft.ON_OSX);
+            com.mojang.blaze3d.platform.Lighting.setupFor3DItems();
+            GuiGraphics g = new GuiGraphics(MC, MC.renderBuffers().bufferSource());
+            HudReminder.render(g, pt);
+            g.flush();
+            mv.popMatrix();
+            com.mojang.blaze3d.systems.RenderSystem.applyModelViewMatrix();
+        } catch (Throwable t) {
+            FateFlip.LOGGER.error("Fate Flip : erreur de dessin du rappel", t);
         }
     }
 
@@ -329,7 +355,6 @@ public final class Fate {
                 crash(t);
             }
         }
-        if (!MC.options.hideGui) HudReminder.render(g, pt);
     }
 
     /** Insère deux couches dans le HUD vanilla (Forge 1.21.1 n'a pas d'API de couches). */

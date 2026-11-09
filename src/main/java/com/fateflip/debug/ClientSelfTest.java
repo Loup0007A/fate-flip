@@ -56,6 +56,7 @@ public final class ClientSelfTest {
 
     private static void shot(String name) {
         Minecraft mc = mc();
+        mc.getToasts().clear();
         Screenshot.grab(mc.gameDirectory, name + ".png", mc.getMainRenderTarget(),
             c -> FateFlip.LOGGER.info("[CLIENTTEST] capture {}", name));
     }
@@ -87,11 +88,12 @@ public final class ClientSelfTest {
         stepWhen("révélée-2", () -> draw() != null && draw().isRevealing(), 6, () -> shot("05_reveal_card"));
         step("stop", 1, () -> draw().testStop());
         step("finale", 9, () -> shot("06_finale"));
-        stepWhen("annonce", () -> mc().screen == null, 14, () -> {
+        stepWhen("fermeture", () -> mc().screen == null, 14, () -> {});
+        step("annonce", 6, () -> {
             check(Fate.current() != null, "une carte est active après le tirage");
             shot("07_announce");
         });
-        step("hud", 80, () -> shot("08_hud"));
+        step("hud", 70, () -> shot("08_hud"));
         for (Card card : Cards.all()) {
             boolean visual = card.category != Category.SOUND && card.category != Category.CONTROL;
             step("play " + card.id, 2, () -> Fate.play(card, false));
