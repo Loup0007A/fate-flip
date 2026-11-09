@@ -304,8 +304,58 @@ def runes():
     img.resize((512, 512), Image.LANCZOS).save(OUT + 'rune_circle.png')
 
 
+
+
+
+def shard():
+    """Éclat du destin : cristal à facettes (V2)."""
+    s = 256
+    img = Image.new('RGBA', (s, s), (0, 0, 0, 0))
+    d = BlendDraw(img)
+    c = s / 2
+    top, left, right, bot = (c, 18), (c - 70, c - 10), (c + 70, c - 10), (c, s - 18)
+    midl, midr = (c - 28, c + 8), (c + 28, c + 8)
+    d.polygon([top, left, midl], fill=(176, 140, 255, 255))
+    d.polygon([top, midl, (c, c - 4)], fill=(222, 200, 255, 255))
+    d.polygon([top, (c, c - 4), midr], fill=(196, 166, 255, 255))
+    d.polygon([top, midr, right], fill=(130, 96, 230, 255))
+    d.polygon([left, midl, bot], fill=(110, 76, 210, 255))
+    d.polygon([midl, (c, c - 4), midr, bot], fill=(160, 124, 245, 255))
+    d.polygon([midr, right, bot], fill=(84, 54, 180, 255))
+    d.line([top, left, bot, right, top], fill=(255, 245, 255, 255), width=5)
+    d.line([left, midl, (c, c - 4), midr, right], fill=(255, 255, 255, 140), width=3)
+    d.line([midl, bot], fill=(255, 255, 255, 90), width=3)
+    d.line([midr, bot], fill=(255, 255, 255, 90), width=3)
+    d.ellipse([c - 30, 58, c - 14, 74], fill=(255, 255, 255, 230))
+    img.resize((32, 32), Image.LANCZOS).save(OUT + 'shard.png')
+
+
+def medallion():
+    """Médaillon d'atout : anneau doré gravé, disque sombre (V2)."""
+    s = 512
+    img = Image.new('RGBA', (s, s), (0, 0, 0, 0))
+    c = s / 2
+    disc = radial(s, s, c, c * 0.9, c * 0.95, (64, 34, 110, 255), (12, 6, 26, 255), 1.2)
+    m = Image.new('L', (s, s), 0)
+    ImageDraw.Draw(m).ellipse([24, 24, s - 24, s - 24], fill=255)
+    img.paste(disc, (0, 0), m)
+    d = BlendDraw(img)
+    d.ellipse([10, 10, s - 10, s - 10], outline=(140, 98, 30, 255), width=26)
+    d.ellipse([16, 16, s - 16, s - 16], outline=(233, 196, 106, 255), width=12)
+    d.ellipse([40, 40, s - 40, s - 40], outline=(255, 226, 150, 200), width=5)
+    for i in range(24):
+        a = i / 24 * math.tau
+        r0, r1 = c - 34, c - 20
+        d.line([(c + math.cos(a) * r0, c + math.sin(a) * r0), (c + math.cos(a) * r1, c + math.sin(a) * r1)],
+               fill=(90, 60, 20, 255), width=5)
+    d.ellipse([60, 60, s - 60, s - 60], outline=(0, 0, 0, 120), width=8)
+    gl = radial(s, s, c * 0.75, c * 0.6, c * 0.5, (255, 255, 255, 40), (255, 255, 255, 0), 1.5)
+    img.alpha_composite(gl)
+    img.resize((128, 128), Image.LANCZOS).save(OUT + 'medallion.png')
+
+
 if __name__ == '__main__':
     for cat in CATS:
         front(cat)
-    back(); burn(); glow(); spark(); gem(); runes()
+    back(); burn(); glow(); spark(); gem(); runes(); shard(); medallion()
     print('textures ok')

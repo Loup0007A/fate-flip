@@ -62,6 +62,15 @@ public final class FateCommands {
                 say(Component.literal(Cards.all().stream().map(c -> c.id).collect(Collectors.joining(", "))));
                 return 1;
             }))
+            .then(Commands.literal("shards")
+                .then(Commands.argument("amount", com.mojang.brigadier.arguments.IntegerArgumentType.integer(-999, 999))
+                    .executes(ctx -> {
+                        int n = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "amount");
+                        Collection.get().addShards(n);
+                        Collection.get().save();
+                        say(Component.translatable("fateflip.cmd.shards", Collection.get().shards()));
+                        return 1;
+                    })))
             .then(Commands.literal("reset").executes(ctx -> {
                 Collection.get().reset();
                 say(Component.translatable("fateflip.cmd.reset"));

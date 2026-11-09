@@ -25,6 +25,7 @@ public final class FFConfig {
     public static final ForgeConfigSpec.BooleanValue NO_MOTION_SICKNESS;
     public static final ForgeConfigSpec.EnumValue<HudCorner> HUD_CORNER;
     public static final ForgeConfigSpec.BooleanValue LOCK_CONTROLS;
+    public static final ForgeConfigSpec.BooleanValue POWERS;
 
     static {
         ForgeConfigSpec.Builder b = new ForgeConfigSpec.Builder();
@@ -50,6 +51,8 @@ public final class FFConfig {
             .defineInRange("cardsPerDraw", 10, 3, 10);
         MAX_FLIPS = b.comment("Nombre maximal de cartes retournées par tirage (stop ou encore).")
             .defineInRange("maxFlips", 3, 1, 5);
+        POWERS = b.comment("V2 : éclats du destin et atouts (Clairvoyance, Sursis, Phénix, Demi-mesure) pendant les tirages.")
+            .define("fatePowers", true);
         DISABLED_CARDS = b.comment("Identifiants des cartes à retirer du jeu, ex. [\"scrambled_keys\", \"spyglass\"]. La liste est dans le Grimoire (touche K).")
             .defineListAllowEmpty("disabledCards", List.of(), o -> o instanceof String);
         b.pop();

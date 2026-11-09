@@ -28,10 +28,18 @@ public final class HudReminder {
 
     private static Card announced;
     private static long announcedAt;
+    private static int announcedShards;
+    private static boolean announcedHalf;
 
     public static void announce(Card card) {
+        announce(card, 0, false);
+    }
+
+    public static void announce(Card card, int shards, boolean half) {
         announced = card;
         announcedAt = Util.getMillis();
+        announcedShards = shards;
+        announcedHalf = half;
     }
 
     public static void tick() {}
@@ -136,8 +144,13 @@ public final class HudReminder {
         g.pose().scale(0.75f, 0.75f, 1f);
         int subColor = soon || pending ? CardArt.withAlpha(0xF3D58A, 0.7f + 0.3f * Mth.sin(t * 6f)) : 0xFFB8A9CF;
         g.drawString(font, sub, 0, 0, subColor, false);
+        int line = 11;
         if (fx != null && fx.locksControls() && FFConfig.LOCK_CONTROLS.get()) {
-            g.drawString(font, Component.translatable("fateflip.hud.locked"), 0, 11, 0xFFFF9AA8, false);
+            g.drawString(font, Component.translatable("fateflip.hud.locked"), 0, line, 0xFFFF9AA8, false);
+            line += 11;
+        }
+        if (Fate.isHalved()) {
+            g.drawString(font, Component.translatable("fateflip.power.half_measure.badge"), 0, line, CardArt.withAlpha(0xE9C46A, 1f), false);
         }
         g.pose().popPose();
         g.pose().popPose();
@@ -180,6 +193,22 @@ public final class HudReminder {
         for (FormattedCharSequence l : lines) {
             g.drawCenteredString(font, l, w / 2, y, CardArt.withAlpha(0xF1E9F7, a));
             y += 11;
+        }
+        if (announcedShards > 0 || announcedHalf) {
+            y += 3;
+            float pop = 1f + 0.25f * Mth.clamp(1f - (t - 0.5f) / 0.3f, 0f, 1f) * (t > 0.5f ? 1f : 0f);
+            if (t > 0.5f) {
+                Component gain = announcedShards > 0 ? Component.translatable("fateflip.shards.gain", announcedShards) : Component.empty();
+                if (announcedHalf) gain = Component.empty().append(gain).append(announcedShards > 0 ? "   " : "")
+                    .append(Component.translatable("fateflip.power.half_measure.badge"));
+                int gw = font.width(gain);
+                CardArt.glow(g, CardArt.GLOW, w / 2f, y + 4f, gw * 2.2f, 28f, Shards.COLOR, 0.4f * a);
+                g.pose().pushPose();
+                g.pose().translate(w / 2f, y + 4f, 0);
+                g.pose().scale(pop, pop, 1f);
+                g.drawString(font, gain, -gw / 2, -4, CardArt.withAlpha(Shards.COLOR, a), true);
+                g.pose().popPose();
+            }
         }
         g.pose().popPose();
     }

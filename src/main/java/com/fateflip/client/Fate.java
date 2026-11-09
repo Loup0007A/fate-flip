@@ -65,6 +65,8 @@ public final class Fate {
 
     private static CardEffect current;
     private static int effectTicksLeft;
+    private static int effectTotalTicks = 1;
+    private static boolean halved;
     private static int ticksUntilDraw = -1;
     private static boolean drawPending;
     private static int openDelay;
@@ -81,8 +83,12 @@ public final class Fate {
 
     public static float effectProgressLeft(float partialTick) {
         if (current == null) return 0f;
-        int total = Math.max(1, FFConfig.EFFECT_DURATION.get() * 20);
-        return Mth.clamp((effectTicksLeft - partialTick) / total, 0f, 1f);
+        return Mth.clamp((effectTicksLeft - partialTick) / Math.max(1, effectTotalTicks), 0f, 1f);
+    }
+
+    /** La carte active a été raccourcie par l'atout Demi-mesure. */
+    public static boolean isHalved() {
+        return current != null && halved;
     }
 
     public static int ticksUntilDraw() {
@@ -102,6 +108,10 @@ public final class Fate {
 
     /** Joue directement une carte, sans tirage (commande /fateflip play). */
     public static void play(Card card, boolean record) {
+        play(card, record, 1f);
+    }
+
+    public static void play(Card card, boolean record, float durationFactor) {
         stopEffect();
         if (record) {
             Collection.get().markSeen(card);
@@ -113,6 +123,9 @@ public final class Fate {
         effectTicksLeft = Math.max(1, FFConfig.EFFECT_DURATION.get()) * 20;
         int interval = FFConfig.DRAW_INTERVAL.get() * 20;
         effectTicksLeft = Math.min(effectTicksLeft, interval);
+        effectTicksLeft = Math.max(40, (int) (effectTicksLeft * Mth.clamp(durationFactor, 0.05f, 1f)));
+        effectTotalTicks = effectTicksLeft;
+        halved = durationFactor < 0.99f;
         ticksUntilDraw = interval;
         drawPending = false;
         try {
@@ -131,9 +144,19 @@ public final class Fate {
 
     /** Appelé par l'écran de tirage quand le joueur a dit stop (ou que le destin a choisi). */
     public static void onChosen(Card card) {
-        play(card, false);
+        onChosen(card, 1f, 0);
+    }
+
+    /**
+     * @param durationFactor 0.5 si l'atout Demi-mesure a été utilisé
+     * @param shards         éclats du destin gagnés avec cette carte
+     */
+    public static void onChosen(Card card, float durationFactor, int shards) {
+        play(card, false, durationFactor);
         Collection.get().markUsed(card);
+        if (shards > 0) Collection.get().addShards(shards);
         Collection.get().save();
+        HudReminder.announce(card, shards, durationFactor < 0.99f);
     }
 
     /** L'écran de tirage a été fermé sans choix (mort, déconnexion...) : on retentera. */

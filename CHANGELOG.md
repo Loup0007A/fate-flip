@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.0.0
+
+- **New: Fate Powers / Atouts du destin.** Daring pays off: every card you keep earns **fate shards** ✦ (Gentle +1, Strange +2, Nightmare +3, and +1 for every AGAIN you dared during that draw).
+- Spend shards during a draw on **4 powers**, each once per draw:
+  - **Clairvoyance** (3 ✦): card backs reveal their family and intensity.
+  - **Reprieve** (2 ✦): one extra flip.
+  - **Phoenix** (4 ✦): revive a burned card and take it back.
+  - **Half Measure** (5 ✦): the card you keep only lasts half as long.
+- Shard counter on the draw screen and in the Grimoire, "+N ✦" reward animation, "keep this card: +N" hint, ½ badge on the HUD reminder.
+- New config option `fatePowers` (default true) and client command `/fateflip shards <n>`.
+- Nouveau : Atouts du destin, éclats gagnés en prenant des risques, 4 atouts utilisables pendant les tirages.
+
 ## 1.0.0
 
 - First release / Première version.

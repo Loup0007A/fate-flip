@@ -27,6 +27,13 @@ Cards never touch the game itself — no stronger mobs, no free loot. They chang
 - Singleplayer pauses during the draw. In multiplayer you get 60 seconds, then fate chooses for you.
 - Keyboard friendly: `1`–`0` to flip, `Enter` to stop, `Space` to go again.
 
+### ✦ New in 2.0: Fate Powers
+Daring pays off. Every card you keep earns **fate shards** ✦: +1 Gentle, +2 Strange, +3 Nightmare, **+1 for every AGAIN** you dared during that draw. Spend them during a draw on four powers, each once per draw:
+- 👁 **Clairvoyance** (3 ✦): card backs reveal their family and intensity.
+- 🍀 **Reprieve** (2 ✦): one extra flip.
+- 🔥 **Phoenix** (4 ✦): a burned card rises from its ashes — take it back.
+- ⏳ **Half Measure** (5 ✦): the card you keep only lasts half as long.
+
 ### ✦ The Grimoire (`K`)
 Your whole collection, family by family: discovered cards, how many times you flipped and played each one.
 
@@ -55,6 +62,6 @@ Minecraft **1.21.1**, **Forge 52+**, Java 21. Client only.
 ---
 
 ### 🇫🇷 En français
-Toutes les deux minutes, le destin vous tend **dix cartes face cachée**. Retournez-en une : **STOP**, elle s'applique jusqu'au prochain tirage ; **ENCORE**, elle brûle et vous en retournez une autre — trois retournements au maximum, et **la dernière carte retournée s'applique toujours**. 67 cartes qui changent ce que vous voyez, entendez et la façon dont vos commandes répondent, jamais la partie elle-même. Mod 100 % client, entièrement traduit en français. Grimoire de collection sur la touche `K`.
+Toutes les deux minutes, le destin vous tend **dix cartes face cachée**. Retournez-en une : **STOP**, elle s'applique jusqu'au prochain tirage ; **ENCORE**, elle brûle et vous en retournez une autre — trois retournements au maximum, et **la dernière carte retournée s'applique toujours**. 67 cartes qui changent ce que vous voyez, entendez et la façon dont vos commandes répondent, jamais la partie elle-même. Nouveau en 2.0 : les **Atouts du destin**. Chaque carte gardée rapporte des éclats ✦ (plus encore si vous avez osé dire « encore »), à dépenser pendant les tirages : Clairvoyance, Sursis, Phénix et Demi-mesure. Mod 100 % client, entièrement traduit en français. Grimoire de collection sur la touche `K`.
 
 Source code & issues: https://github.com/Loup0007A/fate-flip — MIT licence.

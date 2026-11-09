@@ -40,6 +40,10 @@ public final class Collection {
     private int cycle = 1;
     private int draws;
     private int flips;
+    // V2 : éclats du destin et atouts
+    private int shards;
+    private int shardsEarned;
+    private final Map<String, Integer> powersUsed = new HashMap<>();
 
     public static Collection get() {
         if (instance == null) instance = load();
@@ -59,6 +63,9 @@ public final class Collection {
             c.cycle = o.has("cycle") ? o.get("cycle").getAsInt() : 1;
             c.draws = o.has("draws") ? o.get("draws").getAsInt() : 0;
             c.flips = o.has("flips") ? o.get("flips").getAsInt() : 0;
+            c.shards = o.has("shards") ? o.get("shards").getAsInt() : 0;
+            c.shardsEarned = o.has("shardsEarned") ? o.get("shardsEarned").getAsInt() : 0;
+            readCounts(o, "powersUsed", c.powersUsed);
             readCounts(o, "seenTotal", c.seenTotal);
             readCounts(o, "usedTotal", c.usedTotal);
             readFlags(o, "cycleSeen", c.cycleSeen);
@@ -85,6 +92,11 @@ public final class Collection {
         o.addProperty("cycle", cycle);
         o.addProperty("draws", draws);
         o.addProperty("flips", flips);
+        o.addProperty("shards", shards);
+        o.addProperty("shardsEarned", shardsEarned);
+        JsonObject pu = new JsonObject();
+        powersUsed.forEach(pu::addProperty);
+        o.add("powersUsed", pu);
         JsonObject st = new JsonObject();
         seenTotal.forEach(st::addProperty);
         o.add("seenTotal", st);
@@ -180,6 +192,26 @@ public final class Collection {
         return n;
     }
 
+    public int shards() { return shards; }
+    public int shardsEarned() { return shardsEarned; }
+
+    public void addShards(int n) {
+        shards = Math.max(0, shards + n);
+        if (n > 0) shardsEarned += n;
+    }
+
+    /** Dépense des éclats pour un atout. @return false si le solde est insuffisant. */
+    public boolean spend(Power power) {
+        if (shards < power.cost) return false;
+        shards -= power.cost;
+        powersUsed.merge(power.key(), 1, Integer::sum);
+        return true;
+    }
+
+    public int timesUsed(Power power) {
+        return powersUsed.getOrDefault(power.key(), 0);
+    }
+
     public int cycle() { return cycle; }
     public int draws() { return draws; }
     public int flips() { return flips; }
@@ -192,6 +224,9 @@ public final class Collection {
         cycle = 1;
         draws = 0;
         flips = 0;
+        shards = 0;
+        shardsEarned = 0;
+        powersUsed.clear();
         save();
     }
 }

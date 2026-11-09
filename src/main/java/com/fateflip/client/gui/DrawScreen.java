@@ -2,6 +2,7 @@ package com.fateflip.client.gui;
 
 import com.fateflip.card.Card;
 import com.fateflip.card.Collection;
+import com.fateflip.card.Power;
 import com.fateflip.card.Severity;
 import com.fateflip.client.Fate;
 import com.fateflip.config.FFConfig;
@@ -189,7 +190,7 @@ public class DrawScreen extends Screen {
     }
 
     private int flipsLeft() {
-        return maxFlips - flipsUsed;
+        return maxFlips + bonusFlips - flipsUsed;
     }
 
     private void flip(Slot s) {
@@ -240,7 +241,7 @@ public class DrawScreen extends Screen {
         Card card = focus.card;
         onClose();
         sound(SoundEvents.PLAYER_LEVELUP, 0.75f, 0.35f);
-        Fate.onChosen(card);
+        Fate.onChosen(card, durationFactor, reward());
     }
 
     @Override
@@ -320,6 +321,16 @@ public class DrawScreen extends Screen {
     @Override
     public boolean mouseClicked(double mx, double my, int button) {
         if (button != 0) return false;
+        if (hoveredPower != null) {
+            activate(hoveredPower);
+            return true;
+        }
+        if (phoenixPicking) {
+            Slot b = burnedAt(mx, my);
+            if (b != null) revive(b);
+            else phoenixPicking = false;
+            return true;
+        }
         if (phase == Phase.CHOOSING && hovered != null && !hovered.revealed) {
             flip(hovered);
             return true;
@@ -333,6 +344,10 @@ public class DrawScreen extends Screen {
 
     @Override
     public boolean keyPressed(int key, int scan, int mods) {
+        if (phoenixPicking && key == GLFW.GLFW_KEY_ESCAPE) {
+            phoenixPicking = false;
+            return true;
+        }
         if (phase == Phase.REVEAL) {
             if (key == GLFW.GLFW_KEY_ENTER || key == GLFW.GLFW_KEY_KP_ENTER || key == GLFW.GLFW_KEY_S) { stop(); return true; }
             if (key == GLFW.GLFW_KEY_SPACE || key == GLFW.GLFW_KEY_E) { encore(); return true; }
@@ -402,6 +417,9 @@ public class DrawScreen extends Screen {
             drawFocus(g, t, mx, my);
         }
 
+        renderPowers(g, t, mx, my, intro * (1f - outro));
+        renderReward(g, t);
+
         g.pose().pushPose();
         g.pose().translate(0, 0, 6000);
         particles.render(g);
@@ -451,9 +469,10 @@ public class DrawScreen extends Screen {
         // compteur de retournements
         Component lbl = Component.translatable("fateflip.draw.flips");
         int lw = font.width(lbl);
-        float gx = width / 2f - (lw + 6 + maxFlips * 11) / 2f;
+        int totalFlips = maxFlips + bonusFlips;
+        float gx = width / 2f - (lw + 6 + totalFlips * 11) / 2f;
         g.drawString(font, lbl, (int) gx, (int) ty + 35, CardArt.withAlpha(0xA996C9, a * dim), false);
-        for (int i = 0; i < maxFlips; i++) {
+        for (int i = 0; i < totalFlips; i++) {
             boolean left = i < flipsLeft();
             float cx = gx + lw + 10 + i * 11, cy = ty + 39;
             if (left) CardArt.glow(g, CardArt.GLOW, cx, cy, 14f, 14f, 0xE9C46A, 0.5f * a * dim);
@@ -500,6 +519,16 @@ public class DrawScreen extends Screen {
         if (s.hover > 0.01f) {
             CardArt.glow(g, CardArt.GLOW, x, y, 64f * sc * 1.6f, 96f * sc * 1.4f, 0xE9C46A, 0.55f * s.hover * alpha);
         }
+        float fk = foresightK(t);
+        if (fk > 0f && !s.revealed) {
+            float pulse = 0.75f + 0.25f * Mth.sin(t * 2.5f + s.index);
+            CardArt.glow(g, CardArt.GLOW, x, y, 64f * sc * 1.55f, 96f * sc * 1.35f, s.card.category.light, 0.6f * fk * pulse * alpha);
+        }
+        if (phoenixPicking && s.burned) {
+            float pulse = 0.6f + 0.4f * Mth.sin(t * 6f);
+            boolean hov = s == burnedHover;
+            CardArt.glow(g, CardArt.GLOW, x, y, 64f * sc * 1.8f, 96f * sc * 1.6f, 0xFF8A2A, (hov ? 0.95f : 0.55f) * pulse * alpha);
+        }
         float burn = s.burned ? Mth.clamp((t - s.burnStart) / 0.8f, 0f, 1f) : 0f;
         drawCard(g, s, x, y, sc, rot, flip, alpha, z, false, burn, t);
     }
@@ -520,6 +549,14 @@ public class DrawScreen extends Screen {
             CardArt.burnt(g, burn);
         } else {
             CardArt.back(g, alpha);
+            float fk = foresightK(t);
+            if (fk > 0f && !s.revealed) {
+                g.fill(3, 3, 61, 93, CardArt.withAlpha(s.card.category.dark, 0.28f * fk * alpha));
+                g.renderOutline(3, 3, 58, 90, CardArt.withAlpha(s.card.category.light, 0.9f * fk * alpha));
+                g.fill(8, 70, 56, 80, CardArt.withAlpha(0x0A0618, 0.85f * fk * alpha));
+                CardArt.centered(g, s.card.category.title(), 32f, 75.2f, 0.5f, 46f, CardArt.withAlpha(s.card.category.light, fk * alpha), false);
+                CardArt.gems(g, s.card, fk * alpha, t);
+            }
             if (flip > 0.3f) g.fill(0, 0, 64, 96, CardArt.withAlpha(0xFFFFFF, (flip - 0.3f) * 3f * alpha));
         }
         g.pose().popPose();
@@ -630,6 +667,17 @@ public class DrawScreen extends Screen {
             g.drawString(font, l, x, y, CardArt.withAlpha(0xEDE4F5, a), false);
             y += 11;
         }
+        if (powersOn()) {
+            y += 3;
+            int gain = reward();
+            Shards.icon(g, x + 5, y + 4, 10f, a, t);
+            g.drawString(font, Component.translatable("fateflip.shards.if_kept", gain), x + 13, y, CardArt.withAlpha(Shards.COLOR, a), false);
+            y += 11;
+            if (durationFactor < 0.99f) {
+                g.drawString(font, Component.translatable("fateflip.power.half_measure.active"), x, y, CardArt.withAlpha(0xE9C46A, a), false);
+                y += 11;
+            }
+        }
         // boutons, alignés sur le bas de la carte
         int bottom = (int) (zoomY + 48f * zoomScale);
         boolean canEncore = flipsLeft() > 0;
@@ -699,7 +747,268 @@ public class DrawScreen extends Screen {
         }
     }
 
+    // ───────────────────────── atouts (V2) ─────────────────────────
+
+    private static final int MED = 22, MED_GAP = 6;
+    private final java.util.EnumSet<Power> usedPowers = java.util.EnumSet.noneOf(Power.class);
+    private int bonusFlips;
+    private boolean foresight;
+    private float foresightStart;
+    private float durationFactor = 1f;
+    private boolean phoenixPicking;
+    private Slot burnedHover;
+    private float shardBump;
+    private float rewardStart = -1f;
+    private Power hoveredPower;
+
+    private boolean powersOn() {
+        return FFConfig.POWERS.get();
+    }
+
+    private int reward() {
+        return powersOn() && focus != null ? Power.reward(focus.card.severity, burnedCount) : 0;
+    }
+
+    private float foresightK(float t) {
+        return foresight ? easeOut((t - foresightStart) / 0.6f) : 0f;
+    }
+
+    private boolean anyFaceDown() {
+        for (Slot s : slots) if (!s.revealed) return true;
+        return false;
+    }
+
+    private List<Slot> burnedSlots() {
+        List<Slot> out = new ArrayList<>();
+        for (Slot s : slots) if (s.burned && s != focus) out.add(s);
+        return out;
+    }
+
+    /** Clé de traduction expliquant pourquoi l'atout est indisponible, ou null s'il peut être utilisé. */
+    private String powerBlock(Power p) {
+        if (usedPowers.contains(p)) return "fateflip.power.used";
+        boolean choosing = phase == Phase.CHOOSING, reveal = phase == Phase.REVEAL;
+        switch (p) {
+            case CLAIRVOYANCE, REPRIEVE -> {
+                if (!choosing && !reveal) return "fateflip.power.not_now";
+                if (!anyFaceDown()) return "fateflip.power.useless";
+            }
+            case PHOENIX -> {
+                if (!choosing) return "fateflip.power.not_now";
+                if (burnedSlots().isEmpty()) return "fateflip.power.no_burned";
+            }
+            case HALF_MEASURE -> {
+                if (!choosing && !reveal) return "fateflip.power.not_now";
+            }
+        }
+        if (Collection.get().shards() < p.cost) return "fateflip.power.too_poor";
+        return null;
+    }
+
+    private void activate(Power p) {
+        if (!powersOn()) return;
+        if (powerBlock(p) != null) {
+            sound(SoundEvents.NOTE_BLOCK_BASS.value(), 0.6f, 0.6f);
+            return;
+        }
+        if (p == Power.PHOENIX) {
+            List<Slot> burned = burnedSlots();
+            if (burned.size() == 1) revive(burned.get(0));
+            else {
+                phoenixPicking = true;
+                sound(SoundEvents.FIRECHARGE_USE, 1.3f, 0.4f);
+            }
+            return;
+        }
+        pay(p);
+        switch (p) {
+            case CLAIRVOYANCE -> {
+                foresight = true;
+                foresightStart = now();
+                for (Slot s : slots) if (!s.revealed) particles.burst(s.x, s.y, 10, s.card.category.light, 70f * scale, 5f * scale);
+                sound(SoundEvents.ENDER_EYE_DEATH, 1.2f, 0.7f);
+                sound(SoundEvents.AMETHYST_BLOCK_RESONATE, 1.4f, 0.6f);
+            }
+            case REPRIEVE -> {
+                bonusFlips++;
+                sound(SoundEvents.PLAYER_LEVELUP, 1.6f, 0.45f);
+            }
+            case HALF_MEASURE -> {
+                durationFactor = 0.5f;
+                sound(SoundEvents.BELL_BLOCK, 1.5f, 0.45f);
+            }
+            default -> { }
+        }
+    }
+
+    private void pay(Power p) {
+        Collection.get().spend(p);
+        Collection.get().save();
+        usedPowers.add(p);
+        shardBump = 1f;
+        int i = p.ordinal();
+        particles.burst(railX() + MED / 2f, railY() + i * (MED + MED_GAP) + MED / 2f, 24, p.color & 0xFFFFFF, 90f, 6f);
+        sound(SoundEvents.AMETHYST_CLUSTER_BREAK, 1.3f, 0.8f);
+    }
+
+    /** Phénix : la carte brûlée renaît de ses cendres et redevient le choix en cours. */
+    private void revive(Slot s) {
+        pay(Power.PHOENIX);
+        phoenixPicking = false;
+        s.burned = false;
+        s.burnStart = -1f;
+        focus = s;
+        previewEffect = s.card.createEffect();
+        particles.burst(s.x, s.y, 60, 0xFF9A3C, 170f * scale, 8f * scale);
+        particles.embers(s.x - 28 * scale, s.y - 40 * scale, s.x + 28 * scale, s.y + 44 * scale, 30);
+        sound(SoundEvents.TOTEM_USE, 1.25f, 0.3f);
+        setPhase(Phase.ZOOMING);
+    }
+
+    private Slot burnedAt(double mx, double my) {
+        for (Slot s : slots) {
+            if (!s.burned) continue;
+            float hw = 32f * scale, hh = 48f * scale;
+            if (mx >= s.x - hw && mx <= s.x + hw && my >= s.y - hh && my <= s.y + hh) return s;
+        }
+        return null;
+    }
+
+    private int railX() {
+        return 10;
+    }
+
+    private int railY() {
+        int n = Power.values().length;
+        return (int) (tableY - (n * MED + (n - 1) * MED_GAP) / 2f + 10);
+    }
+
+    private void renderPowers(GuiGraphics g, float t, int mx, int my, float a) {
+        hoveredPower = null;
+        burnedHover = phoenixPicking ? burnedAt(mx, my) : null;
+        if (!powersOn() || a <= 0.01f) return;
+        shardBump = Math.max(0f, shardBump - 0.04f);
+        int x = railX(), y0 = railY();
+        g.pose().pushPose();
+        g.pose().translate(0, 0, 5000);
+        Shards.counter(g, x, y0 - 30, Collection.get().shards(), a, t, shardBump);
+        g.drawString(font, Component.translatable("fateflip.power.title"), x, y0 - 14, CardArt.withAlpha(0xA996C9, a), false);
+        Power[] all = Power.values();
+        for (int i = 0; i < all.length; i++) {
+            Power p = all[i];
+            int y = y0 + i * (MED + MED_GAP);
+            String block = powerBlock(p);
+            boolean used = usedPowers.contains(p);
+            boolean lit = used && (p == Power.CLAIRVOYANCE || p == Power.HALF_MEASURE);
+            boolean usable = block == null;
+            boolean hov = (mx >= x && mx <= x + MED && my >= y && my <= y + MED || testPowerHover == i) && phase != Phase.FINALE;
+            if (hov) hoveredPower = p;
+            float pulse = 0.5f + 0.5f * Mth.sin(t * 3f + i);
+            float glowA = hov ? 0.75f : lit ? 0.55f : usable ? 0.18f + 0.22f * pulse : 0f;
+            int rgb = p.color & 0xFFFFFF;
+            CardArt.glow(g, CardArt.GLOW, x + MED / 2f, y + MED / 2f, MED * 2.4f, MED * 2.4f, rgb, glowA * a);
+            float lift = hov && usable ? -1f : 0f;
+            CardArt.tex(g, Shards.MEDALLION, x, y + lift, MED, MED, CardArt.withAlpha(usable || lit ? 0xFFFFFF : 0x7A7A86, a));
+            g.pose().pushPose();
+            g.pose().translate(0, lift, 0);
+            g.renderItem(p.icon(), x + 3, y + 3);
+            g.pose().popPose();
+            g.flush();
+            if (!usable && !lit) {
+                g.pose().pushPose();
+                g.pose().translate(0, 0, 200);
+                g.fill(x + 4, y + 4, x + MED - 4, y + MED - 4, CardArt.withAlpha(0x0A0612, 0.55f * a));
+                g.pose().popPose();
+            }
+            // coût
+            g.pose().pushPose();
+            g.pose().translate(x + MED - 3, y + MED - 6, 260);
+            if (used) {
+                g.drawString(font, "✔", 0, 0, CardArt.withAlpha(lit ? 0x8EF0B0 : 0x8A8296, a), true);
+            } else {
+                g.pose().scale(0.75f, 0.75f, 1f);
+                g.drawString(font, Integer.toString(p.cost), 0, 0, CardArt.withAlpha(usable ? Shards.COLOR : 0x8A8296, a), true);
+            }
+            g.pose().popPose();
+        }
+        g.pose().popPose();
+        g.flush();
+        if (phoenixPicking) {
+            Component msg = Component.translatable("fateflip.power.phoenix.pick");
+            g.pose().pushPose();
+            g.pose().translate(0, 0, 5200);
+            g.drawCenteredString(font, msg, width / 2, height - 22, CardArt.withAlpha(0xFFB066, 0.7f + 0.3f * Mth.sin(t * 5f)));
+            g.pose().popPose();
+        }
+        if (hoveredPower != null) powerTooltip(g, hoveredPower, x + MED + 8, y0 + hoveredPower.ordinal() * (MED + MED_GAP) - 2, a);
+    }
+
+    private void powerTooltip(GuiGraphics g, Power p, int x, int y, float a) {
+        int w = 170;
+        List<FormattedCharSequence> lines = font.split(p.description(), w);
+        String block = powerBlock(p);
+        int h = 26 + lines.size() * 10 + (block != null ? 11 : 0);
+        y = Math.min(y, height - h - 4);
+        g.pose().pushPose();
+        g.pose().translate(0, 0, 5600);
+        g.fillGradient(x - 4, y - 4, x + w + 4, y + h, 0xF0120A22, 0xF00A0614);
+        g.renderOutline(x - 4, y - 4, w + 8, h + 4, CardArt.withAlpha(p.color & 0xFFFFFF, 0.9f * a));
+        g.drawString(font, p.title(), x, y, CardArt.withAlpha(p.color & 0xFFFFFF, a), true);
+        int cy = y + 12;
+        for (FormattedCharSequence l : lines) {
+            g.drawString(font, l, x, cy, CardArt.withAlpha(0xEDE4F5, a), false);
+            cy += 10;
+        }
+        cy += 2;
+        Shards.icon(g, x + 4, cy + 4, 9f, a, 0f);
+        g.drawString(font, Component.translatable("fateflip.power.cost", p.cost), x + 11, cy, CardArt.withAlpha(Shards.COLOR, a), false);
+        if (block != null) {
+            g.drawString(font, Component.translatable(block), x, cy + 11, CardArt.withAlpha(0xFF8FA6, a), false);
+        }
+        g.pose().popPose();
+        g.flush();
+    }
+
+    /** « +3 ✦ » qui s'élève de la carte gardée pendant l'animation finale. */
+    private void renderReward(GuiGraphics g, float t) {
+        int gain = reward();
+        if (phase != Phase.FINALE || gain <= 0) return;
+        float pt = phaseT();
+        float a = Mth.clamp(pt / 0.15f, 0f, 1f) * Mth.clamp((1.15f - pt) / 0.3f, 0f, 1f);
+        if (a <= 0.01f) return;
+        float y = zoomY - 48f * zoomScale - 6f - pt * 26f;
+        Component txt = Component.translatable("fateflip.shards.gain", gain);
+        int tw = font.width(txt);
+        g.pose().pushPose();
+        g.pose().translate(zoomX, y, 5400);
+        g.pose().scale(1.6f, 1.6f, 1f);
+        CardArt.glow(g, CardArt.GLOW, 0, 0, tw * 2.2f, 26f, 0xB98CFF, 0.5f * a);
+        g.drawString(font, txt, -tw / 2, -4, CardArt.withAlpha(Shards.COLOR, a), true);
+        g.pose().popPose();
+        g.flush();
+    }
+
     // ───────────────────────── pour l'auto-test ─────────────────────────
+
+    private int testPowerHover = -1;
+
+    public void testHoverPower(int index) {
+        testPowerHover = index;
+    }
+
+    public void testPower(Power p) {
+        activate(p);
+    }
+
+    public boolean testIsPhoenixPicking() {
+        return phoenixPicking;
+    }
+
+    public void testRevive() {
+        List<Slot> b = burnedSlots();
+        if (!b.isEmpty()) revive(b.get(0));
+    }
+
 
     public boolean isChoosing() {
         return phase == Phase.CHOOSING;

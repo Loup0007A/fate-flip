@@ -25,6 +25,19 @@ Les cartes ne touchent jamais à la partie (pas de monstres plus forts, pas d'ob
 - En solo, le jeu est en pause pendant le tirage. En multijoueur, vous avez 60 secondes, ensuite le destin choisit pour vous.
 - Clavier : `1`…`0` pour retourner une carte, `Entrée` = stop, `Espace` = encore.
 
+## ✦ Nouveau en V2 : les Atouts du destin
+
+L'audace paie. Chaque carte gardée rapporte des **éclats du destin** ✦ : +1 (Doux), +2 (Étrange), +3 (Cauchemar), **+1 par ENCORE** tenté pendant le tirage. Ils sont conservés d'une partie à l'autre.
+
+Pendant un tirage, dépensez-les sur la colonne d'**atouts** à gauche (chacun une fois par tirage) :
+
+| Atout | Coût | Effet |
+|---|---|---|
+| 👁 **Clairvoyance** | 3 ✦ | Les dos des cartes révèlent leur famille et leur intensité |
+| 🍀 **Sursis** | 2 ✦ | Un retournement de plus |
+| 🔥 **Phénix** | 4 ✦ | Une carte brûlée renaît : vous pouvez la reprendre |
+| ⏳ **Demi-mesure** | 5 ✦ | La carte gardée ne dure que la moitié du temps |
+
 ## 📖 Le Grimoire (touche **K**)
 
 Toute votre collection, famille par famille : cartes découvertes, nombre de fois retournées et jouées, et l'identifiant de chaque carte (pour la désactiver dans la configuration).
@@ -57,10 +70,11 @@ Toute votre collection, famille par famille : cartes découvertes, nombre de foi
 | `noMotionSickness` | false | Retire les cartes qui font bouger la caméra |
 | `lockControlsScreen` | true | Scelle l'écran des contrôles pendant les cartes « Contrôles » |
 | `hudCorner` | TOP_LEFT | Position du rappel de carte (ou HIDDEN) |
+| `fatePowers` | true | Éclats du destin et atouts (V2) |
 
 ## ⌨️ Commandes (client)
 
-`/fateflip draw` (tirage immédiat) · `/fateflip play <carte>` · `/fateflip stop` · `/fateflip grimoire` · `/fateflip list` · `/fateflip reset`
+`/fateflip draw` (tirage immédiat) · `/fateflip play <carte>` · `/fateflip stop` · `/fateflip grimoire` · `/fateflip list` · `/fateflip shards <n>` · `/fateflip reset`
 
 ## 🔧 Développement
 

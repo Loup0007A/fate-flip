@@ -4,6 +4,8 @@ import com.fateflip.FateFlip;
 import com.fateflip.card.Card;
 import com.fateflip.card.Cards;
 import com.fateflip.card.Category;
+import com.fateflip.card.Collection;
+import com.fateflip.card.Power;
 import com.fateflip.client.Fate;
 import com.fateflip.client.gui.DrawScreen;
 import com.fateflip.client.gui.GrimoireScreen;
@@ -72,18 +74,44 @@ public final class ClientSelfTest {
 
     private static void build() {
         built = true;
-        step("monde", 1, () -> shot("00_world"));
+        step("monde", 1, () -> {
+            shot("00_world");
+            Collection.get().addShards(20 - Collection.get().shards());
+        });
         step("tirage", 1, Fate::forceDraw);
         stepWhen("table", () -> draw() != null && draw().isChoosing(), 10, () -> shot("01_draw_table"));
         step("survol", 1, () -> draw().testHover(2));
         step("survol-capture", 8, () -> shot("02_draw_hover"));
-        step("retourne", 1, () -> {
+        // V2 : atouts
+        step("clairvoyance", 1, () -> {
             draw().testHover(-1);
-            draw().testFlip(draw().testFind(true));
+            draw().testPower(Power.CLAIRVOYANCE);
         });
+        step("clairvoyance-capture", 16, () -> {
+            check(Collection.get().shards() == 17, "Clairvoyance coûte 3 éclats (" + Collection.get().shards() + ")");
+            shot("02b_clairvoyance");
+        });
+        step("info-atout", 1, () -> draw().testHoverPower(2));
+        step("info-atout-capture", 6, () -> {
+            shot("02c_power_tooltip");
+            draw().testHoverPower(-1);
+        });
+        step("retourne", 1, () -> draw().testFlip(draw().testFind(true)));
         stepWhen("révélée", () -> draw() != null && draw().isRevealing(), 6, () -> shot("03_reveal_preview"));
         step("encore", 1, () -> draw().testEncore());
         stepWhen("brûlée", () -> draw() != null && draw().isChoosing(), 4, () -> shot("04_burned"));
+        step("phénix", 1, () -> draw().testPower(Power.PHOENIX));
+        stepWhen("phénix-révélée", () -> draw() != null && draw().isRevealing(), 4, () -> {
+            check(Collection.get().shards() == 13, "Phénix coûte 4 éclats (" + Collection.get().shards() + ")");
+            draw().testPower(Power.HALF_MEASURE);
+        });
+        step("demi-mesure-capture", 4, () -> shot("04b_phoenix_half"));
+        step("encore-2", 1, () -> draw().testEncore());
+        stepWhen("sursis", () -> draw() != null && draw().isChoosing(), 4, () -> draw().testPower(Power.REPRIEVE));
+        step("sursis-capture", 6, () -> {
+            check(Collection.get().shards() == 6, "Demi-mesure + Sursis coûtent 7 éclats (" + Collection.get().shards() + ")");
+            shot("04c_reprieve");
+        });
         step("retourne-2", 1, () -> draw().testFlip(draw().testFind(false)));
         stepWhen("révélée-2", () -> draw() != null && draw().isRevealing(), 6, () -> shot("05_reveal_card"));
         step("stop", 1, () -> draw().testStop());
@@ -91,6 +119,8 @@ public final class ClientSelfTest {
         stepWhen("fermeture", () -> mc().screen == null, 14, () -> {});
         step("annonce", 6, () -> {
             check(Fate.current() != null, "une carte est active après le tirage");
+            check(Fate.isHalved(), "Demi-mesure appliquée");
+            check(Collection.get().shards() > 6, "éclats gagnés en gardant la carte (" + Collection.get().shards() + ")");
             shot("07_announce");
         });
         step("hud", 70, () -> shot("08_hud"));

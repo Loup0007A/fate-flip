@@ -102,6 +102,13 @@ public class GrimoireScreen extends Screen {
         g.pose().popPose();
         Component stats = Component.translatable("fateflip.grimoire.stats", col.discoveredCount(), Cards.count(), col.cycle(), col.draws());
         g.drawCenteredString(font, stats, width / 2, 28, 0xFFB8A9CF);
+        if (com.fateflip.config.FFConfig.POWERS.get()) {
+            g.pose().pushPose();
+            g.pose().translate(0, 0, 60);
+            int cw = Shards.counter(g, width - 64, 10, col.shards(), 1f, t, 0f);
+            g.drawString(font, Component.translatable("fateflip.shards.name"), width - 64, 22, 0xFF8C7AA8, false);
+            g.pose().popPose();
+        }
 
         // onglets
         Category[] cats = Category.values();
