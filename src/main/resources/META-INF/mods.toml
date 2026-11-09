@@ -1,0 +1,35 @@
+modLoader="javafml"
+loaderVersion="[52,)"
+license="MIT"
+issueTrackerURL="https://github.com/Loup0007A/fate-flip/issues"
+
+[[mods]]
+modId="fateflip"
+version="${version}"
+displayName="Fate Flip"
+authors="Loup0007A"
+displayURL="https://github.com/Loup0007A/fate-flip"
+logoFile="fateflip_logo.png"
+# Mod 100 % client : inutile sur le serveur, et les serveurs n'ont pas besoin de l'avoir.
+displayTest="IGNORE_ALL_VERSION"
+description='''
+Every two minutes, fate deals you ten face-down cards. Flip one... then stop, or flip again?
+Up to three flips: the last card you turn over always takes effect until the next draw.
+65 cards that twist how you see, hear and control the game, never what it is.
+
+Toutes les deux minutes, le destin vous tend dix cartes face cachée. Stop ou encore ?
+'''
+
+[[dependencies.fateflip]]
+    modId="forge"
+    mandatory=true
+    versionRange="[52,)"
+    ordering="NONE"
+    side="CLIENT"
+
+[[dependencies.fateflip]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.21.1,1.22)"
+    ordering="NONE"
+    side="CLIENT"
