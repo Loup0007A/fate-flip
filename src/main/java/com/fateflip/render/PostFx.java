@@ -127,6 +127,8 @@ public final class PostFx {
             main.bindWrite(true);
             draw(pass, copy.getColorTextureId(), depthTex, handTex, 0f, 0f, 1f, 1f, main.width, main.height, time, intensity);
             main.bindWrite(true);
+            RenderSystem.enableBlend();
+            RenderSystem.defaultBlendFunc();
         } catch (Throwable t) {
             fail(t);
         }

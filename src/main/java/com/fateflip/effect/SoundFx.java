@@ -40,6 +40,28 @@ public final class SoundFx {
         return OURS.contains(sound);
     }
 
+    // Les sons « différés » passent par notre propre file : appeler SoundManager.playDelayed
+    // depuis PlaySoundEvent peut casser l'itération interne du moteur de son.
+    private record Later(int due, SoundInstance sound) {}
+
+    private static final List<Later> LATER = new ArrayList<>();
+    private static int clock;
+
+    static void later(SoundInstance sound, int ticks) {
+        LATER.add(new Later(clock + Math.max(1, ticks), mark(sound)));
+    }
+
+    /** Appelé à chaque tick client par le gestionnaire. */
+    public static void tickScheduler() {
+        clock++;
+        if (LATER.isEmpty()) return;
+        List<Later> due = new ArrayList<>();
+        for (int i = LATER.size() - 1; i >= 0; i--) {
+            if (LATER.get(i).due <= clock) due.add(LATER.remove(i));
+        }
+        for (int i = due.size() - 1; i >= 0; i--) CardEffect.MC.getSoundManager().play(due.get(i).sound);
+    }
+
     /** Sons que l'on peut remplacer sans casser le jeu (pas la musique, pas les sons qui se suivent). */
     static boolean replaceable(SoundInstance s) {
         if (isOurs(s) || s instanceof TickableSoundInstance || s.isLooping()) return false;
@@ -155,8 +177,8 @@ public final class SoundFx {
         public SoundInstance sound(SoundInstance s) {
             if (!replaceable(s) || !resolve(s)) return s;
             float v = Math.min(1f, s.getVolume());
-            MC.getSoundManager().playDelayed(copy(s, s.getLocation(), v * 0.45f, s.getPitch()), 7);
-            MC.getSoundManager().playDelayed(copy(s, s.getLocation(), v * 0.2f, s.getPitch()), 14);
+            later(copy(s, s.getLocation(), v * 0.45f, s.getPitch()), 7);
+            later(copy(s, s.getLocation(), v * 0.2f, s.getPitch()), 14);
             return s;
         }
     }
@@ -166,7 +188,7 @@ public final class SoundFx {
         @Override
         public SoundInstance sound(SoundInstance s) {
             if (!replaceable(s) || s.getSource() == SoundSource.MASTER || !resolve(s)) return s;
-            MC.getSoundManager().playDelayed(copy(s, s.getLocation(), Math.min(1f, s.getVolume()), s.getPitch()), 16 + rng.nextInt(8));
+            later(copy(s, s.getLocation(), Math.min(1f, s.getVolume()), s.getPitch()), 16 + rng.nextInt(8));
             return null;
         }
     }

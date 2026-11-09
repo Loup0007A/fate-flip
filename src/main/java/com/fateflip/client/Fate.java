@@ -202,6 +202,7 @@ public final class Fate {
             return;
         }
         if (MC.isPaused()) return;
+        SoundFx.tickScheduler();
 
         if (current != null) {
             current.age++;

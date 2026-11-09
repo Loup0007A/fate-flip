@@ -114,7 +114,12 @@ public class GrimoireScreen extends Screen {
             g.fill(tabX[i], tabY, tabX[i] + tabW, tabY + tabH, on ? CardArt.withAlpha(c.dark, 0.95f) : (hov ? 0x60FFFFFF : 0x40000000));
             g.fill(tabX[i], tabY + tabH - 2, tabX[i] + tabW, tabY + tabH, CardArt.withAlpha(c.light, on ? 1f : 0.5f));
             Component label = Component.literal("").append(c.title()).append(" " + found + "/" + all);
-            g.drawCenteredString(font, label, tabX[i] + tabW / 2, tabY + 4, on ? 0xFFFFFFFF : CardArt.withAlpha(c.light, 0.9f));
+            float ls = Math.min(1f, (tabW - 6f) / Math.max(1, font.width(label)));
+            g.pose().pushPose();
+            g.pose().translate(tabX[i] + tabW / 2f, tabY + 8f - 4f * ls, 0);
+            g.pose().scale(ls, ls, 1f);
+            g.drawCenteredString(font, label, 0, 0, on ? 0xFFFFFFFF : CardArt.withAlpha(c.light, 0.9f));
+            g.pose().popPose();
         }
 
         // grille
