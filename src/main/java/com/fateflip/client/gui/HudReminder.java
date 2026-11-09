@@ -196,8 +196,8 @@ public final class HudReminder {
         }
         if (announcedShards > 0 || announcedHalf) {
             y += 3;
-            float pop = 1f + 0.25f * Mth.clamp(1f - (t - 0.5f) / 0.3f, 0f, 1f) * (t > 0.5f ? 1f : 0f);
-            if (t > 0.5f) {
+            float pop = 1f + 0.25f * Mth.clamp(1f - (t - 0.35f) / 0.3f, 0f, 1f) * (t > 0.35f ? 1f : 0f);
+            if (t > 0.35f) {
                 Component gain = announcedShards > 0 ? Component.translatable("fateflip.shards.gain", announcedShards) : Component.empty();
                 if (announcedHalf) gain = Component.empty().append(gain).append(announcedShards > 0 ? "   " : "")
                     .append(Component.translatable("fateflip.power.half_measure.badge"));

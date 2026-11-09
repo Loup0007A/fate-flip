@@ -976,12 +976,13 @@ public class DrawScreen extends Screen {
         float pt = phaseT();
         float a = Mth.clamp(pt / 0.15f, 0f, 1f) * Mth.clamp((1.15f - pt) / 0.3f, 0f, 1f);
         if (a <= 0.01f) return;
-        float y = zoomY - 48f * zoomScale - 6f - pt * 26f;
+        float y = zoomY - pt * 22f;
         Component txt = Component.translatable("fateflip.shards.gain", gain);
         int tw = font.width(txt);
+        float pop = 1.6f + 0.5f * Mth.clamp(1f - pt / 0.25f, 0f, 1f);
         g.pose().pushPose();
-        g.pose().translate(zoomX, y, 5400);
-        g.pose().scale(1.6f, 1.6f, 1f);
+        g.pose().translate(panelX + panelW / 2f, y, 5400);
+        g.pose().scale(pop, pop, 1f);
         CardArt.glow(g, CardArt.GLOW, 0, 0, tw * 2.2f, 26f, 0xB98CFF, 0.5f * a);
         g.drawString(font, txt, -tw / 2, -4, CardArt.withAlpha(Shards.COLOR, a), true);
         g.pose().popPose();
