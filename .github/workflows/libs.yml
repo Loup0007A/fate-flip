@@ -9,6 +9,9 @@ on:
         description: "Cibles (séparées par des espaces)"
         default: "neoforge-1.21.1 forge-1.20.1 neoforge-26.3"
 
+permissions:
+  contents: write
+
 jobs:
   export:
     runs-on: ubuntu-latest
@@ -52,10 +55,16 @@ jobs:
           ls -la build/export | head -100
           du -sh build/export
 
-      - name: Upload
+      # Les artefacts d'Actions passent par un stockage externe souvent bloqué : on publie sur une branche.
+      - name: Publish to branch mc-libs-<target>
         if: contains(inputs.targets, matrix.target)
-        uses: actions/upload-artifact@v4
-        with:
-          name: libs-${{ matrix.target }}
-          path: targets/${{ matrix.target }}/build/export
-          retention-days: 30
+        env:
+          T: ${{ matrix.target }}
+        run: |
+          cd "targets/$T/build/export"
+          find . -size +95M -print -delete
+          git init -q -b "mc-libs-$T"
+          git config user.email "actions@github.com"
+          git config user.name "github-actions"
+          git add -A && git commit -qm "libs $T"
+          git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" "mc-libs-$T"
