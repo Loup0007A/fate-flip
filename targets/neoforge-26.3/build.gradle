@@ -12,7 +12,7 @@ base { archivesName = 'fateflip' }
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
-// Sources produites par « python3 tools/port.py neoforge-26.2 »
+// Sources produites par « python3 tools/port.py neoforge-26.3 »
 sourceSets.main.java.srcDirs = ['build/ported/java']
 sourceSets.main.resources.srcDirs = ['build/ported/resources']
 
@@ -44,4 +44,5 @@ tasks.register('exportLibs', Copy) {
     from configurations.compileClasspath
     from(layout.buildDirectory.dir('moddev/artifacts'))
     into layout.buildDirectory.dir('export')
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }

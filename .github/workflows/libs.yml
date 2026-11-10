@@ -7,7 +7,7 @@ on:
     inputs:
       targets:
         description: "Cibles (séparées par des espaces)"
-        default: "neoforge-1.21.1 forge-1.20.1 neoforge-26.2"
+        default: "neoforge-1.21.1 forge-1.20.1 neoforge-26.3"
 
 jobs:
   export:
@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [neoforge-1.21.1, forge-1.20.1, neoforge-26.2]
+        target: [neoforge-1.21.1, forge-1.20.1, neoforge-26.3]
     steps:
       - name: Checkout
         if: contains(inputs.targets, matrix.target)
@@ -42,6 +42,7 @@ jobs:
         env:
           T: ${{ matrix.target }}
         run: |
+          chmod +x gradlew targets/*/gradlew 2>/dev/null || true
           python3 tools/port.py "$T"
           cd "targets/$T"
           export JAVA_HOME="$JAVA_HOME_21_X64"

@@ -48,4 +48,5 @@ tasks.register('exportLibs', Copy) {
     from configurations.compileClasspath
     from(layout.buildDirectory.dir('moddev/artifacts'))
     into layout.buildDirectory.dir('export')
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }

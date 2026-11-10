@@ -1,5 +1,5 @@
 {
-  "tags": ["neoforge", "mc26", "mc262"],
+  "tags": ["neoforge", "mc26", "mc263"],
   "delete": ["resources/META-INF/mods.toml"],
   "rewrites": []
 }

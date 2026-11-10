@@ -55,4 +55,5 @@ tasks.register('exportLibs', Copy) {
     from configurations.compileClasspath
     from(layout.buildDirectory.dir('createMcpToSrg'))
     into layout.buildDirectory.dir('export')
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
