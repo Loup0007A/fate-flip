@@ -25,6 +25,8 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, 'src', 'main')
 TEXT_EXT = ('.java',)
+# Shaders : blocs //#if traités aussi (sans les remplacements de target.json)
+SHADER_EXT = ('.fsh', '.vsh', '.glsl')
 DIRECTIVE = re.compile(r'^(\s*)//#(if|elif|else|endif)\b\s*(.*)$')
 COMMENTED = re.compile(r'^(\s*)//\$\$ ?(.*)$')
 
@@ -104,9 +106,9 @@ def rewrite(text, rules):
 def check():
     """src/main doit être exactement la variante forge-1.21.1 (blocs bien commentés)."""
     bad = 0
-    for base, _, files in os.walk(os.path.join(SRC, 'java')):
+    for base, _, files in [*os.walk(os.path.join(SRC, 'java')), *os.walk(os.path.join(SRC, 'resources'))]:
         for f in files:
-            if not f.endswith(TEXT_EXT):
+            if not f.endswith(TEXT_EXT + SHADER_EXT):
                 continue
             p = os.path.join(base, f)
             text = open(p, encoding='utf-8').read()
@@ -122,6 +124,7 @@ def port(target):
     conf = json.load(open(os.path.join(tdir, 'target.json'), encoding='utf-8'))
     tags = set(conf['tags'])
     rules = conf.get('rewrites', [])
+    shader_rules = conf.get('shader_rewrites', [])
     out = os.path.join(tdir, 'build', 'ported')
     if os.path.exists(out):
         shutil.rmtree(out)
@@ -139,6 +142,12 @@ def port(target):
                     text = rewrite(process(text, tags, sp), rules)
                     open(dp, 'w', encoding='utf-8').write(text)
                     count += 1
+                elif f.endswith(SHADER_EXT):
+                    text = open(sp, encoding='utf-8').read()
+                    text = rewrite(process(text, tags, sp), shader_rules)
+                    # pas de commentaire avant #version : on retire directives et lignes inactives
+                    text = '\n'.join(l for l in text.split('\n') if not re.match(r'^\s*//(#|\$\$)', l))
+                    open(dp, 'w', encoding='utf-8').write(text)
                 else:
                     shutil.copy2(sp, dp)
     over = os.path.join(tdir, 'overrides')

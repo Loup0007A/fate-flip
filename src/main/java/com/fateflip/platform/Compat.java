@@ -82,6 +82,11 @@ public final class Compat {
 
     // ── rendu ──
 
+    /** Rotation de la vue (monde -> caméra), comme celle que GameRenderer applique au rendu du niveau. */
+    public static org.joml.Quaternionf viewRotation(net.minecraft.client.Camera camera) {
+        return camera.rotation().conjugate(new org.joml.Quaternionf());
+    }
+
     public static void mulPose(PoseStack pose, Matrix4f m) {
         pose.mulPose(m);
     }

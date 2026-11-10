@@ -2,8 +2,7 @@ package com.fateflip.client.gui;
 
 import com.fateflip.FateFlip;
 import com.fateflip.card.Card;
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
+import com.fateflip.platform.Gfx;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -38,68 +37,48 @@ public final class CardArt {
 
     /** Active le filtrage linéaire (textures haute définition affichées réduites). */
     private static void smooth(ResourceLocation tex) {
-        mc().getTextureManager().getTexture(tex).setFilter(true, false);
+        Gfx.smooth(tex);
     }
 
     /** Blit d'une texture entière, étirée sur (x,y,w,h), teintée. */
     public static void tex(GuiGraphics g, ResourceLocation tex, float x, float y, float w, float h, int argb) {
         smooth(tex);
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-        g.setColor(((argb >> 16) & 255) / 255f, ((argb >> 8) & 255) / 255f, (argb & 255) / 255f, ((argb >>> 24) & 255) / 255f);
         g.pose().pushPose();
         g.pose().translate(x, y, 0);
         g.pose().scale(w / 64f, h / 64f, 1f);
-        g.blit(tex, 0, 0, 0f, 0f, 64, 64, 64, 64);
+        Gfx.texture(g, tex, 0, 0, 64, 64, argb, Gfx.Blend.NORMAL);
         g.pose().popPose();
-        g.setColor(1f, 1f, 1f, 1f);
     }
 
     /** Lueur additive (sans écriture de profondeur). */
     public static void glow(GuiGraphics g, ResourceLocation tex, float cx, float cy, float w, float h, int rgb, float alpha) {
         if (alpha <= 0.003f) return;
         smooth(tex);
-        RenderSystem.enableBlend();
-        RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE);
-        RenderSystem.depthMask(false);
-        g.setColor(((rgb >> 16) & 255) / 255f, ((rgb >> 8) & 255) / 255f, (rgb & 255) / 255f, Mth.clamp(alpha, 0f, 1f));
         g.pose().pushPose();
         g.pose().translate(cx - w / 2f, cy - h / 2f, 0);
         g.pose().scale(w / 64f, h / 64f, 1f);
-        g.blit(tex, 0, 0, 0f, 0f, 64, 64, 64, 64);
+        Gfx.texture(g, tex, 0, 0, 64, 64, withAlpha(rgb, alpha), Gfx.Blend.ADDITIVE);
         g.pose().popPose();
-        g.setColor(1f, 1f, 1f, 1f);
-        RenderSystem.depthMask(true);
-        RenderSystem.defaultBlendFunc();
     }
 
     /** Ombre douce sous une carte. */
     public static void shadow(GuiGraphics g, float alpha) {
         if (alpha <= 0.01f) return;
         smooth(GLOW);
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-        RenderSystem.depthMask(false);
-        g.setColor(0f, 0f, 0f, 0.55f * alpha);
         g.pose().pushPose();
         g.pose().translate(-14, -10, 0);
         g.pose().scale((W + 28) / 64f, (H + 26) / 64f, 1f);
-        g.blit(GLOW, 0, 0, 0f, 0f, 64, 64, 64, 64);
+        Gfx.texture(g, GLOW, 0, 0, 64, 64, withAlpha(0x000000, 0.55f * alpha), Gfx.Blend.NORMAL);
         g.pose().popPose();
-        g.setColor(1f, 1f, 1f, 1f);
-        RenderSystem.depthMask(true);
     }
 
     private static void cardTexture(GuiGraphics g, ResourceLocation tex, float alpha, float shade) {
         smooth(tex);
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-        g.setColor(shade, shade, shade, alpha);
+        int v = (int) (Mth.clamp(shade, 0f, 1f) * 255);
         g.pose().pushPose();
         g.pose().scale(W / (float) TEX_W, H / (float) TEX_H, 1f);
-        g.blit(tex, 0, 0, 0f, 0f, TEX_W, TEX_H, TEX_W, TEX_H);
+        Gfx.texture(g, tex, 0, 0, TEX_W, TEX_H, withAlpha((v << 16) | (v << 8) | v, alpha), Gfx.Blend.NORMAL);
         g.pose().popPose();
-        g.setColor(1f, 1f, 1f, 1f);
     }
 
     public static void back(GuiGraphics g, float alpha) {
@@ -181,16 +160,11 @@ public final class CardArt {
             float tw = 0.85f + 0.15f * Mth.sin(time * 3f + k);
             glow(g, GLOW, cx, cy, 9f, 9f, card.severity.color, 0.5f * a * tw);
             smooth(GEM);
-            RenderSystem.enableBlend();
-            RenderSystem.defaultBlendFunc();
-            int c = card.severity.color;
-            g.setColor(((c >> 16) & 255) / 255f, ((c >> 8) & 255) / 255f, (c & 255) / 255f, a);
             g.pose().pushPose();
             g.pose().translate(cx - 2.2f, cy - 2.2f, 1);
             g.pose().scale(4.4f / 16f, 4.4f / 16f, 1f);
-            g.blit(GEM, 0, 0, 0f, 0f, 16, 16, 16, 16);
+            Gfx.texture(g, GEM, 0, 0, 16, 16, withAlpha(card.severity.color, a), Gfx.Blend.NORMAL);
             g.pose().popPose();
-            g.setColor(1f, 1f, 1f, 1f);
         }
     }
 

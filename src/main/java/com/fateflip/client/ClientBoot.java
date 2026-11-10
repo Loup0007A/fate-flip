@@ -3,24 +3,36 @@ package com.fateflip.client;
 import com.fateflip.FateFlip;
 import com.fateflip.render.PostFx;
 import com.mojang.blaze3d.platform.InputConstants;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import net.minecraft.client.KeyMapping;
+//#if !mc26
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import net.minecraft.client.renderer.ShaderInstance;
-import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.client.event.RegisterShadersEvent;
+//#endif
+import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
-import org.lwjgl.glfw.GLFW;
 
 /** Enregistrements côté client sur le bus du mod. */
 public final class ClientBoot {
 
     private ClientBoot() {}
 
+    //#if mc26
+    //$$ public static final KeyMapping.Category CATEGORY = new KeyMapping.Category(FateFlip.id("main"));
+    //$$ public static final KeyMapping KEY_GRIMOIRE = new KeyMapping("key.fateflip.grimoire",
+    //$$     InputConstants.Type.KEYSYM, InputConstants.KEY_K, CATEGORY);
+    //#else
     public static final KeyMapping KEY_GRIMOIRE = new KeyMapping("key.fateflip.grimoire",
-        InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_K, "key.categories.fateflip");
+        InputConstants.Type.KEYSYM, InputConstants.KEY_K, "key.categories.fateflip");
+    //#endif
 
     public static void init(IEventBus modBus) {
+        //#if mc26
+        //$$ modBus.addListener(ClientBoot::onPipelines);
+        //$$ modBus.addListener(ClientBoot::onPictureInPicture);
+        //#else
         modBus.addListener(ClientBoot::onShaders);
+        //#endif
         modBus.addListener(ClientBoot::onKeys);
         //#if neoforge
         //$$ modBus.addListener(ClientBoot::onLayers);
@@ -46,6 +58,17 @@ public final class ClientBoot {
     //$$ }
     //#endif
 
+    //#if mc26
+    //$$ /** 26.x : le shader d'écran est un pipeline de rendu ; l'étape WORLD passe par un « picture in picture ». */
+    //$$ private static void onPipelines(net.neoforged.neoforge.client.event.RegisterRenderPipelinesEvent event) {
+    //$$     event.registerPipeline(PostFx.PIPELINE);
+    //$$     com.fateflip.render.Pipelines.register(event);
+    //$$ }
+    //$$
+    //$$ private static void onPictureInPicture(net.neoforged.neoforge.client.event.RegisterPictureInPictureRenderersEvent event) {
+    //$$     event.register(com.fateflip.render.WorldPass.State.class, com.fateflip.render.WorldPass.Renderer::new);
+    //$$ }
+    //#else
     private static void onShaders(RegisterShadersEvent event) {
         try {
             event.registerShader(new ShaderInstance(event.getResourceProvider(), FateFlip.id("screen_fx"), DefaultVertexFormat.POSITION_TEX),
@@ -55,7 +78,12 @@ public final class ClientBoot {
         }
     }
 
+    //#endif
+
     private static void onKeys(RegisterKeyMappingsEvent event) {
+        //#if mc26
+        //$$ event.registerCategory(CATEGORY);
+        //#endif
         event.register(KEY_GRIMOIRE);
     }
 }

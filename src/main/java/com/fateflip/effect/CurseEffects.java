@@ -1,7 +1,5 @@
 package com.fateflip.effect;
 
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.Input;
@@ -234,23 +232,13 @@ public final class CurseEffects {
             float f = k(partialTick);
             if (f <= 0.01f) return;
             int w = g.guiWidth(), h = g.guiHeight();
-            RenderSystem.disableDepthTest();
-            RenderSystem.depthMask(false);
-            RenderSystem.enableBlend();
-            RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.ZERO, GlStateManager.DestFactor.ONE_MINUS_SRC_COLOR,
-                GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
             float beatPulse = 0.92f + 0.08f * Mth.sin((age + partialTick) * 0.45f);
-            float v = Math.min(1f, f * 0.95f * beatPulse);
-            g.setColor(v, v, v, 1f);
+            int v = (int) (Math.min(1f, f * 0.95f * beatPulse) * 255);
+            int tint = 0xFF000000 | (v << 16) | (v << 8) | v;
             // deux couches : la seconde, plus serrée, referme le champ de vision
-            g.blit(VIGNETTE, 0, 0, -90, 0f, 0f, w, h, w, h);
+            com.fateflip.platform.Gfx.texture(g, VIGNETTE, 0, 0, w, h, tint, com.fateflip.platform.Gfx.Blend.VIGNETTE);
             int m = (int) (Math.min(w, h) * 0.18f * f);
-            g.blit(VIGNETTE, -m, -m, -90, 0f, 0f, w + 2 * m, h + 2 * m, w + 2 * m, h + 2 * m);
-            g.setColor(1f, 1f, 1f, 1f);
-            g.flush();
-            RenderSystem.defaultBlendFunc();
-            RenderSystem.depthMask(true);
-            RenderSystem.enableDepthTest();
+            com.fateflip.platform.Gfx.texture(g, VIGNETTE, -m, -m, w + 2 * m, h + 2 * m, tint, com.fateflip.platform.Gfx.Blend.VIGNETTE);
         }
 
         @Override

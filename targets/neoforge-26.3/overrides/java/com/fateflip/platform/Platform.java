@@ -16,15 +16,16 @@ public final class Platform {
     public static final boolean GUI_LAYER_EVENT = true;
 
     public static float partialTick(RenderLevelStageEvent event) {
-        return event.getPartialTick().getGameTimeDeltaPartialTick(false);
+        return event.getLevelRenderState().worldPartialTicks;
     }
 
     public static float partialTick(CustomizeGuiOverlayEvent event) {
         return event.getPartialTick().getGameTimeDeltaPartialTick(false);
     }
 
+    /** Plus utilisé en 26.x (l'interface a sa propre projection). */
     public static float guiFarPlane() {
-        return net.neoforged.neoforge.client.ClientHooks.getGuiFarPlane();
+        return 11000f;
     }
 
     public static double scrollY(InputEvent.MouseScrollingEvent event) {

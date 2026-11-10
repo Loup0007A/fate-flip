@@ -42,7 +42,7 @@ public enum Power {
     }
 
     public ItemStack icon() {
-        if (icon == null) icon = new ItemStack(BuiltInRegistries.ITEM.get(iconId));
+        if (icon == null) icon = new ItemStack(BuiltInRegistries.ITEM.getOptional(iconId).orElse(net.minecraft.world.item.Items.PAPER));
         return icon;
     }
 

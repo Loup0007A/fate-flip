@@ -1,13 +1,32 @@
 #version 150
+// (Minecraft 26.x : la ligne #version est remplacée par la cible, voir « shader_rewrites » de target.json)
 
 // Fate Flip — tous les effets d'écran dans un seul programme (Mode = numéro de l'effet).
-// Les numéros sont recopiés dans com.fateflip.render.FxMode.
+// Les numéros sont recopiés dans com.fateflip.render.FxPass.
 
 uniform sampler2D DiffuseSampler;    // image à transformer
 uniform sampler2D DepthSampler;      // profondeur du monde (copiée en fin de rendu du niveau)
 uniform sampler2D HandDepthSampler;  // profondeur de la main (1.0 ailleurs)
 uniform sampler2D AuxSampler;        // texture annexe (glyphes ASCII)
 
+//#if mc26
+//$$ // Minecraft 26.x : paramètres dans un bloc (voir render/PostFx de la cible 26.x, même ordre)
+//$$ layout(std140) uniform FxInfo {
+//$$     mat4 Extra;
+//$$     vec4 Params;
+//$$     vec4 Params2;
+//$$     vec4 QuadUV;
+//$$     vec2 OutSize;
+//$$     vec2 DepthRange;
+//$$     int Mode;
+//$$     float Time;
+//$$     float Intensity;
+//$$     float Calm;
+//$$     float ZeroToOne;
+//$$ };
+//$$ layout(location = 0) in vec2 texCoord;
+//$$ layout(location = 0) out vec4 fragColor;
+//#else
 uniform int Mode;
 uniform float Time;        // secondes depuis le début de l'effet
 uniform float Intensity;   // 0..1, fondu d'entrée / de sortie
@@ -20,6 +39,7 @@ uniform vec2 DepthRange;   // plans proche / lointain
 
 in vec2 texCoord;
 out vec4 fragColor;
+//#endif
 
 const float PI = 3.14159265;
 const float TAU = 6.2831853;
@@ -46,6 +66,19 @@ float aspect() { return OutSize.x / OutSize.y; }
 vec3 tex(vec2 uv) { return texture(DiffuseSampler, clamp(uv, vec2(0.0005), vec2(0.9995))).rgb; }
 bool inside01(vec2 uv) { return uv.x >= 0.0 && uv.y >= 0.0 && uv.x <= 1.0 && uv.y <= 1.0; }
 
+//#if mc26
+//$$ // 26.x : profondeur inversée (1 = proche, 0 = ciel). rawDepth la remet dans le sens habituel.
+//$$ float rawDepth(vec2 uv) {
+//$$     return 1.0 - max(texture(DepthSampler, uv).r, texture(HandDepthSampler, uv).r);
+//$$ }
+//$$ float linDepthRaw(float d) {
+//$$     float w = 1.0 - d;
+//$$     float n = DepthRange.x, f = DepthRange.y;
+//$$     if (ZeroToOne > 0.5) return f * n / (n + w * (f - n));
+//$$     float z = w * 2.0 - 1.0;
+//$$     return 2.0 * f * n / (n + f + z * (f - n));
+//$$ }
+//#else
 float rawDepth(vec2 uv) {
     return min(texture(DepthSampler, uv).r, texture(HandDepthSampler, uv).r);
 }
@@ -54,6 +87,7 @@ float linDepthRaw(float d) {
     float n = DepthRange.x, f = DepthRange.y;
     return 2.0 * n * f / (f + n - z * (f - n));
 }
+//#endif
 float linDepth(vec2 uv) { return linDepthRaw(rawDepth(uv)); }
 bool isSky(vec2 uv) { return rawDepth(uv) >= 0.99999; }
 

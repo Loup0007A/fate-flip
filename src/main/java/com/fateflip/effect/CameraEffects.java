@@ -1,7 +1,6 @@
 package com.fateflip.effect;
 
 import com.fateflip.config.FFConfig;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.CameraType;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
@@ -98,8 +97,7 @@ public final class CameraEffects {
             float size = Math.min(w, h) * Mth.lerp(fade, 3f, 1.125f);
             int s = (int) size;
             int x = (w - s) / 2, y = (h - s) / 2;
-            RenderSystem.enableBlend();
-            g.blit(SCOPE, x, y, -90, 0f, 0f, s, s, s, s);
+            com.fateflip.platform.Gfx.texture(g, SCOPE, x, y, s, s, 0xFFFFFFFF, com.fateflip.platform.Gfx.Blend.NORMAL);
             if (x > 0) {
                 g.fill(0, 0, x, h, 0xFF000000);
                 g.fill(x + s, 0, w, h, 0xFF000000);
@@ -168,8 +166,20 @@ public final class CameraEffects {
         @Override
         public void frame(float partialTick) {
             if (MC.level == null) return;
+            //#if mc26
+            //$$ // 26.x : l'heure vient des horloges du monde ; on fige celle de l'Overworld sur minuit (côté client)
+            //$$ var holder = MC.level.registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.WORLD_CLOCK)
+            //$$     .get(net.minecraft.world.clock.WorldClocks.OVERWORLD);
+            //$$ if (holder.isEmpty()) return;
+            //$$ var clocks = MC.level.clockManager();
+            //$$ var inst = clocks.getInstance(holder.get());
+            //$$ long day = Math.floorDiv(inst.totalTicks(), 24000L);
+            //$$ clocks.handleUpdates(MC.level.getGameTime(), java.util.Map.of(holder.get(),
+            //$$     new net.minecraft.world.clock.ClockNetworkState(day * 24000L + 18000L, 0f, inst.rate())));
+            //#else
             long day = Math.floorDiv(MC.level.getDayTime(), 24000L);
             MC.level.setDayTime(day * 24000L + 18000L);
+            //#endif
         }
     }
 

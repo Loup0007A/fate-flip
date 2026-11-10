@@ -40,6 +40,7 @@ public final class PostFx {
     private static boolean worldDepthFresh;
     private static boolean snapshotValid;
     private static boolean failed;
+    private static int depthCaptures;
 
     public static ShaderInstance shader;
 
@@ -68,6 +69,7 @@ public final class PostFx {
             worldDepth.copyDepthFrom(main);
             GlStateManager._glBindFramebuffer(GL30.GL_FRAMEBUFFER, prev);
             worldDepthFresh = true;
+            depthCaptures++;
         } catch (Throwable t) {
             fail(t);
         }
@@ -143,7 +145,7 @@ public final class PostFx {
      * Dessine l'aperçu d'un effet dans un rectangle de l'interface (coordonnées GUI),
      * à partir de l'instantané pris à l'ouverture du tirage.
      */
-    public static void drawPreview(FxPass pass, float time, float gx, float gy, float gw, float gh) {
+    public static void drawPreview(net.minecraft.client.gui.GuiGraphics g, FxPass pass, float time, float gx, float gy, float gw, float gh) {
         if (!hasSnapshot() || pass == null) return;
         try {
             Window win = Minecraft.getInstance().getWindow();
@@ -212,6 +214,26 @@ public final class PostFx {
         if (!failed) {
             failed = true;
             FateFlip.LOGGER.error("Fate Flip : les effets d'écran sont désactivés suite à une erreur graphique", t);
+        }
+    }
+
+    /** Pour l'auto-test : profondeur lue au centre de la dernière capture et de l'image principale. */
+    public static String debugDepth() {
+        if (worldDepth == null) return "aucune capture";
+        try {
+            int prev = GlStateManager.getBoundFramebuffer();
+            float[] v = new float[1];
+            GlStateManager._glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, worldDepth.frameBufferId);
+            GL11.glReadPixels(worldDepth.width / 2, worldDepth.height / 2, 1, 1, GL11.GL_DEPTH_COMPONENT, GL11.GL_FLOAT, v);
+            float captured = v[0];
+            RenderTarget main = Minecraft.getInstance().getMainRenderTarget();
+            GlStateManager._glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, main.frameBufferId);
+            GL11.glReadPixels(main.width / 2, main.height / 2, 1, 1, GL11.GL_DEPTH_COMPONENT, GL11.GL_FLOAT, v);
+            GlStateManager._glBindFramebuffer(GL30.GL_FRAMEBUFFER, prev);
+            return "captures=" + depthCaptures + " capturée=" + captured + " principale=" + v[0]
+                + " loin=" + Minecraft.getInstance().gameRenderer.getDepthFar() + " gl=" + GL11.glGetError();
+        } catch (Throwable t) {
+            return "erreur " + t;
         }
     }
 

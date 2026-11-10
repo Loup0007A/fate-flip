@@ -172,6 +172,7 @@ CURSES = {
 
 FR = {
     'key.categories.fateflip': "Fate Flip",
+    'key.category.fateflip.main': "Fate Flip",
     'key.fateflip.grimoire': "Ouvrir le Grimoire",
     'fateflip.category.space': "Espace", 'fateflip.category.vision': "Vision", 'fateflip.category.mind': "Esprit",
     'fateflip.category.control': "Contrôles", 'fateflip.category.sound': "Ouïe",
@@ -284,6 +285,7 @@ FR = {
 }
 EN = {
     'key.categories.fateflip': "Fate Flip",
+    'key.category.fateflip.main': "Fate Flip",
     'key.fateflip.grimoire': "Open the Grimoire",
     'fateflip.category.space': "Space", 'fateflip.category.vision': "Vision", 'fateflip.category.mind': "Mind",
     'fateflip.category.control': "Controls", 'fateflip.category.sound': "Hearing",

@@ -1,7 +1,5 @@
 package com.fateflip.effect;
 
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -67,7 +65,7 @@ public final class HudEffects {
             g.pose().translate(x * fade, y * fade, 0);
             g.pose().scale(s, s, 1f);
             int rgb = Mth.hsvToRgb(hue, 0.45f * fade, 1f);
-            RenderSystem.setShaderColor(((rgb >> 16) & 255) / 255f, ((rgb >> 8) & 255) / 255f, (rgb & 255) / 255f, 1f);
+            com.fateflip.platform.Gfx.tint(((rgb >> 16) & 255) / 255f, ((rgb >> 8) & 255) / 255f, (rgb & 255) / 255f);
             pushed = true;
         }
 
@@ -82,7 +80,7 @@ public final class HudEffects {
         public void hudEnd(GuiGraphics g, float partialTick) {
             if (!pushed) return;
             g.flush();
-            RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
+            com.fateflip.platform.Gfx.tint(1f, 1f, 1f);
             int w = g.guiWidth(), h = g.guiHeight();
             int a = (int) (90 * fade) << 24;
             g.renderOutline(0, 0, w, h, a | 0xFFFFFF);
@@ -159,9 +157,7 @@ public final class HudEffects {
             if (MC.options.hideGui || !MC.options.getCameraType().isFirstPerson() || MC.screen != null) return;
             float t = time(partialTick);
             int cx = g.guiWidth() / 2, cy = g.guiHeight() / 2;
-            RenderSystem.enableBlend();
-            RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.ONE_MINUS_DST_COLOR, GlStateManager.DestFactor.ONE_MINUS_SRC_COLOR,
-                GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
+            com.fateflip.platform.Gfx.blend(com.fateflip.platform.Gfx.Blend.INVERT);
             for (int i = 0; i < 4; i++) {
                 float r = fade * (18f + 40f * (0.5f + 0.5f * Mth.sin(t * 0.7f + i * 1.9f)));
                 float a = t * (0.9f + i * 0.23f) * (i % 2 == 0 ? 1 : -1) + i * 1.5708f;
@@ -169,7 +165,7 @@ public final class HudEffects {
                 com.fateflip.platform.Compat.crosshair(g, x, y);
             }
             g.flush();
-            RenderSystem.defaultBlendFunc();
+            com.fateflip.platform.Gfx.endBlend();
         }
     }
 

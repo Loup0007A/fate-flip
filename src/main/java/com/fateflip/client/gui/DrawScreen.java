@@ -21,7 +21,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
-import org.lwjgl.glfw.GLFW;
+import com.mojang.blaze3d.platform.InputConstants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -115,8 +115,8 @@ public class DrawScreen extends Screen {
     }
 
     private void sound(SoundEvent s, float pitch, float vol) {
-        if (minecraft == null) minecraft = net.minecraft.client.Minecraft.getInstance();
-        minecraft.getSoundManager().play(SoundFx.mark(SimpleSoundInstance.forUI(s, pitch, vol)));
+        net.minecraft.client.Minecraft mc = minecraft != null ? minecraft : net.minecraft.client.Minecraft.getInstance();
+        mc.getSoundManager().play(SoundFx.mark(SimpleSoundInstance.forUI(s, pitch, vol)));
     }
 
     // ───────────────────────── mise en page ─────────────────────────
@@ -378,18 +378,18 @@ public class DrawScreen extends Screen {
 
     @Override
     public boolean keyPressed(int key, int scan, int mods) {
-        if (phoenixPicking && key == GLFW.GLFW_KEY_ESCAPE) {
+        if (phoenixPicking && key == InputConstants.KEY_ESCAPE) {
             phoenixPicking = false;
             return true;
         }
         if (phase == Phase.REVEAL) {
-            if (key == GLFW.GLFW_KEY_ENTER || key == GLFW.GLFW_KEY_KP_ENTER || key == GLFW.GLFW_KEY_S) { stop(); return true; }
-            if (key == GLFW.GLFW_KEY_SPACE || key == GLFW.GLFW_KEY_E) { encore(); return true; }
+            if (key == InputConstants.KEY_RETURN || key == InputConstants.KEY_NUMPADENTER || key == InputConstants.KEY_S) { stop(); return true; }
+            if (key == InputConstants.KEY_SPACE || key == InputConstants.KEY_E) { encore(); return true; }
         }
         if (phase == Phase.CHOOSING) {
             int idx = -1;
-            if (key >= GLFW.GLFW_KEY_1 && key <= GLFW.GLFW_KEY_9) idx = key - GLFW.GLFW_KEY_1;
-            if (key == GLFW.GLFW_KEY_0) idx = 9;
+            if (key >= InputConstants.KEY_1 && key <= InputConstants.KEY_9) idx = key - InputConstants.KEY_1;
+            if (key == InputConstants.KEY_0) idx = 9;
             if (idx >= 0 && idx < slots.size() && !slots.get(idx).revealed) { flip(slots.get(idx)); return true; }
         }
         return super.keyPressed(key, scan, mods);
@@ -661,7 +661,7 @@ public class DrawScreen extends Screen {
             FxPass pass = previewEffect.previewPass(t);
             float ax = x - 32f * sc + 6.6f * sc, ay = y - 48f * sc + 18.6f * sc;
             float aw = 50.8f * sc, ah = 38.8f * sc;
-            PostFx.drawPreview(pass, t, ax, ay, aw, ah);
+            PostFx.drawPreview(g, pass, t, ax, ay, aw, ah);
             g.pose().pushPose();
             g.pose().translate(0, 0, 4100f);
             g.renderOutline((int) ax - 1, (int) ay - 1, (int) aw + 2, (int) ah + 2, CardArt.withAlpha(s.card.category.light, 0.9f));

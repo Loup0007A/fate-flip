@@ -271,7 +271,7 @@ public class GrimoireScreen extends Screen {
             onClose();
             return true;
         }
-        if (key == org.lwjgl.glfw.GLFW.GLFW_KEY_TAB) {
+        if (key == com.mojang.blaze3d.platform.InputConstants.KEY_TAB) {
             Category[] cats = Category.values();
             setTab(cats[(tab.ordinal() + 1) % cats.length]);
             return true;

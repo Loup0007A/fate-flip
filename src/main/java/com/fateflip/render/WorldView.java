@@ -2,7 +2,6 @@ package com.fateflip.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Camera;
-import org.joml.Quaternionf;
 
 /**
  * Dessin dans le monde depuis un événement de rendu : selon le loader et l'étape, la matrice
@@ -16,7 +15,7 @@ public final class WorldView {
     public static PoseStack begin(Camera camera) {
         com.fateflip.platform.Compat.pushIdentityModelView();
         PoseStack pose = new PoseStack();
-        pose.mulPose(camera.rotation().conjugate(new Quaternionf()));
+        pose.mulPose(com.fateflip.platform.Compat.viewRotation(camera));
         return pose;
     }
 

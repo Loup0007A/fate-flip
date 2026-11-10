@@ -75,6 +75,12 @@ public final class Compat {
 
     // ── rendu ──
 
+    /** 1.20.1 : la rotation de Camera n'a pas la même convention qu'en 1.21 ; on refait celle de GameRenderer. */
+    public static org.joml.Quaternionf viewRotation(net.minecraft.client.Camera camera) {
+        return com.mojang.math.Axis.XP.rotationDegrees(camera.getXRot())
+            .mul(com.mojang.math.Axis.YP.rotationDegrees(camera.getYRot() + 180f));
+    }
+
     public static void mulPose(PoseStack pose, Matrix4f m) {
         pose.mulPoseMatrix(m);
     }

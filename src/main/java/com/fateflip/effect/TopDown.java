@@ -1,7 +1,6 @@
 package com.fateflip.effect;
 
 import com.fateflip.FateFlip;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Camera;
 import net.minecraft.client.CameraType;
 import net.minecraft.client.gui.GuiGraphics;
@@ -305,6 +304,6 @@ public class TopDown extends CardEffect {
                 ((int) (a * 255) << 24) | 0xF3D58A);
         }
         g.pose().popPose();
-        RenderSystem.enableBlend();
+        com.fateflip.platform.Gfx.endBlend();
     }
 }

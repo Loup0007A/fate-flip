@@ -354,7 +354,7 @@ public final class ShaderEffects {
             float angle = MC.level.getTimeOfDay(pt) * Mth.TWO_PI;
             org.joml.Vector3f sun = new org.joml.Vector3f(-Mth.sin(angle), Mth.cos(angle), 0f);
             net.minecraft.client.Camera cam = e.getCamera();
-            org.joml.Matrix4f view = new org.joml.Matrix4f().rotation(cam.rotation().conjugate(new org.joml.Quaternionf()));
+            org.joml.Matrix4f view = new org.joml.Matrix4f().rotation(com.fateflip.platform.Compat.viewRotation(cam));
             org.joml.Matrix4f proj = new org.joml.Matrix4f(com.mojang.blaze3d.systems.RenderSystem.getProjectionMatrix());
             org.joml.Vector4f clip = new org.joml.Vector4f(sun.x, sun.y, sun.z, 0f);
             view.transform(clip);

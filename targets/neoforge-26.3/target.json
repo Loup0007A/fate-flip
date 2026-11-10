@@ -5,7 +5,8 @@
     "mc263"
   ],
   "delete": [
-    "resources/META-INF/mods.toml"
+    "resources/META-INF/mods.toml",
+    "resources/assets/fateflip/shaders/core/screen_fx.json"
   ],
   "rewrites": [
     [
@@ -59,6 +60,164 @@
     [
       "net.minecraftforge.",
       "net.neoforged.neoforge."
+    ],
+    [
+      "re:\\bResourceLocation\\b",
+      "Identifier"
+    ],
+    [
+      "import net.minecraft.Util;",
+      "import net.minecraft.util.Util;"
+    ],
+    [
+      "net.minecraft.Util.",
+      "net.minecraft.util.Util."
+    ],
+    [
+      "re:\\bGuiGraphics\\b",
+      "GuiGraphicsExtractor"
+    ],
+    [
+      ".pose().pushPose()",
+      ".pose().pushMatrix()"
+    ],
+    [
+      ".pose().popPose()",
+      ".pose().popMatrix()"
+    ],
+    [
+      "re:\\.pose\\(\\)\\.translate\\(((?:[^,()]|\\((?:[^()]|\\([^()]*\\))*\\))+), *((?:[^,()]|\\((?:[^()]|\\([^()]*\\))*\\))+), *((?:[^,()]|\\((?:[^()]|\\([^()]*\\))*\\))+)\\)",
+      ".pose().translate((float) (\\1), (float) (\\2))"
+    ],
+    [
+      "re:\\.pose\\(\\)\\.scale\\(((?:[^,()]|\\((?:[^()]|\\([^()]*\\))*\\))+), *((?:[^,()]|\\((?:[^()]|\\([^()]*\\))*\\))+), *((?:[^,()]|\\((?:[^()]|\\([^()]*\\))*\\))+)\\)",
+      ".pose().scale((float) (\\1), (float) (\\2))"
+    ],
+    [
+      "re:\\.pose\\(\\)\\.mulPose\\((?:com\\.mojang\\.math\\.)?Axis\\.ZP\\.rotationDegrees\\(((?:[^,()]|\\((?:[^()]|\\([^()]*\\))*\\))+)\\)\\)",
+      ".pose().rotate((float) Math.toRadians(\\1))"
+    ],
+    [
+      "re:\\b(\\w+)\\.drawString\\(",
+      "com.fateflip.platform.Compat.text(\\1, "
+    ],
+    [
+      "re:\\b(\\w+)\\.drawCenteredString\\(",
+      "com.fateflip.platform.Compat.centeredText(\\1, "
+    ],
+    [
+      ".renderOutline(",
+      ".outline("
+    ],
+    [
+      ".renderFakeItem(",
+      ".fakeItem("
+    ],
+    [
+      ".renderItemDecorations(",
+      ".itemDecorations("
+    ],
+    [
+      ".renderItem(",
+      ".item("
+    ],
+    [
+      "re:^\\s*(g|graphics|gg|guiGraphics)\\.flush\\(\\);\\s*$",
+      ""
+    ],
+    [
+      "re:\\b(MC|mc|minecraft|this\\.minecraft|Minecraft\\.getInstance\\(\\))\\.setScreen\\(",
+      "\\1.gui.setScreen("
+    ],
+    [
+      "re:\\b(MC|mc|minecraft|this\\.minecraft|Minecraft\\.getInstance\\(\\))\\.screen\\b(?!\\s*\\()",
+      "\\1.gui.screen()"
+    ],
+    [
+      "re:\\b(MC|mc|minecraft|this\\.minecraft|Minecraft\\.getInstance\\(\\))\\.getOverlay\\(\\)",
+      "\\1.gui.overlay()"
+    ],
+    [
+      "re:\\b(MC|mc|minecraft|this\\.minecraft|Minecraft\\.getInstance\\(\\))\\.getToasts\\(\\)",
+      "\\1.gui.toastManager()"
+    ],
+    [
+      ".gui.setOverlayMessage(",
+      ".gui.hud.setOverlayMessage("
+    ],
+    [
+      ".gui.getChat()",
+      ".gui.hud.getChat()"
+    ],
+    [
+      "re:\\b(MC|mc|minecraft|this\\.minecraft|Minecraft\\.getInstance\\(\\))\\.getTimer\\(\\)",
+      "\\1.getDeltaTracker()"
+    ],
+    [
+      "re:\\b(MC|mc|minecraft|this\\.minecraft|Minecraft\\.getInstance\\(\\))\\.getMainRenderTarget\\(\\)",
+      "\\1.gameRenderer.mainRenderTarget()"
+    ],
+    [
+      "FMLEnvironment.dist",
+      "FMLEnvironment.getDist()"
+    ],
+    [
+      "re:public void renderBackground\\(GuiGraphicsExtractor (\\w+), int (\\w+), int (\\w+), float (\\w+)\\)",
+      "public void extractBackground(GuiGraphicsExtractor \\1, int \\2, int \\3, float \\4)"
+    ],
+    [
+      "re:public void render\\(GuiGraphicsExtractor (\\w+), int (\\w+), int (\\w+), float (\\w+)\\)",
+      "public void extractRenderState(GuiGraphicsExtractor \\1, int \\2, int \\3, float \\4)"
+    ],
+    [
+      "super.render(",
+      "super.extractRenderState("
+    ],
+    [
+      "re:renderBlurredBackground\\([^)]*\\)",
+      "extractBlurredBackground(g)"
+    ],
+    [
+      "re:public boolean mouseClicked\\(double (\\w+), double (\\w+), int (\\w+)\\) \\{",
+      "public boolean mouseClicked(net.minecraft.client.input.MouseButtonEvent ev$, boolean dbl$) { double \\1 = ev$.x(), \\2 = ev$.y(); int \\3 = com.fateflip.platform.Compat.legacyButton(ev$.button());"
+    ],
+    [
+      "re:super\\.mouseClicked\\(\\w+, \\w+, \\w+\\)",
+      "super.mouseClicked(ev$, dbl$)"
+    ],
+    [
+      "re:public boolean keyPressed\\(int (\\w+), int (\\w+), int (\\w+)\\) \\{",
+      "public boolean keyPressed(net.minecraft.client.input.KeyEvent ev$) { int \\1 = ev$.key(), \\2 = ev$.keycode(), \\3 = ev$.modifiers();"
+    ],
+    [
+      "re:super\\.keyPressed\\(\\w+, \\w+, \\w+\\)",
+      "super.keyPressed(ev$)"
+    ],
+    [
+      "KEY_GRIMOIRE.matches(key, scan)",
+      "KEY_GRIMOIRE.matches(ev$)"
+    ],
+    [
+      ".isSingleplayer()",
+      ".hasSingleplayerServer()"
+    ],
+    [
+      "re:\\.displayClientMessage\\((.*), false\\)",
+      ".sendSystemMessage(\\1)"
+    ],
+    [
+      "re:\\.displayClientMessage\\((.*), true\\)",
+      ".sendOverlayMessage(\\1)"
+    ],
+    [
+      "InputConstants.Type.KEYSYM",
+      "InputConstants.Type.KEYBOARD"
+    ]
+  ],
+  "shader_rewrites": [
+    [
+      "#version 150",
+      "#version 330\n#extension GL_ARB_separate_shader_objects : require"
     ]
   ]
 }
