@@ -1,0 +1,60 @@
+name: Export libs
+
+# Copie le classpath de compilation de chaque cible dans un artefact téléchargeable
+# (gh run download), pour compiler et décompiler hors ligne pendant le développement.
+on:
+  workflow_dispatch:
+    inputs:
+      targets:
+        description: "Cibles (séparées par des espaces)"
+        default: "neoforge-1.21.1 forge-1.20.1 neoforge-26.2"
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [neoforge-1.21.1, forge-1.20.1, neoforge-26.2]
+    steps:
+      - name: Checkout
+        if: contains(inputs.targets, matrix.target)
+        uses: actions/checkout@v4
+
+      - name: Java 17 / 21 / 25
+        if: contains(inputs.targets, matrix.target)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: |
+            17
+            25
+            21
+
+      - name: Versions disponibles
+        if: contains(inputs.targets, matrix.target)
+        run: |
+          echo "== NeoForge"; curl -s https://maven.neoforged.net/releases/net/neoforged/neoforge/maven-metadata.xml | grep -oE "<version>(21\.0|21\.1|26\.[0-9]+)\.[^<]+" | sed 's/<version>//' | tail -25 || true
+          echo "== Forge"; curl -s https://maven.minecraftforge.net/net/minecraftforge/forge/maven-metadata.xml | grep -oE "<version>(1\.20\.1|1\.21|1\.21\.1|26\.[0-9.]+)-[^<]+" | sed 's/<version>//' | tail -40 || true
+
+      - name: Export
+        if: contains(inputs.targets, matrix.target)
+        env:
+          T: ${{ matrix.target }}
+        run: |
+          python3 tools/port.py "$T"
+          cd "targets/$T"
+          export JAVA_HOME="$JAVA_HOME_21_X64"
+          if [ -x ./gradlew ]; then G=./gradlew; else G=../../gradlew; fi
+          $G exportLibs --no-daemon --stacktrace \
+            -Porg.gradle.java.installations.fromEnv=JAVA_HOME_17_X64,JAVA_HOME_21_X64,JAVA_HOME_25_X64
+          ls -la build/export | head -100
+          du -sh build/export
+
+      - name: Upload
+        if: contains(inputs.targets, matrix.target)
+        uses: actions/upload-artifact@v4
+        with:
+          name: libs-${{ matrix.target }}
+          path: targets/${{ matrix.target }}/build/export
+          retention-days: 30
