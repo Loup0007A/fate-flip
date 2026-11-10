@@ -69,14 +69,20 @@ public class IntroScreen extends Screen {
         SoundFx.tickScheduler();
     }
 
+    //#if !mc1201
     @Override
     public void renderBackground(GuiGraphics g, int mx, int my, float pt) {
+        // dessiné dans render()
+    }
+    //#endif
+
+    private void backdrop(GuiGraphics g) {
         g.fillGradient(0, 0, width, height, 0xFF0A0618, 0xFF020108);
     }
 
     @Override
     public void render(GuiGraphics g, int mx, int my, float pt) {
-        renderBackground(g, mx, my, pt);
+        backdrop(g);
         float t = now();
         float in = Mth.clamp(t / 0.6f, 0f, 1f);
         float a = in * in * (3 - 2 * in);

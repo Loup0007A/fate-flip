@@ -397,10 +397,12 @@ public class DrawScreen extends Screen {
 
     // ───────────────────────── rendu ─────────────────────────
 
+    //#if !mc1201
     @Override
     public void renderBackground(GuiGraphics g, int mx, int my, float pt) {
         // dessiné dans render()
     }
+    //#endif
 
     @Override
     public void render(GuiGraphics g, int mx, int my, float pt) {
@@ -475,7 +477,9 @@ public class DrawScreen extends Screen {
     }
 
     private void renderBackdrop(GuiGraphics g, float t, float a) {
+        //#if !mc1201
         if (minecraft != null && minecraft.level != null) renderBlurredBackground(0f);
+        //#endif
         g.fillGradient(0, 0, width, height, CardArt.withAlpha(0x0A0618, 0.78f * a), CardArt.withAlpha(0x020108, 0.92f * a));
         CardArt.glow(g, CardArt.GLOW, width / 2f, tableY, width * 1.3f, height * 1.2f, 0x5B2DB3, 0.45f * a);
         float rs = Math.min(width, height) * 1.05f;

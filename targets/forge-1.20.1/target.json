@@ -1,4 +1,29 @@
 {
-  "tags": ["forge", "mc120", "mc1201"],
-  "rewrites": []
+  "tags": [
+    "forge",
+    "mc120",
+    "mc1201"
+  ],
+  "rewrites": [
+    [
+      "net.minecraft.client.gui.screens.options.controls.",
+      "net.minecraft.client.gui.screens.controls."
+    ],
+    [
+      "net.minecraft.client.gui.screens.options.",
+      "net.minecraft.client.gui.screens."
+    ],
+    [
+      "ResourceLocation.fromNamespaceAndPath(",
+      "new ResourceLocation("
+    ],
+    [
+      "ResourceLocation.withDefaultNamespace(",
+      "new ResourceLocation("
+    ],
+    [
+      "SystemToast.SystemToastId.",
+      "SystemToast.SystemToastIds."
+    ]
+  ]
 }

@@ -77,7 +77,9 @@ Client commands: `/fateflip draw`, `/fateflip play <card>`, `/fateflip stop`, `/
 Some cards distort, rotate or flicker the screen, and **Screamers** shows sudden scary faces with loud sounds. If you are sensitive to flashing images, jump scares or motion, turn on `reduceFlashing` and `noMotionSickness`, or disable any card with `disabledCards` (e.g. `["screamers"]`).
 
 ### ✦ Requirements
-Minecraft **1.21.1**, **Forge 52+**, Java 21. Client only.
+Client only. One jar per version (pick the matching file on the Files tab):
+- Minecraft **1.21 – 1.21.1**, **Forge 51+** or **NeoForge 21.0 / 21.1**, Java 21
+- Minecraft **1.20.1**, **Forge 47**, Java 17
 
 ---
 

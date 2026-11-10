@@ -54,7 +54,7 @@ public final class CameraEffects {
             float yaw = MC.player.getViewYRot(partialTick);
             if (!Float.isNaN(lastYaw)) {
                 float d = Mth.wrapDegrees(yaw - lastYaw);
-                float dt = Math.max(0.001f, MC.getTimer().getRealtimeDeltaTicks());
+                float dt = Math.max(0.001f, com.fateflip.platform.Compat.realtimeDeltaTicks());
                 float target = Mth.clamp(-d / dt * 2.2f, -40f, 40f);
                 bank += (target - bank) * Math.min(1f, 0.12f * dt);
             }

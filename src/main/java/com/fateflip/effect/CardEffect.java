@@ -160,6 +160,6 @@ public abstract class CardEffect {
     }
 
     protected float partial() {
-        return MC.getTimer().getGameTimeDeltaPartialTick(false);
+        return com.fateflip.platform.Compat.partialTick();
     }
 }

@@ -41,7 +41,7 @@ public final class HudEffects {
             if (MC.isPaused() || MC.screen instanceof AbstractContainerScreen<?>) return;
             int w = MC.getWindow().getGuiScaledWidth(), h = MC.getWindow().getGuiScaledHeight();
             float s = scale();
-            float dt = MC.getTimer().getRealtimeDeltaTicks();
+            float dt = com.fateflip.platform.Compat.realtimeDeltaTicks();
             x += vx * dt * 1.6f;
             y += vy * dt * 1.6f;
             float maxX = w * (1 - s), maxY = h * (1 - s);
@@ -166,7 +166,7 @@ public final class HudEffects {
                 float r = fade * (18f + 40f * (0.5f + 0.5f * Mth.sin(t * 0.7f + i * 1.9f)));
                 float a = t * (0.9f + i * 0.23f) * (i % 2 == 0 ? 1 : -1) + i * 1.5708f;
                 int x = cx + (int) (Mth.cos(a) * r) - 7, y = cy + (int) (Mth.sin(a * 1.3f) * r * 0.7f) - 7;
-                g.blitSprite(CROSSHAIR, x, y, 15, 15);
+                com.fateflip.platform.Compat.crosshair(g, x, y);
             }
             g.flush();
             RenderSystem.defaultBlendFunc();
@@ -212,7 +212,7 @@ public final class HudEffects {
         @Override
         public void frame(float partialTick) {
             if (MC.isPaused()) return;
-            float dt = MC.getTimer().getRealtimeDeltaTicks() / 20f;
+            float dt = com.fateflip.platform.Compat.realtimeDeltaTicks() / 20f;
             phaseTime += dt;
             switch (phase) {
                 case 0 -> { closure = 0; if (phaseTime > wait) next(1); }
@@ -298,7 +298,7 @@ public final class HudEffects {
             boolean inv = MC.screen instanceof InventoryScreen;
             if (inv && !wasInventory) say("inventory");
             wasInventory = inv;
-            boolean eating = p.isUsingItem() && p.getUseItem().has(net.minecraft.core.component.DataComponents.FOOD);
+            boolean eating = p.isUsingItem() && com.fateflip.platform.Compat.isFood(p.getUseItem());
             if (eating && !wasEating) say("eat");
             wasEating = eating;
             if (p.hurtTime > lastHurt) say("hurt");

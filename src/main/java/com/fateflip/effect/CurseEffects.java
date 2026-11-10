@@ -80,7 +80,7 @@ public final class CurseEffects {
             bolt.moveTo(x + 0.5, y, z + 0.5);
             bolt.setVisualOnly(true);
             bolt.setId(ids--);
-            level.addEntity(bolt);
+            com.fateflip.platform.Compat.addClientEntity(level, bolt);
         }
 
         @Override
@@ -99,7 +99,7 @@ public final class CurseEffects {
             LocalPlayer p = MC.player;
             if (hr == null || p == null || hr.getType() == HitResult.Type.MISS) return false;
             double d = p.getEyePosition().distanceTo(hr.getLocation());
-            double reach = hr.getType() == HitResult.Type.BLOCK ? p.blockInteractionRange() - 1.5 : p.entityInteractionRange() - 1.0;
+            double reach = hr.getType() == HitResult.Type.BLOCK ? com.fateflip.platform.Compat.blockReach(p) - 1.5 : com.fateflip.platform.Compat.entityReach(p) - 1.0;
             return d > reach;
         }
 

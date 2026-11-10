@@ -1,5 +1,64 @@
 {
-  "tags": ["neoforge", "mc26", "mc263"],
-  "delete": ["resources/META-INF/mods.toml"],
-  "rewrites": []
+  "tags": [
+    "neoforge",
+    "mc26",
+    "mc263"
+  ],
+  "delete": [
+    "resources/META-INF/mods.toml"
+  ],
+  "rewrites": [
+    [
+      "net.minecraftforge.eventbus.api.SubscribeEvent",
+      "net.neoforged.bus.api.SubscribeEvent"
+    ],
+    [
+      "net.minecraftforge.eventbus.api.EventPriority",
+      "net.neoforged.bus.api.EventPriority"
+    ],
+    [
+      "net.minecraftforge.eventbus.api.IEventBus",
+      "net.neoforged.bus.api.IEventBus"
+    ],
+    [
+      "net.minecraftforge.api.distmarker.",
+      "net.neoforged.api.distmarker."
+    ],
+    [
+      "@Mod.EventBusSubscriber(",
+      "@net.neoforged.fml.common.EventBusSubscriber("
+    ],
+    [
+      "net.minecraftforge.fml.",
+      "net.neoforged.fml."
+    ],
+    [
+      "import net.minecraftforge.event.TickEvent;",
+      "import net.neoforged.neoforge.client.event.ClientTickEvent;\nimport net.neoforged.neoforge.client.event.RenderFrameEvent;"
+    ],
+    [
+      "TickEvent.ClientTickEvent.",
+      "ClientTickEvent."
+    ],
+    [
+      "TickEvent.RenderTickEvent.",
+      "RenderFrameEvent."
+    ],
+    [
+      "net.minecraftforge.common.ForgeConfigSpec",
+      "net.neoforged.neoforge.common.ModConfigSpec"
+    ],
+    [
+      "ForgeConfigSpec",
+      "ModConfigSpec"
+    ],
+    [
+      "net.minecraftforge.client.ForgeHooksClient",
+      "net.neoforged.neoforge.client.ClientHooks"
+    ],
+    [
+      "net.minecraftforge.",
+      "net.neoforged.neoforge."
+    ]
+  ]
 }

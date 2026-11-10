@@ -1,12 +1,14 @@
 # Changelog
 
-## 2.3.0
+## 2.4.0
 
 - **More versions**: Fate Flip now comes in several jars, built from the same code and each tested in-game by the CI:
-  - **Forge 1.21 – 1.21.1** (`fateflip-2.3.0-forge-1.21.1.jar`)
-  - **NeoForge 1.21 – 1.21.1** (`fateflip-2.3.0-neoforge-1.21.1.jar`)
+  - **Forge 1.21 – 1.21.1** (`fateflip-2.4.0-forge-1.21.1.jar`)
+  - **NeoForge 1.21 – 1.21.1** (`fateflip-2.4.0-neoforge-1.21.1.jar`)
+  - **Forge 1.20.1** (`fateflip-2.4.0-forge-1.20.1.jar`)
+- All 100 cards, curses, fate powers and the Grimoire are available in every jar.
 - X-Ray and Hallucinations now draw correctly whatever the loader.
-- Plus de versions : un jar Forge 1.21–1.21.1 et un jar NeoForge 1.21–1.21.1, testés en jeu.
+- Plus de versions : un jar Forge 1.21–1.21.1, un jar NeoForge 1.21–1.21.1 et un jar Forge 1.20.1, testés en jeu.
 
 ## 2.2.0
 

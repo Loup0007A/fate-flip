@@ -18,6 +18,7 @@ Seule exception : les **malus permanents** (2.2), qui peuvent frapper quand on p
    |---|---|---|
    | 1.21 – 1.21.1 | Forge 51+ | `fateflip-<version>-forge-1.21.1.jar` (`fateflip-latest-forge-1.21.1.jar`) |
    | 1.21 – 1.21.1 | NeoForge 21.0 / 21.1 | `fateflip-<version>-neoforge-1.21.1.jar` (`fateflip-latest-neoforge-1.21.1.jar`) |
+   | 1.20.1 | Forge 47 | `fateflip-<version>-forge-1.20.1.jar` (`fateflip-latest-forge-1.20.1.jar`) |
 
 2. Copiez-le dans le dossier `mods/` de votre installation (côté client uniquement).
 

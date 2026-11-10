@@ -21,7 +21,7 @@ java -jar installer.jar --installServer . > installer.log 2>&1 || (tail -30 inst
 echo "eula=true" > eula.txt
 printf 'online-mode=false\nspawn-protection=0\nlevel-seed=fateflip\ngamemode=creative\nspawn-monsters=false\n' > server.properties
 mkdir -p mods && cp "$JAR" mods/
-printf -- '-Dfateflip.selftest=true\n' >> user_jvm_args.txt
+printf -- '\n-Dfateflip.selftest=true\n' >> user_jvm_args.txt
 chmod +x run.sh
 (timeout 1700 ./run.sh nogui < /dev/null > "$OUT/selftest.log" 2>&1; echo "server exit $?" >> "$OUT/selftest.log") &
 cd ..

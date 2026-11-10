@@ -25,7 +25,18 @@ public final class ClientBoot {
         //#if neoforge
         //$$ modBus.addListener(ClientBoot::onLayers);
         //#endif
+        //#if mc1201
+        //$$ modBus.addListener(ClientBoot::onOverlays);
+        //#endif
     }
+
+    //#if mc1201
+    //$$ /** Forge 1.20.1 : couches du HUD par RegisterGuiOverlaysEvent. */
+    //$$ private static void onOverlays(net.minecraftforge.client.event.RegisterGuiOverlaysEvent event) {
+    //$$     event.registerBelowAll("world_fx", (gui, g, pt, w, h) -> Fate.worldLayer(g, pt));
+    //$$     event.registerAboveAll("hud_fx", (gui, g, pt, w, h) -> Fate.hudLayer(g, pt));
+    //$$ }
+    //#endif
 
     //#if neoforge
     //$$ /** NeoForge a une API de couches : effet « monde » sous tout le HUD, crochets de fin au-dessus. */

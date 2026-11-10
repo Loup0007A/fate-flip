@@ -201,12 +201,7 @@ public final class PostFx {
         float far = mc.gameRenderer.getDepthFar();
         sh.safeGetUniform("DepthRange").set(0.05f, far);
         sh.apply();
-        BufferBuilder bb = RenderSystem.renderThreadTesselator().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-        bb.addVertex(x0, y0, 0f).setUv(u0, v0);
-        bb.addVertex(x1, y0, 0f).setUv(u1, v0);
-        bb.addVertex(x1, y1, 0f).setUv(u1, v1);
-        bb.addVertex(x0, y1, 0f).setUv(u0, v1);
-        BufferUploader.draw(bb.buildOrThrow());
+        com.fateflip.platform.Compat.drawTexQuad(x0, y0, x1, y1, u0, v0, u1, v1);
         sh.clear();
         RenderSystem.depthMask(true);
         RenderSystem.enableDepthTest();

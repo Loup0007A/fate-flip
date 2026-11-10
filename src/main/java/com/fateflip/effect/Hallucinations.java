@@ -303,6 +303,33 @@ public class Hallucinations extends CardEffect {
     // ───────────────────────── rendu ─────────────────────────
 
     /** Tampon qui multiplie l'opacité de chaque sommet (fondu des blocs). */
+    //#if mc1201
+    //$$ private static final class Faded implements VertexConsumer {
+    //$$     private final VertexConsumer inner;
+    //$$     private final float alpha;
+    //$$
+    //$$     Faded(VertexConsumer inner, float alpha) {
+    //$$         this.inner = inner;
+    //$$         this.alpha = alpha;
+    //$$     }
+    //$$
+    //$$     @Override public VertexConsumer vertex(double x, double y, double z) { inner.vertex(x, y, z); return this; }
+    //$$     @Override public VertexConsumer color(int r, int g, int b, int a) { inner.color(r, g, b, (int) (a * alpha)); return this; }
+    //$$     @Override public VertexConsumer uv(float u, float v) { inner.uv(u, v); return this; }
+    //$$     @Override public VertexConsumer overlayCoords(int u, int v) { inner.overlayCoords(u, v); return this; }
+    //$$     @Override public VertexConsumer uv2(int u, int v) { inner.uv2(u, v); return this; }
+    //$$     @Override public VertexConsumer normal(float x, float y, float z) { inner.normal(x, y, z); return this; }
+    //$$     @Override public void endVertex() { inner.endVertex(); }
+    //$$     @Override public void defaultColor(int r, int g, int b, int a) { inner.defaultColor(r, g, b, a); }
+    //$$     @Override public void unsetDefaultColor() { inner.unsetDefaultColor(); }
+    //$$
+    //$$     @Override
+    //$$     public void vertex(float x, float y, float z, float r, float g, float b, float a, float u, float v, int overlay, int light,
+    //$$                        float nx, float ny, float nz) {
+    //$$         inner.vertex(x, y, z, r, g, b, a * alpha, u, v, overlay, light, nx, ny, nz);
+    //$$     }
+    //$$ }
+    //#else
     private static final class Faded implements VertexConsumer {
         private final VertexConsumer inner;
         private final float alpha;
@@ -325,6 +352,7 @@ public class Hallucinations extends CardEffect {
             inner.addVertex(x, y, z, (a << 24) | (color & 0xFFFFFF), u, v, overlay, light, nx, ny, nz);
         }
     }
+    //#endif
 
     @Override
     public void renderLevel(RenderLevelStageEvent e) {

@@ -15,11 +15,13 @@ import com.fateflip.platform.Platform;
 import com.fateflip.render.FxPass;
 import com.fateflip.render.PostFx;
 import com.mojang.blaze3d.vertex.PoseStack;
+//#if !mc1201
 import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.gui.LayeredDraw;
+//#endif
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.LayeredDraw;
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
@@ -270,8 +272,41 @@ public final class Fate {
 
     // ───────────────────────── ticks ─────────────────────────
 
+    //#if mc1201
+    //$$ @SubscribeEvent
+    //$$ public static void onClientTick(TickEvent.ClientTickEvent event) {
+    //$$     if (event.phase == TickEvent.Phase.START) clientTickStart();
+    //$$     else clientTickEnd();
+    //$$ }
+    //$$
+    //$$ @SubscribeEvent
+    //$$ public static void onRenderTick(TickEvent.RenderTickEvent event) {
+    //$$     if (event.phase == TickEvent.Phase.START) renderTickStart();
+    //$$     else renderTickEnd();
+    //$$ }
+    //#else
     @SubscribeEvent
     public static void onClientTickPre(TickEvent.ClientTickEvent.Pre event) {
+        clientTickStart();
+    }
+
+    @SubscribeEvent
+    public static void onClientTickPost(TickEvent.ClientTickEvent.Post event) {
+        clientTickEnd();
+    }
+
+    @SubscribeEvent
+    public static void onRenderTickPre(TickEvent.RenderTickEvent.Pre event) {
+        renderTickStart();
+    }
+
+    @SubscribeEvent
+    public static void onRenderTickPost(TickEvent.RenderTickEvent.Post event) {
+        renderTickEnd();
+    }
+    //#endif
+
+    private static void clientTickStart() {
         if (MC.player == null || MC.isPaused()) return;
         for (CardEffect fx : live) {
             try {
@@ -282,8 +317,7 @@ public final class Fate {
         }
     }
 
-    @SubscribeEvent
-    public static void onClientTickPost(TickEvent.ClientTickEvent.Post event) {
+    private static void clientTickEnd() {
         installLayers();
         if (deferred != null) {
             Runnable r = deferred;
@@ -392,10 +426,9 @@ public final class Fate {
         return Math.min(in, out);
     }
 
-    @SubscribeEvent
-    public static void onRenderTickPre(TickEvent.RenderTickEvent.Pre event) {
+    private static void renderTickStart() {
         if (MC.level == null) return;
-        float pt = MC.getTimer().getGameTimeDeltaPartialTick(false);
+        float pt = com.fateflip.platform.Compat.partialTick();
         if (current != null) current.fade = fadeFor(pt);
         for (CardEffect fx : live) {
             if (fx != current) fx.fade = Math.min(1f, (fx.age + pt) / 40f);
@@ -407,10 +440,9 @@ public final class Fate {
         }
     }
 
-    @SubscribeEvent
-    public static void onRenderTickPost(TickEvent.RenderTickEvent.Post event) {
+    private static void renderTickEnd() {
         try {
-            float pt = MC.getTimer().getGameTimeDeltaPartialTick(false);
+            float pt = com.fateflip.platform.Compat.partialTick();
             if (current != null && MC.level != null && fullStageAllowed()) {
                 FxPass p = current.pass();
                 if (p != null && p.stage == FxPass.Stage.FULL) {
@@ -431,18 +463,14 @@ public final class Fate {
             org.joml.Matrix4f proj = new org.joml.Matrix4f().setOrtho(0f, (float) (win.getWidth() / win.getGuiScale()),
                 (float) (win.getHeight() / win.getGuiScale()), 0f, 1000f, far);
             com.mojang.blaze3d.systems.RenderSystem.setProjectionMatrix(proj, com.mojang.blaze3d.vertex.VertexSorting.ORTHOGRAPHIC_Z);
-            org.joml.Matrix4fStack mv = com.mojang.blaze3d.systems.RenderSystem.getModelViewStack();
-            mv.pushMatrix();
-            mv.translation(0f, 0f, 10000f - far);
-            com.mojang.blaze3d.systems.RenderSystem.applyModelViewMatrix();
+            com.fateflip.platform.Compat.pushGuiModelView(far);
             MC.getMainRenderTarget().bindWrite(true);
             com.mojang.blaze3d.systems.RenderSystem.clear(org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT, Minecraft.ON_OSX);
             com.mojang.blaze3d.platform.Lighting.setupFor3DItems();
             GuiGraphics g = new GuiGraphics(MC, MC.renderBuffers().bufferSource());
             HudReminder.render(g, pt);
             g.flush();
-            mv.popMatrix();
-            com.mojang.blaze3d.systems.RenderSystem.applyModelViewMatrix();
+            com.fateflip.platform.Compat.popModelView();
         } catch (Throwable t) {
             FateFlip.LOGGER.error("Fate Flip : erreur de dessin du rappel", t);
         }
@@ -516,6 +544,9 @@ public final class Fate {
             layersInstalled = true;
             return;
         }
+        //#if mc1201
+        //$$ layersFailed = true;
+        //#else
         try {
             Field top = Gui.class.getDeclaredField("layers");
             top.setAccessible(true);
@@ -530,6 +561,7 @@ public final class Fate {
             layersFailed = true;
             FateFlip.LOGGER.warn("Fate Flip : couches du HUD indisponibles, repli sur le rendu de secours", t);
         }
+        //#endif
     }
 
     /** Repli si les couches n'ont pas pu être installées. */
@@ -681,7 +713,7 @@ public final class Fate {
         org.joml.Vector3f p = toScreen(m, event.getMouseX(), event.getMouseY());
         GuiGraphics g = event.getGuiGraphics();
         g.pose().pushPose();
-        g.pose().mulPose(m);
+        com.fateflip.platform.Compat.mulPose(g.pose(), m);
         event.getScreen().renderWithTooltip(g, Math.round(p.x), Math.round(p.y), event.getPartialTick());
         g.pose().popPose();
     }
@@ -692,7 +724,7 @@ public final class Fate {
         org.joml.Matrix4f m = screenMatrix(event.getScreen());
         GuiGraphics g = event.getGuiGraphics();
         g.pose().pushPose();
-        if (m != null) g.pose().mulPose(m);
+        if (m != null) com.fateflip.platform.Compat.mulPose(g.pose(), m);
         for (CardEffect fx : live) {
             try {
                 fx.screenOverlay(event);
@@ -739,7 +771,7 @@ public final class Fate {
         if (m == null) return;
         org.joml.Vector3f p = toScreen(m, event.getMouseX(), event.getMouseY());
         event.setCanceled(true);
-        event.getScreen().mouseScrolled(p.x, p.y, Platform.scrollX(event), Platform.scrollY(event));
+        com.fateflip.platform.Compat.mouseScrolled(event.getScreen(), p.x, p.y, Platform.scrollX(event), Platform.scrollY(event));
     }
 
     @SubscribeEvent

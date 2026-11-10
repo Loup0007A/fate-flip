@@ -70,10 +70,11 @@ public class XRay extends CardEffect {
     }
 
     private static int classify(net.minecraft.world.level.block.Block b) {
-        if (b == Blocks.SPAWNER || b == Blocks.TRIAL_SPAWNER) return 0xC060FF;
+        if (b == Blocks.SPAWNER) return 0xC060FF;
         if (b == Blocks.CHEST || b == Blocks.TRAPPED_CHEST || b == Blocks.BARREL) return 0xE0A040;
         if (b == Blocks.ANCIENT_DEBRIS) return 0xB07A5A;
         String path = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(b).getPath();
+        if (path.equals("trial_spawner")) return 0xC060FF;
         if (!path.endsWith("_ore")) return -1;
         if (path.contains("diamond")) return 0x5CF2FF;
         if (path.contains("emerald")) return 0x3CFF6A;
@@ -140,18 +141,9 @@ public class XRay extends CardEffect {
         RenderSystem.disableDepthTest();
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
-        RenderSystem.setShader(GameRenderer::getPositionColorShader);
-        BufferBuilder bb = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-        var m = pose.last().pose();
         float a = 0.78f * fade;
-        // un grand carré juste devant la caméra (repère caméra : on annule la rotation)
-        PoseStack screen = new PoseStack();
-        var sm = screen.last().pose();
-        bb.addVertex(sm, -50f, -50f, -0.2f).setColor(0.02f, 0.03f, 0.08f, a);
-        bb.addVertex(sm, 50f, -50f, -0.2f).setColor(0.02f, 0.03f, 0.08f, a);
-        bb.addVertex(sm, 50f, 50f, -0.2f).setColor(0.02f, 0.03f, 0.08f, a);
-        bb.addVertex(sm, -50f, 50f, -0.2f).setColor(0.02f, 0.03f, 0.08f, a);
-        BufferUploader.drawWithShader(bb.buildOrThrow());
+        // un grand carré juste devant la caméra (repère caméra : sans la rotation)
+        com.fateflip.platform.Compat.drawColorQuad(new org.joml.Matrix4f(), -50f, -50f, 50f, 50f, -0.2f, 0.02f, 0.03f, 0.08f, a);
         RenderSystem.enableDepthTest();
 
         // 2) on efface la profondeur : les minerais passent devant tout

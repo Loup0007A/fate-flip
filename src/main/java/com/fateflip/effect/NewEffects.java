@@ -120,7 +120,7 @@ public final class NewEffects {
 
         @Override
         public Visibility render(GuiGraphics g, ToastComponent toasts, long time) {
-            g.blitSprite(BACKGROUND, 0, 0, width(), height());
+            com.fateflip.platform.Compat.toastBackground(g, width(), height());
             var font = toasts.getMinecraft().font;
             g.drawString(font, Component.translatable("fateflip.achievement.header"), 30, 7, 0xFFFFFF00, false);
             g.drawString(font, font.plainSubstrByWidth(title.getString(), width() - 36), 30, 18, 0xFFFFFFFF, false);

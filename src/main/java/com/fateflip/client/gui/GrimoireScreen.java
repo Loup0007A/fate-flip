@@ -74,15 +74,23 @@ public class GrimoireScreen extends Screen {
         return false;
     }
 
+    //#if !mc1201
     @Override
     public void renderBackground(GuiGraphics g, int mx, int my, float pt) {
+        // dessiné dans render()
+    }
+    //#endif
+
+    private void backdrop(GuiGraphics g, float pt) {
+        //#if !mc1201
         if (minecraft != null && minecraft.level != null) renderBlurredBackground(pt);
+        //#endif
         g.fillGradient(0, 0, width, height, 0xD00A0618, 0xF0020108);
     }
 
     @Override
     public void render(GuiGraphics g, int mx, int my, float pt) {
-        renderBackground(g, mx, my, pt);
+        backdrop(g, pt);
         float t = (Util.getMillis() - openedAt) / 1000f;
         Collection col = Collection.get();
         CardArt.glow(g, CardArt.GLOW, width / 2f, height / 2f, width * 1.2f, height * 1.1f, 0x5B2DB3, 0.35f);

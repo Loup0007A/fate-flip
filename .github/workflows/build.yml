@@ -23,7 +23,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [ forge-1.21.1, neoforge-1.21.1 ]
+        target: [ forge-1.21.1, neoforge-1.21.1, forge-1.20.1 ]
     steps:
       - uses: actions/checkout@v4
 
@@ -96,6 +96,7 @@ jobs:
           - { name: forge-1.21.1,    target: forge-1.21.1,    loader: forge,    loader_version: 1.21.1-52.0.7 }
           - { name: forge-1.21,      target: forge-1.21.1,    loader: forge,    loader_version: 1.21-51.0.33 }
           - { name: neoforge-1.21.1, target: neoforge-1.21.1, loader: neoforge, loader_version: 21.1.265 }
+          - { name: forge-1.20.1,    target: forge-1.20.1,    loader: forge,    loader_version: 1.20.1-47.4.23 }
     steps:
       - uses: actions/checkout@v4
 
@@ -210,5 +211,8 @@ jobs:
             echo "::notice::CurseForge ignoré : ajoutez le secret CURSEFORGE_TOKEN et la variable CURSEFORGE_PROJECT_ID (voir curseforge/SETUP.md)."
             exit 0
           fi
-          bash curseforge/upload.sh "out/fateflip-$V-forge-1.21.1.jar" "$V" "Fate Flip $V (Forge 1.21–1.21.1)" "1.21,1.21.1" "Forge" "Java 21"
-          bash curseforge/upload.sh "out/fateflip-$V-neoforge-1.21.1.jar" "$V" "Fate Flip $V (NeoForge 1.21–1.21.1)" "1.21,1.21.1" "NeoForge" "Java 21"
+          FAIL=0
+          bash curseforge/upload.sh "out/fateflip-$V-forge-1.21.1.jar" "$V" "Fate Flip $V (Forge 1.21–1.21.1)" "1.21,1.21.1" "Forge" "Java 21" || FAIL=1
+          bash curseforge/upload.sh "out/fateflip-$V-neoforge-1.21.1.jar" "$V" "Fate Flip $V (NeoForge 1.21–1.21.1)" "1.21,1.21.1" "NeoForge" "Java 21" || FAIL=1
+          bash curseforge/upload.sh "out/fateflip-$V-forge-1.20.1.jar" "$V" "Fate Flip $V (Forge 1.20.1)" "1.20.1" "Forge" "Java 17" || FAIL=1
+          exit $FAIL

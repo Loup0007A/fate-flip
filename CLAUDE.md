@@ -7,7 +7,7 @@
 ## Multi-versions
 - `src/main` = la variante de référence **Forge 1.21–1.21.1** (compile telle quelle avec le `build.gradle` racine).
 - Les autres cibles sont dans `targets/<cible>/` (build Gradle propre + `target.json` + `overrides/`). Leurs sources sont fabriquées par `python3 tools/port.py <cible>` : blocs `//#if neoforge` / `//#else` / `//#endif` (lignes inactives préfixées `//$$ `), remplacements de `target.json`, puis fichiers de `overrides/`. `python3 tools/port.py --check` vérifie que `src/main` est cohérent.
-- Ce qui diffère d'un loader à l'autre passe par `platform/Platform.java` (une version par cible dans `overrides/`).
+- Ce qui diffère d'un loader à l'autre passe par `platform/Platform.java`, ce qui diffère d'une version de Minecraft à l'autre par `platform/Compat.java` (une version par cible dans `overrides/` quand il le faut). En 1.20.1 le jeu tourne avec les noms SRG : toute réflexion passe par `Compat.field/method(…, "<nom SRG>")`.
 - Compiler une cible localement : `bash /home/claude/tools/compile_target.sh <cible> <release java>` avec les bibliothèques clonées depuis la branche `mc-libs-<cible>` dans `/home/claude/mc/lib-<cible>` (branches produites par le workflow « Export libs » ; les dépôts Maven ne sont pas accessibles depuis la session, GitHub oui).
 - CI : un job de build par cible, un job de test en jeu par couple (cible, version du loader) via `tools/ci_test.sh`, puis release (tous les jars) et CurseForge (un fichier par cible, `curseforge/upload.sh`).
 - Nouvelle version = augmenter `mod_version` dans `gradle.properties` + ajouter une section `## x.y.z` en haut de `CHANGELOG.md` (elle sert de notes pour la release GitHub et pour CurseForge, envoi automatique).

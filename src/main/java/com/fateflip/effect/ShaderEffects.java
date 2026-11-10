@@ -100,7 +100,7 @@ public final class ShaderEffects {
 
         @Override
         public void frame(float partialTick) {
-            anim = Math.min(1f, anim + MC.getTimer().getRealtimeDeltaTicks() / 7f);
+            anim = Math.min(1f, anim + com.fateflip.platform.Compat.realtimeDeltaTicks() / 7f);
             for (int s = 0; s < 3; s++) {
                 pass.params[s] = currentPos(s) / 3f;
                 pass.params2[s] = anim < 1f ? (float) Math.sin(Math.PI * anim) : 0f;
@@ -170,7 +170,7 @@ public final class ShaderEffects {
 
         @Override
         public void frame(float partialTick) {
-            float dt = MC.getTimer().getRealtimeDeltaTicks() / 20f;
+            float dt = com.fateflip.platform.Compat.realtimeDeltaTicks() / 20f;
             if (MC.isPaused()) dt = 0;
             if (movingTile >= 0) {
                 moveProgress += dt / 0.45f;

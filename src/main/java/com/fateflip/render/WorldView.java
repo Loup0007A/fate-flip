@@ -1,9 +1,7 @@
 package com.fateflip.render;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Camera;
-import org.joml.Matrix4fStack;
 import org.joml.Quaternionf;
 
 /**
@@ -16,17 +14,13 @@ public final class WorldView {
     private WorldView() {}
 
     public static PoseStack begin(Camera camera) {
-        Matrix4fStack mv = RenderSystem.getModelViewStack();
-        mv.pushMatrix();
-        mv.identity();
-        RenderSystem.applyModelViewMatrix();
+        com.fateflip.platform.Compat.pushIdentityModelView();
         PoseStack pose = new PoseStack();
         pose.mulPose(camera.rotation().conjugate(new Quaternionf()));
         return pose;
     }
 
     public static void end() {
-        RenderSystem.getModelViewStack().popMatrix();
-        RenderSystem.applyModelViewMatrix();
+        com.fateflip.platform.Compat.popModelView();
     }
 }

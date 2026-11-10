@@ -35,7 +35,7 @@ public final class ControlEffects {
         in.forwardImpulse = (in.up ? 1f : 0f) - (in.down ? 1f : 0f);
         in.leftImpulse = (in.left ? 1f : 0f) - (in.right ? 1f : 0f);
         if (player.isMovingSlowly()) {
-            float f = (float) player.getAttributeValue(Attributes.SNEAKING_SPEED);
+            float f = com.fateflip.platform.Compat.sneakFactor(player);
             in.forwardImpulse *= f;
             in.leftImpulse *= f;
         }
@@ -193,9 +193,8 @@ public final class ControlEffects {
                                            net.minecraft.world.inventory.Slot slot, int hotbar) {
             try {
                 if (slotClicked == null) {
-                    slotClicked = net.minecraft.client.gui.screens.inventory.AbstractContainerScreen.class.getDeclaredMethod("slotClicked",
+                    slotClicked = com.fateflip.platform.Compat.method(net.minecraft.client.gui.screens.inventory.AbstractContainerScreen.class, "slotClicked", "m_6597_",
                         net.minecraft.world.inventory.Slot.class, int.class, int.class, net.minecraft.world.inventory.ClickType.class);
-                    slotClicked.setAccessible(true);
                 }
                 slotClicked.invoke(cs, slot, slot.index, hotbar, net.minecraft.world.inventory.ClickType.SWAP);
                 return true;

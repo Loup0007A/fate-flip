@@ -257,8 +257,19 @@ public final class ClientSelfTest {
         });
     }
 
+    //#if mc1201
+    //$$ @SubscribeEvent
+    //$$ public static void onTick(TickEvent.ClientTickEvent event) {
+    //$$     if (event.phase == TickEvent.Phase.END) tick();
+    //$$ }
+    //#else
     @SubscribeEvent
     public static void onTick(TickEvent.ClientTickEvent.Post event) {
+        tick();
+    }
+    //#endif
+
+    private static void tick() {
         if (!ENABLED) return;
         Minecraft mc = mc();
         if (mc.player == null || mc.level == null) return;

@@ -135,8 +135,7 @@ public final class WorldEffects {
             MC.options.damageTiltStrength().set(0.0);
             MC.options.fovEffectScale().set(0.0);
             try {
-                Field f = net.minecraft.client.renderer.texture.TextureManager.class.getDeclaredField("tickableTextures");
-                f.setAccessible(true);
+                Field f = com.fateflip.platform.Compat.field(net.minecraft.client.renderer.texture.TextureManager.class, "tickableTextures", "f_118469_");
                 tickables = (Set<Tickable>) f.get(MC.getTextureManager());
                 if (MC.getTextureManager().getTexture(TextureAtlas.LOCATION_BLOCKS) instanceof Tickable t && tickables.remove(t)) frozen = t;
             } catch (Throwable t) {
@@ -319,12 +318,9 @@ public final class WorldEffects {
             if (broken) return;
             try {
                 if (engineField == null) {
-                    engineField = net.minecraft.client.sounds.SoundManager.class.getDeclaredField("soundEngine");
-                    engineField.setAccessible(true);
-                    accessField = net.minecraft.client.sounds.SoundEngine.class.getDeclaredField("channelAccess");
-                    accessField.setAccessible(true);
-                    sourceField = com.mojang.blaze3d.audio.Channel.class.getDeclaredField("source");
-                    sourceField.setAccessible(true);
+                    engineField = com.fateflip.platform.Compat.field(net.minecraft.client.sounds.SoundManager.class, "soundEngine", "f_120349_");
+                    accessField = com.fateflip.platform.Compat.field(net.minecraft.client.sounds.SoundEngine.class, "channelAccess", "f_120224_");
+                    sourceField = com.fateflip.platform.Compat.field(com.mojang.blaze3d.audio.Channel.class, "source", "f_83642_");
                 }
                 Object engine = engineField.get(MC.getSoundManager());
                 var access = (net.minecraft.client.sounds.ChannelAccess) accessField.get(engine);

@@ -178,7 +178,7 @@ public class TopDown extends CardEffect {
         if (horiz > 0.25) lookYaw = (float) (Mth.atan2(d.z, d.x) * Mth.RAD_TO_DEG) - 90f;
         lookPitch = (float) Mth.clamp(-(Mth.atan2(d.y, horiz) * Mth.RAD_TO_DEG), -89.9, 89.9);
         haveLook = true;
-        double reach = ent != null ? p.entityInteractionRange() : p.blockInteractionRange();
+        double reach = ent != null ? com.fateflip.platform.Compat.entityReach(p) : com.fateflip.platform.Compat.blockReach(p);
         inReach = (ent != null || block.getType() != HitResult.Type.MISS) && eye.distanceTo(target) <= reach + 0.3;
     }
 
@@ -229,8 +229,7 @@ public class TopDown extends CardEffect {
     private static void setCameraPosition(Camera cam, Vec3 pos) {
         try {
             if (setPosition == null) {
-                setPosition = Camera.class.getDeclaredMethod("setPosition", Vec3.class);
-                setPosition.setAccessible(true);
+                setPosition = com.fateflip.platform.Compat.method(Camera.class, "setPosition", "m_90581_", Vec3.class);
             }
             setPosition.invoke(cam, pos);
         } catch (Throwable t) {
@@ -276,7 +275,7 @@ public class TopDown extends CardEffect {
         float fwd = -mx * sin + mz * cos;
         float left = mx * cos + mz * sin;
         if (player.isMovingSlowly()) {
-            float f = (float) player.getAttributeValue(Attributes.SNEAKING_SPEED);
+            float f = com.fateflip.platform.Compat.sneakFactor(player);
             fwd *= f;
             left *= f;
         }

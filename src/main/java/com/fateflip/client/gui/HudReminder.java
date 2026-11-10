@@ -74,7 +74,7 @@ public final class HudReminder {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || !FFConfig.ENABLED.get()) return;
         if (!(mc.screen instanceof DrawScreen)) renderAnnouncement(g, mc.font);
-        if (corner() == FFConfig.HudCorner.HIDDEN || mc.getDebugOverlay().showDebugScreen()) return;
+        if (corner() == FFConfig.HudCorner.HIDDEN || com.fateflip.platform.Compat.debugScreen()) return;
         if (mc.screen instanceof DrawScreen) return;
         renderCorner(g, mc, pt);
     }
