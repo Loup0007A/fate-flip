@@ -22,7 +22,18 @@ public final class ClientBoot {
     public static void init(IEventBus modBus) {
         modBus.addListener(ClientBoot::onShaders);
         modBus.addListener(ClientBoot::onKeys);
+        //#if neoforge
+        //$$ modBus.addListener(ClientBoot::onLayers);
+        //#endif
     }
+
+    //#if neoforge
+    //$$ /** NeoForge a une API de couches : effet « monde » sous tout le HUD, crochets de fin au-dessus. */
+    //$$ private static void onLayers(net.neoforged.neoforge.client.event.RegisterGuiLayersEvent event) {
+    //$$     event.registerBelowAll(FateFlip.id("world_fx"), (g, dt) -> Fate.worldLayer(g, dt.getGameTimeDeltaPartialTick(false)));
+    //$$     event.registerAboveAll(FateFlip.id("hud_fx"), (g, dt) -> Fate.hudLayer(g, dt.getGameTimeDeltaPartialTick(false)));
+    //$$ }
+    //#endif
 
     private static void onShaders(RegisterShadersEvent event) {
         try {

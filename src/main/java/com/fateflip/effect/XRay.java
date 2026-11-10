@@ -126,8 +126,15 @@ public class XRay extends CardEffect {
         if (e.getStage() != RenderLevelStageEvent.Stage.AFTER_LEVEL || MC.level == null || fade < 0.05f) return;
         Camera cam = e.getCamera();
         Vec3 cp = cam.getPosition();
-        PoseStack pose = new PoseStack();
-        pose.mulPose(cam.rotation().conjugate(new Quaternionf()));
+        PoseStack pose = com.fateflip.render.WorldView.begin(cam);
+        try {
+            draw(pose, cp);
+        } finally {
+            com.fateflip.render.WorldView.end();
+        }
+    }
+
+    private void draw(PoseStack pose, Vec3 cp) {
 
         // 1) le monde s'assombrit
         RenderSystem.disableDepthTest();

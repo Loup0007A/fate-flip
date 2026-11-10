@@ -15,87 +15,134 @@ permissions:
   contents: write
 
 jobs:
+  # ─────────────── 1. Un jar par cible (version de Minecraft + loader) ───────────────
   build:
+    name: Build ${{ matrix.target }}
     runs-on: ubuntu-latest
-    if: github.ref_name != 'ci-logs'
-
+    if: github.ref_name != 'ci-logs' && !startsWith(github.ref_name, 'mc-libs-')
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [ forge-1.21.1, neoforge-1.21.1 ]
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Java 21
+      - name: Java 17 / 25 / 21
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 21
+          java-version: |
+            17
+            25
+            21
 
-      - name: Setup Gradle cache
+      - name: Gradle cache
         uses: actions/cache@v4
         with:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: gradle-
+          key: gradle-${{ matrix.target }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', 'targets/*/gradle.properties') }}
+          restore-keys: gradle-${{ matrix.target }}-
 
-      - name: Build mod
-        run: |
-          chmod +x gradlew
-          set -o pipefail
-          ./gradlew build --no-daemon 2>&1 | tee build.log
+      - name: Build
         env:
-          GRADLE_OPTS: "-Xmx4g"
-
-      - name: Self-test (real Forge server + real client with screenshots)
+          T: ${{ matrix.target }}
         run: |
-          VERSION=$(grep '^mod_version' gradle.properties | cut -d= -f2 | tr -d '[:space:]')
-          JAR="$PWD/build/libs/fateflip-${VERSION}.jar"
-          FORGE=1.21.1-52.0.7
-          # ---- Serveur (met en scène un décor pour les captures) ----
-          mkdir -p srv && cd srv
-          curl -sSL -o installer.jar "https://maven.minecraftforge.net/net/minecraftforge/forge/${FORGE}/forge-${FORGE}-installer.jar"
-          java -jar installer.jar --installServer . > installer.log 2>&1 || (tail -30 installer.log; exit 1)
-          echo "eula=true" > eula.txt
-          printf 'online-mode=false\nspawn-protection=0\nlevel-seed=fateflip\ngamemode=creative\nspawn-monsters=false\n' > server.properties
-          mkdir -p mods && cp "$JAR" mods/
-          printf -- '-Dfateflip.selftest=true\n' >> user_jvm_args.txt
-          chmod +x run.sh
-          (timeout 1500 ./run.sh nogui < /dev/null > ../selftest.log 2>&1; echo "server exit $?" >> ../selftest.log) &
-          cd ..
-          for i in $(seq 1 120); do grep -q "SELFTEST\] READY" selftest.log && break; sleep 5; done
-          grep -E "\[SELFTEST\]|Exception|ERROR" selftest.log | head -100 > selftest-summary.log || true
-          cat selftest-summary.log
-          # ---- Client (portablemc + Xvfb, rendu logiciel) : un vrai tirage + chaque carte photographiée ----
-          set +e
+          set -o pipefail
+          V=$(grep '^mod_version' gradle.properties | cut -d= -f2 | tr -d '[:space:]')
+          chmod +x gradlew targets/*/gradlew 2>/dev/null || true
+          mkdir -p out
+          if [ "$T" = "forge-1.21.1" ]; then
+            # La variante de référence : les sources de src/main, telles quelles
+            ./gradlew build --no-daemon 2>&1 | tee "out/build-$T.log"
+            cp "build/libs/fateflip-$V.jar" "out/fateflip-$V-$T.jar"
+          else
+            python3 tools/port.py "$T"
+            cd "targets/$T"
+            if [ -x ./gradlew ]; then G=./gradlew; else G=../../gradlew; fi
+            $G build --no-daemon -Porg.gradle.java.installations.fromEnv=JAVA_HOME_17_X64,JAVA_HOME_21_X64,JAVA_HOME_25_X64 \
+              2>&1 | tee "../../out/build-$T.log"
+            cd ../..
+            cp "targets/$T/build/libs/fateflip-$V-$T.jar" out/
+          fi
+          ls -l out
+        # Gradle 9 (cibles NeoForge) demande de lancer Gradle avec Java 17+ ; Forge 1.21.1 compile en 21
+        shell: bash
+
+      - name: Upload jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: jar-${{ matrix.target }}
+          path: out/*.jar
+          if-no-files-found: error
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: buildlog-${{ matrix.target }}
+          path: out/*.log
+
+  # ─────────────── 2. Test en jeu : vrai serveur + vrai client, captures de chaque carte ───────────────
+  test:
+    name: Test ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: forge-1.21.1,    target: forge-1.21.1,    loader: forge,    loader_version: 1.21.1-52.0.7 }
+          - { name: forge-1.21,      target: forge-1.21.1,    loader: forge,    loader_version: 1.21-51.0.33 }
+          - { name: neoforge-1.21.1, target: neoforge-1.21.1, loader: neoforge, loader_version: 21.1.265 }
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: jar-${{ matrix.target }}
+          path: out
+
+      - name: Client et serveur de test
+        run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq xvfb libgl1-mesa-dri mesa-utils > /dev/null
           pip install -q portablemc==5.0.6
-          mkdir -p client/mods && cp "$JAR" client/mods/
-          printf 'onboardAccessibility:false\npauseOnLostFocus:false\ntutorialStep:none\nsoundCategory_master:0.0\nnarrator:0\nguiScale:3\nskipMultiplayerWarning:true\njoinedFirstServer:true\nrenderDistance:8\n' > client/options.txt
-          LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a -s "-screen 0 1280x720x24" timeout 1500 \
-            portablemc --main-dir "$PWD/mcmain" start --mc-dir "$PWD/client" "forge::${FORGE}" \
-            -u Tester --join-server 127.0.0.1 --resolution 1280x720 \
-            --jvm-arg=-Xmx3G,-Dfateflip.clienttest=true > clienttest.log 2>&1
-          echo "client exit $?"
-          grep -E "CLIENTTEST|FateFlip|Exception|ERROR|GL error|shader" clienttest.log | head -200
-          grep -q "CLIENTTEST\] RESULT" clienttest.log || tail -60 clienttest.log
-          ls -la client/screenshots
-          pkill -f "nogui" || true
-          wait
-          set -e
-          grep -q "\[SELFTEST\] READY" selftest.log
-          grep -q "\[CLIENTTEST\] RESULT: OK" clienttest.log
+          bash tools/ci_test.sh out/*.jar "${{ matrix.loader }}" "${{ matrix.loader_version }}" "${{ matrix.name }}"
 
-      - name: Publish logs and screenshots to the ci-logs branch
+      - name: Upload logs and screenshots
         if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-${{ matrix.name }}
+          path: ci-out/${{ matrix.name }}
+
+  # ─────────────── 3. Journaux et captures sur la branche ci-logs ───────────────
+  logs:
+    name: Publish logs
+    runs-on: ubuntu-latest
+    needs: [ build, test ]
+    if: always() && github.ref_name != 'ci-logs' && !startsWith(github.ref_name, 'mc-libs-')
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: all
+      - name: Push to ci-logs
         run: |
           NAME=$(echo "${GITHUB_REF_NAME}" | tr '/' '_')
-          mkdir -p /tmp/logs
-          cp build.log "/tmp/logs/${NAME}.log" 2>/dev/null || echo "no log" > "/tmp/logs/${NAME}.log"
-          cp selftest.log "/tmp/logs/${NAME}.selftest.log" 2>/dev/null || true
-          cp clienttest.log "/tmp/logs/${NAME}.clienttest.log" 2>/dev/null || true
-          mkdir -p "/tmp/logs/screenshots/${NAME}" && cp client/screenshots/*.png "/tmp/logs/screenshots/${NAME}/" 2>/dev/null || true
-          echo "${{ job.status }} ${GITHUB_SHA}" > "/tmp/logs/${NAME}.status"
-          ls -l build/libs >> "/tmp/logs/${NAME}.status" 2>/dev/null || true
+          mkdir -p "/tmp/logs/$NAME"
+          for d in all/test-*; do [ -d "$d" ] && cp -r "$d" "/tmp/logs/$NAME/${d#all/test-}"; done
+          for d in all/buildlog-*; do [ -d "$d" ] && cp "$d"/*.log "/tmp/logs/$NAME/" 2>/dev/null; done
+          {
+            echo "build: ${{ needs.build.result }}  test: ${{ needs.test.result }}  ${GITHUB_SHA}"
+            for f in /tmp/logs/$NAME/*/clienttest.log; do [ -f "$f" ] && echo "$(basename $(dirname $f)): $(grep -o 'RESULT: .*' "$f" | tail -1)"; done
+          } > "/tmp/logs/$NAME/status.txt"
+          cat "/tmp/logs/$NAME/status.txt"
           cd /tmp/logs
           git init -q -b ci-logs
           git config user.email "actions@github.com"
@@ -103,57 +150,65 @@ jobs:
           git add -A && git commit -qm "logs ${GITHUB_SHA}"
           git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" ci-logs
 
-      - name: Upload JAR artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: fateflip-jar
-          path: build/libs/fateflip-*.jar
-          if-no-files-found: error
+  # ─────────────── 4. Release GitHub + jars dans releases/ + CurseForge (main seulement) ───────────────
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    needs: [ build, test ]
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
 
-      - name: Publish release and commit the jar (main only)
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: jar-*
+          path: out
+          merge-multiple: true
+
+      - name: Publish release and commit the jars
         id: release
-        if: github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           VERSION=$(grep '^mod_version' gradle.properties | cut -d= -f2 | tr -d '[:space:]')
-          JAR="build/libs/fateflip-${VERSION}.jar"
-          ls -l "$JAR"
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-          # 1) Release GitHub (créée ou mise à jour). Une nouvelle version = nouvel envoi CurseForge.
+          ls -l out
           if gh release view "v${VERSION}" >/dev/null 2>&1; then
-            gh release upload "v${VERSION}" "$JAR" --clobber
+            gh release upload "v${VERSION}" out/*.jar --clobber
             echo "new=false" >> "$GITHUB_OUTPUT"
           else
             awk -v v="## ${VERSION}" 'index($0,v)==1{f=1;next} /^## /{if(f)exit} f' CHANGELOG.md > release-notes.md
             [ -s release-notes.md ] || cp CHANGELOG.md release-notes.md
-            gh release create "v${VERSION}" "$JAR" --title "Fate Flip ${VERSION}" \
+            gh release create "v${VERSION}" out/*.jar --title "Fate Flip ${VERSION}" \
               --notes-file release-notes.md --target "${GITHUB_SHA}"
             echo "new=true" >> "$GITHUB_OUTPUT"
           fi
-          # 2) Copie du jar dans le dépôt (dossier releases/)
           mkdir -p releases
-          cp "$JAR" releases/
-          cp "$JAR" releases/fateflip-latest.jar
+          for j in out/*.jar; do
+            cp "$j" releases/
+            T=$(basename "$j" .jar | sed "s/^fateflip-${VERSION}-//")
+            cp "$j" "releases/fateflip-latest-$T.jar"
+          done
+          cp "out/fateflip-${VERSION}-forge-1.21.1.jar" releases/fateflip-latest.jar
           git config user.email "actions@github.com"
           git config user.name "github-actions"
           git add releases/
           if ! git diff --cached --quiet; then
-            git commit -qm "Jar compilé ${VERSION} (${GITHUB_SHA::7})"
+            git commit -qm "Jars compilés ${VERSION} (${GITHUB_SHA::7})"
+            git pull -q --rebase origin main || true
             git push -q origin HEAD:main
           fi
 
-      - name: Upload to CurseForge (new version on main, needs CURSEFORGE_TOKEN + CURSEFORGE_PROJECT_ID)
-        if: >-
-          github.ref == 'refs/heads/main' &&
-          (steps.release.outputs.new == 'true' || inputs.publish_curseforge)
+      - name: Upload to CurseForge (new version, needs CURSEFORGE_TOKEN + CURSEFORGE_PROJECT_ID)
+        if: steps.release.outputs.new == 'true' || inputs.publish_curseforge
         env:
           CF_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
           CF_PROJECT: ${{ vars.CURSEFORGE_PROJECT_ID }}
-          VERSION: ${{ steps.release.outputs.version }}
+          V: ${{ steps.release.outputs.version }}
         run: |
           if [ -z "$CF_TOKEN" ] || [ -z "$CF_PROJECT" ]; then
             echo "::notice::CurseForge ignoré : ajoutez le secret CURSEFORGE_TOKEN et la variable CURSEFORGE_PROJECT_ID (voir curseforge/SETUP.md)."
             exit 0
           fi
-          bash curseforge/upload.sh "build/libs/fateflip-${VERSION}.jar" "$VERSION"
+          bash curseforge/upload.sh "out/fateflip-$V-forge-1.21.1.jar" "$V" "Fate Flip $V (Forge 1.21–1.21.1)" "1.21,1.21.1" "Forge" "Java 21"
+          bash curseforge/upload.sh "out/fateflip-$V-neoforge-1.21.1.jar" "$V" "Fate Flip $V (NeoForge 1.21–1.21.1)" "1.21,1.21.1" "NeoForge" "Java 21"

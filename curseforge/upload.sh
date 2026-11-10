@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
 # Envoie un jar sur CurseForge via l'API d'upload officielle.
-# Usage : CF_TOKEN=... CF_PROJECT=123456 bash curseforge/upload.sh build/libs/fateflip-1.0.0.jar 1.0.0
+# Usage : CF_TOKEN=... CF_PROJECT=123456 bash curseforge/upload.sh <jar> <version> <nom affiché> <versions MC> <loaders> <java>
+#   ex.   bash curseforge/upload.sh out/fateflip-2.3.0-forge-1.21.1.jar 2.3.0 "Fate Flip 2.3.0 (Forge 1.21–1.21.1)" "1.21,1.21.1" "Forge" "Java 21"
 set -euo pipefail
 
 JAR="$1"
 VERSION="$2"
+NAME="${3:-Fate Flip $VERSION}"
+MC_VERSIONS="${4:-1.21.1}"
+LOADERS="${5:-Forge}"
+JAVA="${6:-Java 21}"
 API="https://minecraft.curseforge.com/api"
-MC_VERSION="1.21.1"
 
 [ -f "$JAR" ] || { echo "Jar introuvable : $JAR"; exit 1; }
 
@@ -14,24 +18,22 @@ MC_VERSION="1.21.1"
 curl -sSf -H "X-Api-Token: ${CF_TOKEN}" "$API/game/version-types" > /tmp/cf-types.json
 curl -sSf -H "X-Api-Token: ${CF_TOKEN}" "$API/game/versions" > /tmp/cf-versions.json
 
-type_id() { jq -r --arg s "$1" '.[] | select(.slug == $s) | .id' /tmp/cf-types.json | head -n1; }
-version_id() { # $1 = id du type, $2 = nom exact
-  jq -r --argjson t "$1" --arg n "$2" '.[] | select(.gameVersionTypeID == $t and .name == $n) | .id' /tmp/cf-versions.json | head -n1
+# Types dont le slug commence par un préfixe (minecraft-1-21, minecraft-26-3…), ou slug exact
+types_like() { jq -r --arg p "$1" '[.[] | select(.slug | startswith($p)) | .id]' /tmp/cf-types.json; }
+version_in() { # $1 = tableau JSON d'ID de types, $2 = nom exact
+  jq -r --argjson t "$1" --arg n "$2" '.[] | select((.gameVersionTypeID as $g | $t | index($g)) and .name == $n) | .id' /tmp/cf-versions.json | head -n1
 }
 
-MC_TYPE=$(type_id "minecraft-1-21")
-LOADER_TYPE=$(type_id "modloader")
-ENV_TYPE=$(type_id "environment")
-JAVA_TYPE=$(type_id "java")
-
 IDS=()
-for pair in "$MC_TYPE:$MC_VERSION" "$LOADER_TYPE:Forge" "$ENV_TYPE:Client" "$JAVA_TYPE:Java 21"; do
-  t="${pair%%:*}"; n="${pair#*:}"
-  if [ -n "$t" ]; then
-    id=$(version_id "$t" "$n")
-    if [ -n "$id" ]; then IDS+=("$id"); echo "Version « $n » -> $id"; else echo "::warning::Version CurseForge « $n » introuvable"; fi
-  fi
-done
+add() { # $1 = types, $2 = nom
+  local id; id=$(version_in "$1" "$2")
+  if [ -n "$id" ]; then IDS+=("$id"); echo "Version « $2 » -> $id"; else echo "::warning::Version CurseForge « $2 » introuvable"; fi
+}
+MC_T=$(types_like "minecraft-")
+IFS=',' read -ra L <<< "$MC_VERSIONS"; for v in "${L[@]}"; do add "$MC_T" "$v"; done
+IFS=',' read -ra L <<< "$LOADERS"; for v in "${L[@]}"; do add "$(types_like modloader)" "$v"; done
+add "$(types_like environment)" "Client"
+add "$(types_like java)" "$JAVA"
 [ "${#IDS[@]}" -gt 0 ] || { echo "Aucune version de jeu résolue"; exit 1; }
 GV=$(printf '%s\n' "${IDS[@]}" | jq -s '.')
 
@@ -39,7 +41,7 @@ GV=$(printf '%s\n' "${IDS[@]}" | jq -s '.')
 NOTES=$(awk -v v="## ${VERSION}" 'index($0,v)==1{f=1;next} /^## /{if(f)exit} f' CHANGELOG.md)
 [ -n "$NOTES" ] || NOTES="Fate Flip ${VERSION}"
 
-META=$(jq -n --arg cl "$NOTES" --arg name "Fate Flip ${VERSION}" --argjson gv "$GV" \
+META=$(jq -n --arg cl "$NOTES" --arg name "$NAME" --argjson gv "$GV" \
   '{changelog: $cl, changelogType: "markdown", displayName: $name, gameVersions: $gv, releaseType: "release"}')
 
 HTTP=$(curl -sS -o /tmp/cf-response.json -w "%{http_code}" \
@@ -48,5 +50,5 @@ HTTP=$(curl -sS -o /tmp/cf-response.json -w "%{http_code}" \
   -F "file=@${JAR}" \
   "$API/projects/${CF_PROJECT}/upload-file")
 cat /tmp/cf-response.json; echo
-if [ "$HTTP" != "200" ]; then echo "::error::Envoi CurseForge refusé (HTTP $HTTP)"; exit 1; fi
-echo "::notice::Fate Flip ${VERSION} envoyé sur CurseForge (projet ${CF_PROJECT})."
+if [ "$HTTP" != "200" ]; then echo "::error::Envoi CurseForge refusé (HTTP $HTTP) pour $NAME"; exit 1; fi
+echo "::notice::$NAME envoyé sur CurseForge (projet ${CF_PROJECT})."

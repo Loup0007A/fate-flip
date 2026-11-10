@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.3.0
+
+- **More versions**: Fate Flip now comes in several jars, built from the same code and each tested in-game by the CI:
+  - **Forge 1.21 – 1.21.1** (`fateflip-2.3.0-forge-1.21.1.jar`)
+  - **NeoForge 1.21 – 1.21.1** (`fateflip-2.3.0-neoforge-1.21.1.jar`)
+- X-Ray and Hallucinations now draw correctly whatever the loader.
+- Plus de versions : un jar Forge 1.21–1.21.1 et un jar NeoForge 1.21–1.21.1, testés en jeu.
+
 ## 2.2.0
 
 - **New: permanent curses.** On the **3rd flip of a single draw** (after two AGAINs), the card has a **1 in 6** chance to be **cursed**: it can't be burned and its small curse stays active **forever** (until `/fateflip reset`). 8 curses: Lightning Rod, Short Arms, Side Stitch, Butterfingers, Fear of the Dark, Hay Fever, Lingering Mist, Trick Knee. Active curses show under the HUD reminder and in a new **Curses** tab of the Grimoire. Config: `curses`, `curseChance`; commands `/fateflip curse list|add|remove|clear`.

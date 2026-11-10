@@ -66,27 +66,35 @@ public final class WorldEffects {
         private Map<Object, Object> blocks, fluids;
         private Map<Object, Object> savedBlocks, savedFluids;
 
+        /** Première table trouvée parmi ces noms (Forge et NeoForge ne les appellent pas pareil). */
         @SuppressWarnings("unchecked")
-        private static Map<Object, Object> map(String name) throws ReflectiveOperationException {
-            Field f = ItemBlockRenderTypes.class.getDeclaredField(name);
-            f.setAccessible(true);
-            return (Map<Object, Object>) f.get(null);
+        private static Map<Object, Object> map(String... names) {
+            for (String name : names) {
+                try {
+                    Field f = ItemBlockRenderTypes.class.getDeclaredField(name);
+                    f.setAccessible(true);
+                    return (Map<Object, Object>) f.get(null);
+                } catch (Throwable ignored) {
+                }
+            }
+            return null;
         }
 
         @Override
         public void start() {
-            try {
-                blocks = map("BLOCK_RENDER_TYPES");
-                fluids = map("FLUID_RENDER_TYPES");
+            // On ne remplace que des clés existantes : la table n'est jamais redimensionnée
+            // pendant que les fils de compilation la lisent.
+            blocks = map("BLOCK_RENDER_TYPES");
+            fluids = map("FLUID_RENDER_TYPES", "TYPE_BY_FLUID");
+            if (blocks != null) {
                 savedBlocks = new HashMap<>(blocks);
-                savedFluids = new HashMap<>(fluids);
-                // On ne remplace que des clés existantes : la table n'est jamais redimensionnée
-                // pendant que les fils de compilation la lisent.
                 for (Object k : savedBlocks.keySet()) blocks.put(k, SOLID);
+            } else {
+                FateFlip.LOGGER.warn("Fate Flip : table des couches de rendu introuvable, transparence conservée");
+            }
+            if (fluids != null) {
+                savedFluids = new HashMap<>(fluids);
                 for (Object k : savedFluids.keySet()) fluids.put(k, RenderType.solid());
-            } catch (Throwable t) {
-                FateFlip.LOGGER.warn("Fate Flip : transparence désactivée indisponible", t);
-                savedBlocks = savedFluids = null;
             }
             MC.levelRenderer.allChanged();
             ItemBlockRenderTypes.setFancy(false);

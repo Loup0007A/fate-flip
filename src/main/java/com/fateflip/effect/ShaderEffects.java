@@ -350,7 +350,7 @@ public final class ShaderEffects {
         @Override
         public void renderLevel(net.minecraftforge.client.event.RenderLevelStageEvent e) {
             if (e.getStage() != net.minecraftforge.client.event.RenderLevelStageEvent.Stage.AFTER_SKY || MC.level == null) return;
-            float pt = e.getPartialTick();
+            float pt = com.fateflip.platform.Platform.partialTick(e);
             float angle = MC.level.getTimeOfDay(pt) * Mth.TWO_PI;
             org.joml.Vector3f sun = new org.joml.Vector3f(-Mth.sin(angle), Mth.cos(angle), 0f);
             net.minecraft.client.Camera cam = e.getCamera();

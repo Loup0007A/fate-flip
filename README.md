@@ -12,11 +12,14 @@ Seule exception : les **malus permanents** (2.2), qui peuvent frapper quand on p
 
 ## 📦 Installation
 
-1. Installez **Minecraft 1.21.1** avec **Forge 52.0.x** ou plus récent.
-2. Téléchargez le jar :
-   - dans les [Releases](https://github.com/Loup0007A/fate-flip/releases), ou
-   - directement dans le dossier [`releases/`](releases/) (`fateflip-latest.jar`).
-3. Copiez-le dans le dossier `mods/` de votre installation (côté client uniquement).
+1. Choisissez le jar qui correspond à votre jeu (dans les [Releases](https://github.com/Loup0007A/fate-flip/releases), sur CurseForge ou dans [`releases/`](releases/)) :
+
+   | Minecraft | Loader | Jar |
+   |---|---|---|
+   | 1.21 – 1.21.1 | Forge 51+ | `fateflip-<version>-forge-1.21.1.jar` (`fateflip-latest-forge-1.21.1.jar`) |
+   | 1.21 – 1.21.1 | NeoForge 21.0 / 21.1 | `fateflip-<version>-neoforge-1.21.1.jar` (`fateflip-latest-neoforge-1.21.1.jar`) |
+
+2. Copiez-le dans le dossier `mods/` de votre installation (côté client uniquement).
 
 ## 🎴 Le tirage
 
@@ -104,9 +107,10 @@ Toute votre collection, famille par famille : cartes découvertes, nombre de foi
 
 ## 🔧 Développement
 
-- Java 21, Forge 1.21.1-52.0.7, mappings Parchment, `reobf = false`.
+- Java 21, Forge 1.21.1-52.0.7, mappings Parchment, `reobf = false` : c'est la variante de référence (`src/main`).
+- Les autres versions (NeoForge…) sont fabriquées à partir des mêmes sources par `tools/port.py` (voir `targets/`).
 - Tous les effets d'écran sont dans un seul shader : `assets/fateflip/shaders/core/screen_fx.fsh`. `tools/fxpreview.py` les rend hors jeu sur une scène de test.
 - Les textures des cartes et le logo sont générés par `tools/textures.py` et `tools/logo.py`, les traductions par `tools/lang.py`.
-- **CI GitHub Actions** (à chaque push sur `main`) : compilation, lancement d'un vrai serveur Forge puis d'un vrai client qui déroule un tirage et photographie chaque carte (logs et captures sur la branche `ci-logs`). Si tout passe : release GitHub, jar copié dans `releases/` et, pour chaque nouvelle version, envoi sur **CurseForge** (voir [`curseforge/SETUP.md`](curseforge/SETUP.md)).
+- **CI GitHub Actions** (à chaque push sur `main`) : un jar par cible, puis pour chaque cible et chaque version du loader un vrai serveur et un vrai client qui déroulent un tirage et photographient chaque carte (logs et captures sur la branche `ci-logs`). Si tout passe : release GitHub avec tous les jars, copies dans `releases/` et, pour chaque nouvelle version, envoi de chaque jar sur **CurseForge** (voir [`curseforge/SETUP.md`](curseforge/SETUP.md)).
 
 Licence MIT.

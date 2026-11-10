@@ -1,8 +1,15 @@
 # Fate Flip — consignes pour Claude
 
 - **Toujours pousser directement sur `main`** (pas de branche `dev`, pas de PR), à la demande de Loup0007A.
-- Avant de pousser : le code doit compiler. Ensuite, vérifier le résultat de la CI : logs et captures d'écran du test client sur la branche `ci-logs` (`main.clienttest.log`, `screenshots/main/`).
-- Après chaque push sur `main`, la CI ajoute un commit « Jar compilé … » : faire `git fetch` + rebase avant le push suivant.
+- Avant de pousser : le code doit compiler pour **chaque cible**. Ensuite, vérifier le résultat de la CI : sur la branche `ci-logs`, `main/status.txt` puis, par test, `main/<test>/clienttest.log` et `main/<test>/screenshots/`.
+- Après chaque push sur `main`, la CI ajoute un commit « Jars compilés … » : faire `git fetch` + rebase avant le push suivant.
+
+## Multi-versions
+- `src/main` = la variante de référence **Forge 1.21–1.21.1** (compile telle quelle avec le `build.gradle` racine).
+- Les autres cibles sont dans `targets/<cible>/` (build Gradle propre + `target.json` + `overrides/`). Leurs sources sont fabriquées par `python3 tools/port.py <cible>` : blocs `//#if neoforge` / `//#else` / `//#endif` (lignes inactives préfixées `//$$ `), remplacements de `target.json`, puis fichiers de `overrides/`. `python3 tools/port.py --check` vérifie que `src/main` est cohérent.
+- Ce qui diffère d'un loader à l'autre passe par `platform/Platform.java` (une version par cible dans `overrides/`).
+- Compiler une cible localement : `bash /home/claude/tools/compile_target.sh <cible> <release java>` avec les bibliothèques clonées depuis la branche `mc-libs-<cible>` dans `/home/claude/mc/lib-<cible>` (branches produites par le workflow « Export libs » ; les dépôts Maven ne sont pas accessibles depuis la session, GitHub oui).
+- CI : un job de build par cible, un job de test en jeu par couple (cible, version du loader) via `tools/ci_test.sh`, puis release (tous les jars) et CurseForge (un fichier par cible, `curseforge/upload.sh`).
 - Nouvelle version = augmenter `mod_version` dans `gradle.properties` + ajouter une section `## x.y.z` en haut de `CHANGELOG.md` (elle sert de notes pour la release GitHub et pour CurseForge, envoi automatique).
 - Toute nouvelle carte : l'enregistrer dans `card/Cards.java`, l'ajouter dans `tools/lang.py` (FR + EN) puis régénérer les fichiers de langue, et mettre à jour les listes du README et de `curseforge/description.md`. Les malus permanents sont dans `card/Curses.java` (+ `CURSES` dans `tools/lang.py`).
 - Les effets d'écran sont dans `assets/fateflip/shaders/core/screen_fx.fsh` (numéros de mode recopiés dans `render/FxPass.java`) ; `tools/fxpreview.py` les rend hors jeu.

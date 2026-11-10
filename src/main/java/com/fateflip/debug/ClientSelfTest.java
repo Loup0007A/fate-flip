@@ -266,7 +266,7 @@ public final class ClientSelfTest {
         if (inGame < 160) return;
         if (!built) {
             build();
-            FateFlip.LOGGER.info("[CLIENTTEST] début ({} étapes)", STEPS.size());
+            FateFlip.LOGGER.info("[CLIENTTEST] début ({} étapes, cible {})", STEPS.size(), com.fateflip.platform.Platform.TARGET);
         }
         Step s = STEPS.peek();
         if (s == null) return;

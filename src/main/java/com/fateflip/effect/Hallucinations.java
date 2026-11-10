@@ -329,41 +329,45 @@ public class Hallucinations extends CardEffect {
     @Override
     public void renderLevel(RenderLevelStageEvent e) {
         if (e.getStage() != RenderLevelStageEvent.Stage.AFTER_ENTITIES || mirages.isEmpty() || MC.level == null) return;
-        float pt = e.getPartialTick();
+        float pt = com.fateflip.platform.Platform.partialTick(e);
         Camera cam = e.getCamera();
         Vec3 cp = cam.getPosition();
-        PoseStack pose = new PoseStack();
-        MultiBufferSource.BufferSource buffers = MC.renderBuffers().bufferSource();
-        RenderType type = Sheets.translucentCullBlockSheet();
-        for (Mirage m : mirages) {
-            float a = Mth.lerp(pt, m.alphaO, m.alpha) * fade;
-            if (a <= 0.02f) continue;
-            float shimmer = 0.85f + 0.15f * Mth.sin((age + pt) * 0.3f + (float) m.center.x);
-            VertexConsumer vc = new Faded(buffers.getBuffer(type), Math.min(1f, a * shimmer));
-            for (Placed p : m.blocks) {
-                BakedModel model = MC.getBlockRenderer().getBlockModel(p.state);
-                int light = LevelRenderer.getLightColor(MC.level, p.pos.above());
-                int tint = MC.getBlockColors().getColor(p.state, MC.level, p.pos, 0);
-                float r = 1f, g = 1f, b = 1f;
-                if (tint != -1) {
-                    r = ((tint >> 16) & 255) / 255f;
-                    g = ((tint >> 8) & 255) / 255f;
-                    b = (tint & 255) / 255f;
+        PoseStack pose = com.fateflip.render.WorldView.begin(cam);
+        try {
+            MultiBufferSource.BufferSource buffers = MC.renderBuffers().bufferSource();
+            RenderType type = Sheets.translucentCullBlockSheet();
+            for (Mirage m : mirages) {
+                float a = Mth.lerp(pt, m.alphaO, m.alpha) * fade;
+                if (a <= 0.02f) continue;
+                float shimmer = 0.85f + 0.15f * Mth.sin((age + pt) * 0.3f + (float) m.center.x);
+                VertexConsumer vc = new Faded(buffers.getBuffer(type), Math.min(1f, a * shimmer));
+                for (Placed p : m.blocks) {
+                    BakedModel model = MC.getBlockRenderer().getBlockModel(p.state);
+                    int light = LevelRenderer.getLightColor(MC.level, p.pos.above());
+                    int tint = MC.getBlockColors().getColor(p.state, MC.level, p.pos, 0);
+                    float r = 1f, g = 1f, b = 1f;
+                    if (tint != -1) {
+                        r = ((tint >> 16) & 255) / 255f;
+                        g = ((tint >> 8) & 255) / 255f;
+                        b = (tint & 255) / 255f;
+                    }
+                    pose.pushPose();
+                    pose.translate(p.pos.getX() - cp.x, p.pos.getY() - cp.y, p.pos.getZ() - cp.z);
+                    MC.getBlockRenderer().getModelRenderer().renderModel(pose.last(), vc, p.state, model, r, g, b, light,
+                        OverlayTexture.NO_OVERLAY, ModelData.EMPTY, null);
+                    pose.popPose();
                 }
-                pose.pushPose();
-                pose.translate(p.pos.getX() - cp.x, p.pos.getY() - cp.y, p.pos.getZ() - cp.z);
-                MC.getBlockRenderer().getModelRenderer().renderModel(pose.last(), vc, p.state, model, r, g, b, light,
-                    OverlayTexture.NO_OVERLAY, ModelData.EMPTY, null);
-                pose.popPose();
-            }
-            buffers.endBatch(type);
-            if (a > 0.6f) {
-                for (Figure f : m.figures) {
-                    int light = LevelRenderer.getLightColor(MC.level, BlockPos.containing(f.x, f.y + 1, f.z));
-                    MC.getEntityRenderDispatcher().render(f.entity, f.x - cp.x, f.y - cp.y, f.z - cp.z, f.yaw, pt, pose, buffers, light);
+                buffers.endBatch(type);
+                if (a > 0.6f) {
+                    for (Figure f : m.figures) {
+                        int light = LevelRenderer.getLightColor(MC.level, BlockPos.containing(f.x, f.y + 1, f.z));
+                        MC.getEntityRenderDispatcher().render(f.entity, f.x - cp.x, f.y - cp.y, f.z - cp.z, f.yaw, pt, pose, buffers, light);
+                    }
+                    buffers.endBatch();
                 }
-                buffers.endBatch();
             }
+        } finally {
+            com.fateflip.render.WorldView.end();
         }
     }
 }

@@ -11,6 +11,7 @@ import com.fateflip.client.gui.HudReminder;
 import com.fateflip.config.FFConfig;
 import com.fateflip.effect.CardEffect;
 import com.fateflip.effect.SoundFx;
+import com.fateflip.platform.Platform;
 import com.fateflip.render.FxPass;
 import com.fateflip.render.PostFx;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -426,7 +427,7 @@ public final class Fate {
     private static void drawOverlay(float pt) {
         try {
             com.mojang.blaze3d.platform.Window win = MC.getWindow();
-            float far = net.minecraftforge.client.ForgeHooksClient.getGuiFarPlane();
+            float far = Platform.guiFarPlane();
             org.joml.Matrix4f proj = new org.joml.Matrix4f().setOrtho(0f, (float) (win.getWidth() / win.getGuiScale()),
                 (float) (win.getHeight() / win.getGuiScale()), 0f, 1000f, far);
             com.mojang.blaze3d.systems.RenderSystem.setProjectionMatrix(proj, com.mojang.blaze3d.vertex.VertexSorting.ORTHOGRAPHIC_Z);
@@ -463,7 +464,7 @@ public final class Fate {
         }
         if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_LEVEL) return;
         if (wantsWorldDepth()) PostFx.captureWorldDepth();
-        if (layersFailed) worldStage(null, event.getPartialTick());
+        if (layersFailed) worldStage(null, Platform.partialTick(event));
     }
 
     /** Première couche du HUD : effet d'écran « monde », puis début du HUD de la carte. */
@@ -497,10 +498,24 @@ public final class Fate {
         }
     }
 
+    /** Couche du HUD placée sous toutes les autres (loaders qui ont une API de couches). */
+    public static void worldLayer(GuiGraphics g, float pt) {
+        worldStage(g, pt);
+    }
+
+    /** Couche du HUD placée au-dessus de toutes les autres. */
+    public static void hudLayer(GuiGraphics g, float pt) {
+        hudStage(g, pt);
+    }
+
     /** Insère deux couches dans le HUD vanilla (Forge 1.21.1 n'a pas d'API de couches). */
     @SuppressWarnings("unchecked")
     private static void installLayers() {
         if (layersInstalled || layersFailed || MC.gui == null) return;
+        if (Platform.GUI_LAYER_EVENT) {
+            layersInstalled = true;
+            return;
+        }
         try {
             Field top = Gui.class.getDeclaredField("layers");
             top.setAccessible(true);
@@ -520,7 +535,7 @@ public final class Fate {
     /** Repli si les couches n'ont pas pu être installées. */
     @SubscribeEvent
     public static void onChatOverlay(CustomizeGuiOverlayEvent.Chat event) {
-        if (layersFailed) hudStage(event.getGuiGraphics(), event.getPartialTick());
+        if (layersFailed) hudStage(event.getGuiGraphics(), Platform.partialTick(event));
     }
 
     // ───────────────────────── caméra / son / entrées ─────────────────────────
@@ -606,7 +621,7 @@ public final class Fate {
     @SubscribeEvent
     public static void onScroll(InputEvent.MouseScrollingEvent event) {
         for (CardEffect fx : live) {
-            if (fx.scroll(event.getDeltaY())) {
+            if (fx.scroll(Platform.scrollY(event))) {
                 event.setCanceled(true);
                 return;
             }
@@ -724,7 +739,7 @@ public final class Fate {
         if (m == null) return;
         org.joml.Vector3f p = toScreen(m, event.getMouseX(), event.getMouseY());
         event.setCanceled(true);
-        event.getScreen().mouseScrolled(p.x, p.y, event.getDeltaX(), event.getDeltaY());
+        event.getScreen().mouseScrolled(p.x, p.y, Platform.scrollX(event), Platform.scrollY(event));
     }
 
     @SubscribeEvent
