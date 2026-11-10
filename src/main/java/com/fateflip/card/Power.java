@@ -52,6 +52,7 @@ public enum Power {
             case GENTLE -> 1;
             case STRANGE -> 2;
             case NIGHTMARE -> 3;
+            case CURSED -> 0;
         };
         return base + Math.max(0, encores);
     }

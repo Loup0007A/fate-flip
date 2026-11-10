@@ -44,6 +44,10 @@ public final class Collection {
     private int shards;
     private int shardsEarned;
     private final Map<String, Integer> powersUsed = new HashMap<>();
+    // 2.2 : malus permanents (dans l'ordre d'arrivée) et intro sonore
+    private final java.util.LinkedHashSet<String> curses = new java.util.LinkedHashSet<>();
+    private final Map<String, Integer> cursesReceived = new HashMap<>();
+    private boolean introSeen;
 
     public static Collection get() {
         if (instance == null) instance = load();
@@ -70,10 +74,30 @@ public final class Collection {
             readCounts(o, "usedTotal", c.usedTotal);
             readFlags(o, "cycleSeen", c.cycleSeen);
             readFlags(o, "cycleUsed", c.cycleUsed);
+            if (o.has("curses")) o.getAsJsonArray("curses").forEach(e -> {
+                if (Curses.get(e.getAsString()) != null) c.curses.add(e.getAsString());
+            });
+            readCounts(o, "cursesReceived", c.cursesReceived);
+            c.introSeen = o.has("introSeen") && o.get("introSeen").getAsBoolean();
+            int version = o.has("version") ? o.get("version").getAsInt() : 1;
+            if (version < 2) c.migrateV2();
         } catch (Exception e) {
             FateFlip.LOGGER.warn("Collection Fate Flip illisible, on repart de zéro", e);
         }
         return c;
+    }
+
+    /** 2.2 : l'ancienne carte « xray » s'appelle désormais « radiograph » (le nom « xray » revient à la nouvelle). */
+    private void migrateV2() {
+        rename(seenTotal, "xray", "radiograph");
+        rename(usedTotal, "xray", "radiograph");
+        rename(cycleSeen, "xray", "radiograph");
+        rename(cycleUsed, "xray", "radiograph");
+    }
+
+    private static <V> void rename(Map<String, V> map, String from, String to) {
+        V v = map.remove(from);
+        if (v != null) map.put(to, v);
     }
 
     private static void readCounts(JsonObject o, String key, Map<String, Integer> into) {
@@ -88,7 +112,7 @@ public final class Collection {
 
     public void save() {
         JsonObject o = new JsonObject();
-        o.addProperty("version", 1);
+        o.addProperty("version", 2);
         o.addProperty("cycle", cycle);
         o.addProperty("draws", draws);
         o.addProperty("flips", flips);
@@ -109,6 +133,13 @@ public final class Collection {
         com.google.gson.JsonArray cu = new com.google.gson.JsonArray();
         cycleUsed.keySet().forEach(cu::add);
         o.add("cycleUsed", cu);
+        com.google.gson.JsonArray cr = new com.google.gson.JsonArray();
+        curses.forEach(cr::add);
+        o.add("curses", cr);
+        JsonObject rc = new JsonObject();
+        cursesReceived.forEach(rc::addProperty);
+        o.add("cursesReceived", rc);
+        o.addProperty("introSeen", introSeen);
         try {
             Path f = file();
             Files.createDirectories(f.getParent());
@@ -175,11 +206,57 @@ public final class Collection {
     }
 
     public boolean discovered(Card card) {
+        if (card.category == Category.CURSE) return cursesReceived.getOrDefault(card.id, 0) > 0 || curses.contains(card.id);
         return seenTotal.getOrDefault(card.id, 0) > 0;
     }
 
     public int timesSeen(Card card) {
+        if (card.category == Category.CURSE) return cursesReceived.getOrDefault(card.id, 0);
         return seenTotal.getOrDefault(card.id, 0);
+    }
+
+    // ── malus permanents ──
+
+    public boolean hasCurse(Card curse) {
+        return curses.contains(curse.id);
+    }
+
+    /** Malus actifs, dans l'ordre où ils ont frappé. */
+    public List<Card> curses() {
+        List<Card> out = new ArrayList<>();
+        for (String id : curses) {
+            Card c = Curses.get(id);
+            if (c != null) out.add(c);
+        }
+        return out;
+    }
+
+    public java.util.Set<String> curseIds() {
+        return java.util.Collections.unmodifiableSet(curses);
+    }
+
+    /** @return true si c'est la première fois que ce malus frappe. */
+    public boolean addCurse(Card curse) {
+        boolean first = cursesReceived.getOrDefault(curse.id, 0) == 0;
+        curses.add(curse.id);
+        cursesReceived.merge(curse.id, 1, Integer::sum);
+        return first;
+    }
+
+    public boolean removeCurse(Card curse) {
+        return curses.remove(curse.id);
+    }
+
+    public void clearCurses() {
+        curses.clear();
+    }
+
+    public boolean introSeen() {
+        return introSeen;
+    }
+
+    public void setIntroSeen() {
+        introSeen = true;
     }
 
     public int timesUsed(Card card) {
@@ -227,6 +304,8 @@ public final class Collection {
         shards = 0;
         shardsEarned = 0;
         powersUsed.clear();
+        curses.clear();
+        cursesReceived.clear();
         save();
     }
 }

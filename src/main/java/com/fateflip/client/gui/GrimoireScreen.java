@@ -148,8 +148,9 @@ public class GrimoireScreen extends Screen {
             g.pose().scale(gridScale, gridScale, 1f);
             CardArt.shadow(g, 0.7f);
             if (known) {
-                CardArt.front(g, card, 1f, t, false, true, 1f);
-                if (col.timesUsed(card) > 0) usedSeal(g);
+                boolean curse = card.category == Category.CURSE;
+                CardArt.front(g, card, 1f, t, false, true, curse && !col.hasCurse(card) ? 0.55f : 1f);
+                if (curse ? col.hasCurse(card) : col.timesUsed(card) > 0) usedSeal(g, curse);
             } else {
                 CardArt.back(g, 0.9f);
                 CardArt.centered(g, Component.literal("?"), 32f, 70f, 2.4f, 40f, 0xFFF3D58A, true);
@@ -167,12 +168,12 @@ public class GrimoireScreen extends Screen {
         g.drawCenteredString(font, Component.translatable("fateflip.grimoire.footer"), width / 2, height - 12, 0xFF7E6F96);
     }
 
-    private void usedSeal(GuiGraphics g) {
+    private void usedSeal(GuiGraphics g, boolean curse) {
         g.pose().pushPose();
         g.pose().translate(54, 86, 5);
         g.pose().mulPose(Axis.ZP.rotationDegrees(-18));
-        CardArt.glow(g, CardArt.GLOW, 0, 0, 16, 16, 0xE9C46A, 0.6f);
-        CardArt.tex(g, CardArt.GEM, -4.5f, -4.5f, 9, 9, 0xFFF3D58A);
+        CardArt.glow(g, CardArt.GLOW, 0, 0, 16, 16, curse ? 0xFF2A2A : 0xE9C46A, 0.6f);
+        CardArt.tex(g, CardArt.GEM, -4.5f, -4.5f, 9, 9, curse ? 0xFFFF5A5A : 0xFFF3D58A);
         g.pose().popPose();
     }
 
@@ -206,13 +207,23 @@ public class GrimoireScreen extends Screen {
                 y += 10;
             }
             y += 4;
-            g.drawString(font, Component.translatable("fateflip.grimoire.seen", col.timesSeen(card), col.timesUsed(card)), x, y, 0xFFB8A9CF, false);
+            if (card.category == Category.CURSE) {
+                boolean on = col.hasCurse(card);
+                g.drawString(font, Component.translatable(on ? "fateflip.grimoire.curse.active" : "fateflip.grimoire.curse.gone"), x, y,
+                    on ? 0xFFFF6B6B : 0xFF8EF0B0, false);
+                y += 10;
+                g.drawString(font, Component.translatable("fateflip.grimoire.curse.times", col.timesSeen(card)), x, y, 0xFFB8A9CF, false);
+            } else {
+                g.drawString(font, Component.translatable("fateflip.grimoire.seen", col.timesSeen(card), col.timesUsed(card)), x, y, 0xFFB8A9CF, false);
+            }
             y += 10;
             g.drawString(font, Component.translatable("fateflip.grimoire.id", card.id), x, y, 0xFF7E6F96, false);
         } else {
-            g.drawString(font, Component.translatable("fateflip.grimoire.unknown"), x, y, 0xFFF3D58A, true);
+            boolean curse = card.category == Category.CURSE;
+            g.drawString(font, Component.translatable(curse ? "fateflip.grimoire.curse.unknown" : "fateflip.grimoire.unknown"), x, y, 0xFFF3D58A, true);
             y += 12;
-            for (FormattedCharSequence l : font.split(Component.translatable("fateflip.grimoire.unknown.desc"), w)) {
+            for (FormattedCharSequence l : font.split(Component.translatable(curse ? "fateflip.grimoire.curse.unknown.desc"
+                : "fateflip.grimoire.unknown.desc"), w)) {
                 g.drawString(font, l, x, y, 0xFFB8A9CF, false);
                 y += 10;
             }

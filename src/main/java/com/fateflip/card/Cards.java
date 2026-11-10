@@ -4,8 +4,12 @@ import com.fateflip.config.FFConfig;
 import com.fateflip.effect.CameraEffects;
 import com.fateflip.effect.ControlEffects;
 import com.fateflip.effect.EntityEffects;
+import com.fateflip.effect.Hallucinations;
 import com.fateflip.effect.HudEffects;
 import com.fateflip.effect.NewEffects;
+import com.fateflip.effect.TopDown;
+import com.fateflip.effect.WorldEffects;
+import com.fateflip.effect.XRay;
 import com.fateflip.effect.ShaderEffects;
 import com.fateflip.effect.SoundFx;
 import com.fateflip.render.FxPass;
@@ -19,7 +23,7 @@ import java.util.Map;
 import static com.fateflip.card.Category.*;
 import static com.fateflip.card.Severity.*;
 
-/** Le jeu complet : 88 cartes (67 en 1.0, 21 ajoutées en 2.1). */
+/** Le jeu complet : 100 cartes (67 en 1.0, 21 ajoutées en 2.1, 12 en 2.2). Les malus sont dans {@link Curses}. */
 public final class Cards {
 
     private Cards() {}
@@ -75,9 +79,15 @@ public final class Cards {
         add(Card.of("silhouette", VISION, GENTLE, "lantern", () -> ShaderEffects.world(FxPass.SILHOUETTE)).preview());
         add(Card.of("stained_glass", VISION, GENTLE, "magenta_stained_glass", () -> ShaderEffects.world(FxPass.STAINED_GLASS)).preview());
         add(Card.of("pointillism", VISION, GENTLE, "brush", () -> ShaderEffects.world(FxPass.POINTILLISM)).preview());
-        add(Card.of("xray", VISION, STRANGE, "skeleton_skull", () -> ShaderEffects.world(FxPass.XRAY)).preview());
+        add(Card.of("radiograph", VISION, STRANGE, "skeleton_skull", () -> ShaderEffects.world(FxPass.RADIOGRAPH)).preview());
         add(Card.of("hologram", VISION, STRANGE, "end_crystal", () -> ShaderEffects.world(FxPass.HOLOGRAM)).flashy().preview());
         add(Card.of("tilt_shift", VISION, GENTLE, "oak_sapling", () -> ShaderEffects.world(FxPass.TILT_SHIFT)).preview());
+        // 2.2
+        add(Card.of("xray", VISION, GENTLE, "diamond_ore", XRay::new));
+        add(Card.of("no_transparency", VISION, STRANGE, "tinted_glass", WorldEffects.NoTransparency::new));
+        add(Card.of("sun_intolerance", VISION, STRANGE, "sunflower", ShaderEffects.SunIntolerance::new).flashy().preview());
+        add(Card.of("fly_vision", VISION, STRANGE, "honeycomb", () -> ShaderEffects.world(FxPass.FLY_VISION)).preview());
+        add(Card.of("blood_sky", VISION, STRANGE, "crimson_fungus", ShaderEffects.BloodSky::new).preview());
 
         // ── ESPRIT : caméra, interface et illusions ──
         add(Card.of("selfie", MIND, STRANGE, "player_head", CameraEffects.Selfie::new));
@@ -105,6 +115,12 @@ public final class Cards {
         add(Card.of("fake_achievements", MIND, GENTLE, "experience_bottle", NewEffects.FakeAchievements::new));
         add(Card.of("zero_gravity", MIND, GENTLE, "shulker_shell", NewEffects.ZeroGravity::new));
         add(Card.of("disco", MIND, STRANGE, "music_disc_pigstep", NewEffects.Disco::new));
+        // 2.2
+        add(Card.of("render_distance", MIND, NIGHTMARE, "structure_void", WorldEffects.RenderDistance::new));
+        add(Card.of("screamers", MIND, NIGHTMARE, "wither_skeleton_skull", WorldEffects.Screamers::new).flashy());
+        add(Card.of("hallucinations", MIND, STRANGE, "red_mushroom", Hallucinations::new));
+        add(Card.of("no_anim", MIND, STRANGE, "armor_stand", WorldEffects.NoAnim::new));
+        add(Card.of("cake_mobs", MIND, GENTLE, "cake", WorldEffects.CakeMobs::new));
 
         // ── CONTRÔLES : la façon dont vos commandes sont lues ──
         add(Card.of("scrambled_keys", CONTROL, NIGHTMARE, "tripwire_hook", ControlEffects.ScrambledKeys::new));
@@ -116,6 +132,8 @@ public final class Cards {
         add(Card.of("ice_rink", CONTROL, STRANGE, "blue_ice", NewEffects.IceRink::new));
         add(Card.of("input_lag", CONTROL, STRANGE, "honey_block", NewEffects.InputLag::new));
         add(Card.of("leapfrog", CONTROL, GENTLE, "leather_boots", NewEffects.Leapfrog::new));
+        // 2.2
+        add(Card.of("top_down", CONTROL, STRANGE, "cartography_table", TopDown::new));
 
         // ── OUÏE : ce que vous entendez ──
         add(Card.of("helium", SOUND, GENTLE, "feather", () -> new SoundFx.Pitch(1.85f)));
@@ -129,10 +147,18 @@ public final class Cards {
         add(Card.of("crossed_ears", SOUND, GENTLE, "goat_horn", NewEffects.CrossedEars::new));
         add(Card.of("warped_vinyl", SOUND, GENTLE, "music_disc_wait", NewEffects.WarpedVinyl::new));
         add(Card.of("elevator_music", SOUND, GENTLE, "bell", NewEffects.ElevatorMusic::new));
+        // 2.2
+        add(Card.of("muffled", SOUND, GENTLE, "gray_wool", WorldEffects.Muffled::new));
     }
 
     public static Card get(String id) {
         return BY_ID.get(id);
+    }
+
+    /** Carte ou malus. */
+    public static Card any(String id) {
+        Card c = BY_ID.get(id);
+        return c != null ? c : Curses.get(id);
     }
 
     public static List<Card> all() {
@@ -157,6 +183,7 @@ public final class Cards {
     }
 
     public static List<Card> ofCategory(Category cat) {
+        if (cat == Category.CURSE) return Curses.all();
         List<Card> out = new ArrayList<>();
         for (Card c : BY_ID.values()) if (c.category == cat) out.add(c);
         return out;

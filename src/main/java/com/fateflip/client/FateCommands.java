@@ -4,6 +4,7 @@ import com.fateflip.FateFlip;
 import com.fateflip.card.Card;
 import com.fateflip.card.Cards;
 import com.fateflip.card.Collection;
+import com.fateflip.card.Curses;
 import com.fateflip.client.gui.GrimoireScreen;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import net.minecraft.client.Minecraft;
@@ -17,7 +18,7 @@ import net.minecraftforge.fml.common.Mod;
 
 import java.util.stream.Collectors;
 
-/** Commandes client : /fateflip draw | play <carte> | stop | grimoire | list | reset */
+/** Commandes client : /fateflip draw | play <carte> | stop | grimoire | list | shards | curse ... | reset */
 @Mod.EventBusSubscriber(modid = FateFlip.MOD_ID, value = Dist.CLIENT)
 public final class FateCommands {
 
@@ -71,6 +72,46 @@ public final class FateCommands {
                         say(Component.translatable("fateflip.cmd.shards", Collection.get().shards()));
                         return 1;
                     })))
+            .then(Commands.literal("curse")
+                .then(Commands.literal("list").executes(ctx -> {
+                    String active = Collection.get().curses().stream().map(c -> c.id).collect(Collectors.joining(", "));
+                    say(Component.translatable("fateflip.cmd.curse.list", active.isEmpty() ? "—" : active,
+                        Curses.all().stream().map(c -> c.id).collect(Collectors.joining(", "))));
+                    return 1;
+                }))
+                .then(Commands.literal("add")
+                    .then(Commands.argument("curse", StringArgumentType.word())
+                        .suggests((ctx, b) -> SharedSuggestionProvider.suggest(Curses.all().stream().map(c -> c.id), b))
+                        .executes(ctx -> {
+                            String id = StringArgumentType.getString(ctx, "curse");
+                            Card c = Curses.get(id);
+                            if (c == null) {
+                                say(Component.translatable("fateflip.cmd.unknown", id));
+                                return 0;
+                            }
+                            Fate.defer(() -> Fate.onCursed(c));
+                            return 1;
+                        })))
+                .then(Commands.literal("remove")
+                    .then(Commands.argument("curse", StringArgumentType.word())
+                        .suggests((ctx, b) -> SharedSuggestionProvider.suggest(Collection.get().curseIds(), b))
+                        .executes(ctx -> {
+                            String id = StringArgumentType.getString(ctx, "curse");
+                            Card c = Curses.get(id);
+                            if (c == null || !Collection.get().removeCurse(c)) {
+                                say(Component.translatable("fateflip.cmd.unknown", id));
+                                return 0;
+                            }
+                            Collection.get().save();
+                            say(Component.translatable("fateflip.cmd.curse.removed", c.name()));
+                            return 1;
+                        })))
+                .then(Commands.literal("clear").executes(ctx -> {
+                    Collection.get().clearCurses();
+                    Collection.get().save();
+                    say(Component.translatable("fateflip.cmd.curse.cleared"));
+                    return 1;
+                })))
             .then(Commands.literal("reset").executes(ctx -> {
                 Collection.get().reset();
                 say(Component.translatable("fateflip.cmd.reset"));

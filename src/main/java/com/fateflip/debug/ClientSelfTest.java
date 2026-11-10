@@ -5,13 +5,17 @@ import com.fateflip.card.Card;
 import com.fateflip.card.Cards;
 import com.fateflip.card.Category;
 import com.fateflip.card.Collection;
+import com.fateflip.card.Curses;
 import com.fateflip.card.Power;
 import com.fateflip.client.Fate;
 import com.fateflip.client.gui.DrawScreen;
 import com.fateflip.client.gui.GrimoireScreen;
+import com.fateflip.client.gui.IntroScreen;
+import com.fateflip.effect.CardEffect;
 import com.fateflip.render.PostFx;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.gui.screens.options.controls.ControlsScreen;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.TickEvent;
@@ -63,6 +67,16 @@ public final class ClientSelfTest {
             c -> FateFlip.LOGGER.info("[CLIENTTEST] capture {}", name));
     }
 
+    private static void look(float yaw, float pitch) {
+        var p = mc().player;
+        if (p == null) return;
+        p.setYRot(yaw);
+        p.setXRot(pitch);
+        p.yRotO = yaw;
+        p.xRotO = pitch;
+        p.yHeadRot = p.yHeadRotO = yaw;
+    }
+
     private static void check(boolean ok, String what) {
         if (!ok) {
             failures++;
@@ -77,6 +91,13 @@ public final class ClientSelfTest {
         step("monde", 1, () -> {
             shot("00_world");
             Collection.get().addShards(20 - Collection.get().shards());
+            Collection.get().clearCurses();
+            mc().setScreen(new IntroScreen(null));
+        });
+        step("intro", 30, () -> {
+            check(mc().screen instanceof IntroScreen, "intro sonore affichée");
+            shot("00b_intro");
+            mc().setScreen(null);
         });
         step("tirage", 1, Fate::forceDraw);
         stepWhen("table", () -> draw() != null && draw().isChoosing(), 10, () -> shot("01_draw_table"));
@@ -125,15 +146,29 @@ public final class ClientSelfTest {
         });
         step("hud", 60, () -> shot("08_hud"));
         for (Card card : Cards.all()) {
-            boolean visual = card.category != Category.SOUND && card.category != Category.CONTROL;
+            boolean visual = (card.category != Category.SOUND && card.category != Category.CONTROL) || card.id.equals("top_down");
             step("play " + card.id, 2, () -> Fate.play(card, false));
+            if (card.id.equals("sun_intolerance")) {
+                // on regarde le soleil (matin, plein est)
+                step("vers le soleil", 2, () -> look(-90f, -62f));
+            }
             if (visual) {
-                step("shot " + card.id, 46, () -> {
+                step("déclenche " + card.id, 40, () -> {
+                    CardEffect fx = Fate.current();
+                    if (fx != null) fx.debugTrigger();
+                });
+                step("shot " + card.id, 4, () -> {
                     check(Fate.current() != null && Fate.current().card == card, "carte " + card.id + " active");
                     shot("fx_" + card.id);
                 });
             } else {
                 step("check " + card.id, 20, () -> check(Fate.current() != null && Fate.current().card == card, "carte " + card.id + " active"));
+            }
+            if (card.id.equals("sun_intolerance") || card.id.equals("top_down")) {
+                step("regard normal", 1, () -> {
+                    Fate.stopEffect();
+                    look(0f, 12f);
+                });
             }
             if (card.id.equals("scrambled_keys")) {
                 step("verrou", 2, () -> mc().setScreen(new ControlsScreen(null, mc().options)));
@@ -144,6 +179,16 @@ public final class ClientSelfTest {
                 });
             }
         }
+        // 2.2 : l'inventaire suit les effets du HUD
+        for (String id : new String[]{"amnesia", "upside_down_hud", "screensaver"}) {
+            step("inv " + id, 2, () -> Fate.play(Cards.get(id), false));
+            step("inv-open " + id, 30, () -> mc().setScreen(new InventoryScreen(mc().player)));
+            step("inv-shot " + id, 10, () -> {
+                check(mc().screen instanceof net.minecraft.client.gui.screens.inventory.AbstractContainerScreen<?>, "inventaire ouvert avec " + id);
+                shot("inv_" + id);
+                mc().setScreen(null);
+            });
+        }
         step("fin effets", 2, Fate::stopEffect);
         step("grimoire", 2, () -> mc().setScreen(new GrimoireScreen(null)));
         step("grimoire-capture", 20, () -> shot("09_grimoire"));
@@ -151,6 +196,57 @@ public final class ClientSelfTest {
             if (mc().screen instanceof GrimoireScreen gs) gs.setTab(Category.VISION);
         });
         step("grimoire-vision-capture", 12, () -> shot("10_grimoire_vision"));
+        // 2.2 : un tirage où la 3e carte est maudite
+        step("malus-tirage", 2, () -> {
+            mc().setScreen(null);
+            DrawScreen.testForceCurse = true;
+            Fate.forceDraw();
+        });
+        stepWhen("malus-table", () -> draw() != null && draw().isChoosing(), 6, () -> draw().testFlip(draw().testFind(false)));
+        stepWhen("malus-1", () -> draw() != null && draw().isRevealing(), 2, () -> draw().testEncore());
+        stepWhen("malus-2", () -> draw() != null && draw().isChoosing(), 2, () -> draw().testFlip(draw().testFind(false)));
+        stepWhen("malus-3", () -> draw() != null && draw().isRevealing(), 2, () -> draw().testEncore());
+        stepWhen("malus-4", () -> draw() != null && draw().isChoosing(), 2, () -> draw().testFlip(draw().testFind(false)));
+        stepWhen("malus-révélé", () -> draw() != null && draw().isCursedReveal(), 8, () -> shot("11_curse_reveal"));
+        step("malus-accepte", 1, () -> draw().testStop());
+        stepWhen("malus-fermé", () -> mc().screen == null, 30, () -> {
+            DrawScreen.testForceCurse = false;
+            check(Collection.get().curses().size() == 1, "un malus permanent reçu (" + Collection.get().curses() + ")");
+            check(Fate.activeCurses().size() == 1, "le malus est actif");
+            shot("12_curse_announce");
+        });
+        step("tous-les-malus", 2, () -> {
+            for (Card c : Curses.all()) Collection.get().addCurse(c);
+            Fate.syncCurses();
+        });
+        step("foudre", 30, () -> {
+            check(Fate.activeCurses().size() == Curses.count(), "tous les malus actifs (" + Fate.activeCurses().size() + ")");
+            for (CardEffect fx : Fate.activeCurses()) if (fx.card.id.equals("lightning_rod")) fx.debugTrigger();
+        });
+        step("foudre-capture", 3, () -> shot("13_curse_lightning"));
+        step("peur", 2, () -> {
+            for (CardEffect fx : Fate.activeCurses()) if (fx.card.id.equals("nyctophobia")) fx.debugTrigger();
+        });
+        step("peur-capture", 30, () -> shot("14_curses_hud"));
+        step("autres-malus", 2, () -> {
+            for (CardEffect fx : Fate.activeCurses()) if (!fx.card.id.equals("nyctophobia")) fx.debugTrigger();
+        });
+        step("grimoire-malus", 40, () -> {
+            mc().setScreen(new GrimoireScreen(null));
+        });
+        step("grimoire-malus-onglet", 2, () -> {
+            if (mc().screen instanceof GrimoireScreen gs) gs.setTab(Category.CURSE);
+        });
+        step("grimoire-malus-capture", 12, () -> {
+            shot("15_grimoire_curses");
+            mc().setScreen(null);
+        });
+        step("malus-levés", 2, () -> {
+            Collection.get().clearCurses();
+            Collection.get().save();
+            Fate.syncCurses();
+            check(Fate.activeCurses().isEmpty(), "malus levés");
+        });
         step("fin", 10, () -> {
             mc().setScreen(null);
             check(!PostFx.isBroken(), "shader d'écran opérationnel");

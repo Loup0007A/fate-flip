@@ -332,4 +332,97 @@ public final class ShaderEffects {
         }
 
     }
+
+    // ───────────────────────── 2.2 ─────────────────────────
+
+    /**
+     * Intolérance au soleil : là où est le soleil, on ne voit plus rien. Regarder vers lui
+     * blanchit l'image ; le fixer laisse une tache sombre qui persiste quelques secondes.
+     */
+    public static class SunIntolerance extends ShaderFx {
+        private float sunU = 0.5f, sunV = 1.5f, onScreen, strength, facing = -1f;
+        private float exposure, afterU = 0.5f, afterV = 0.5f;
+
+        public SunIntolerance() {
+            super(FxPass.SUN_INTOLERANCE, Stage.WORLD);
+        }
+
+        @Override
+        public void renderLevel(net.minecraftforge.client.event.RenderLevelStageEvent e) {
+            if (e.getStage() != net.minecraftforge.client.event.RenderLevelStageEvent.Stage.AFTER_SKY || MC.level == null) return;
+            float pt = e.getPartialTick();
+            float angle = MC.level.getTimeOfDay(pt) * Mth.TWO_PI;
+            org.joml.Vector3f sun = new org.joml.Vector3f(-Mth.sin(angle), Mth.cos(angle), 0f);
+            net.minecraft.client.Camera cam = e.getCamera();
+            org.joml.Matrix4f view = new org.joml.Matrix4f().rotation(cam.rotation().conjugate(new org.joml.Quaternionf()));
+            org.joml.Matrix4f proj = new org.joml.Matrix4f(com.mojang.blaze3d.systems.RenderSystem.getProjectionMatrix());
+            org.joml.Vector4f clip = new org.joml.Vector4f(sun.x, sun.y, sun.z, 0f);
+            view.transform(clip);
+            proj.transform(clip);
+            if (clip.w > 1e-4f) {
+                float nx = clip.x / clip.w, ny = clip.y / clip.w;
+                sunU = nx * 0.5f + 0.5f;
+                sunV = ny * 0.5f + 0.5f;
+                onScreen = Math.abs(nx) < 1.8f && Math.abs(ny) < 1.8f ? 1f : 0f;
+            } else {
+                onScreen = 0f;
+            }
+            facing = cam.getLookVector().dot(sun);
+            boolean sky = MC.level.effects().skyType() == net.minecraft.client.renderer.DimensionSpecialEffects.SkyType.NORMAL;
+            float elevation = Mth.clamp(sun.y * 5f + 0.35f, 0f, 1f);
+            strength = sky ? elevation * (1f - 0.7f * MC.level.getRainLevel(pt)) : 0f;
+        }
+
+        @Override
+        public void tick() {
+            boolean staring = onScreen > 0f && strength > 0.15f && facing > 0.8f;
+            if (staring) {
+                exposure = Math.min(1f, exposure + 0.04f);
+                afterU = sunU;
+                afterV = sunV;
+            } else {
+                exposure = Math.max(0f, exposure - 0.012f);
+            }
+        }
+
+        @Override
+        protected void update(float t, FxPass p) {
+            float after = facing > 0.8f ? 0f : exposure;
+            p.set(sunU, sunV, onScreen, strength);
+            p.set2(facing, afterU, afterV, after);
+        }
+
+        @Override
+        public FxPass previewPass(float time) {
+            pass.set(0.74f, 0.74f, 1f, 1f);
+            pass.set2(0.62f, 0.5f, 0.5f, 0f);
+            return pass;
+        }
+    }
+
+    /** Ciel de sang : le ciel vire au cramoisi, le soleil devient noir. */
+    public static class BloodSky extends ShaderFx {
+        private int next = 120;
+
+        public BloodSky() {
+            super(FxPass.BLOOD_SKY, Stage.WORLD);
+        }
+
+        @Override
+        public void tick() {
+            if (--next > 0) return;
+            next = 400 + rng.nextInt(500);
+            float pitch = 0.5f + rng.nextFloat() * 0.2f;
+            MC.getSoundManager().play(SoundFx.mark(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(
+                SoundEvents.AMBIENT_CAVE.value(), pitch, 0.5f)));
+        }
+
+        @Override
+        public void fogColor(net.minecraftforge.client.event.ViewportEvent.ComputeFogColor e) {
+            float k = fade * 0.85f;
+            e.setRed(Mth.lerp(k, e.getRed(), 0.55f));
+            e.setGreen(Mth.lerp(k, e.getGreen(), 0.05f));
+            e.setBlue(Mth.lerp(k, e.getBlue(), 0.04f));
+        }
+    }
 }

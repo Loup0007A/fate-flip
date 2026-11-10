@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.2.0
+
+- **New: permanent curses.** On the **3rd flip of a single draw** (after two AGAINs), the card has a **1 in 6** chance to be **cursed**: it can't be burned and its small curse stays active **forever** (until `/fateflip reset`). 8 curses: Lightning Rod, Short Arms, Side Stitch, Butterfingers, Fear of the Dark, Hay Fever, Lingering Mist, Trick Knee. Active curses show under the HUD reminder and in a new **Curses** tab of the Grimoire. Config: `curses`, `curseChance`; commands `/fateflip curse list|add|remove|clear`.
+- **12 new cards — 100 in total**: X-Ray (like the cheat: ores glow through the rock), Transparency Off, Sun Intolerance, Fly Vision, Blood Sky, Render Distance: 3, Screamers, Hallucinations (fake villages that fade as you approach), No Animations, Piece of Cake (every mob is a cake), Top-Down (2D view from above with a free mouse pointer, every action still works), Muffled. The old "X-Ray" card is now called **Radiograph**.
+- **Sound intro**: on first launch, a short screen asks you to turn the sound up (test sound, sound settings); a reminder appears if your volume is at 0.
+- **Inventory fixes**: Amnesia now fully hides the hotbar (item counts no longer show through) and also in the inventory; Upside-Down HUD and Screensaver now apply to inventory screens too (the mouse follows); Hotbar Chaos also scrambles the 1-9 swap keys in inventories; the card reminder moves out of the way when the hotbar goes to the top.
+- Nouveau : malus permanents (3e retournement, 1 chance sur 6), 12 nouvelles cartes (100 au total), intro « montez le son », corrections du HUD de l'inventaire.
+
 ## 2.1.0
 
 - **21 new cards** — the deck grows from 67 to **88 cards**.

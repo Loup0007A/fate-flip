@@ -3,6 +3,8 @@ package com.fateflip.effect;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
@@ -12,9 +14,12 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.InputEvent;
+import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 
 import java.util.List;
@@ -32,7 +37,8 @@ public final class HudEffects {
 
         @Override
         public void frame(float partialTick) {
-            if (MC.isPaused()) return;
+            // l'inventaire ouvert suit le HUD : on arrête de rebondir le temps de s'en servir
+            if (MC.isPaused() || MC.screen instanceof AbstractContainerScreen<?>) return;
             int w = MC.getWindow().getGuiScaledWidth(), h = MC.getWindow().getGuiScaledHeight();
             float s = scale();
             float dt = MC.getTimer().getRealtimeDeltaTicks();
@@ -65,6 +71,13 @@ public final class HudEffects {
             pushed = true;
         }
 
+        /** L'inventaire est dessiné au même endroit que le HUD rebondissant (2.2). */
+        @Override
+        public org.joml.Matrix4f screenTransform(Screen screen) {
+            float s = scale();
+            return new org.joml.Matrix4f().translate(x * fade, y * fade, 0f).scale(s, s, 1f);
+        }
+
         @Override
         public void hudEnd(GuiGraphics g, float partialTick) {
             if (!pushed) return;
@@ -78,8 +91,40 @@ public final class HudEffects {
         }
     }
 
-    /** Amnésie : le contenu de la barre d'action est oublié, sauf l'objet en main. */
+    /** Amnésie : le contenu de la barre d'action est oublié, sauf l'objet en main (HUD et inventaire). */
     public static class Amnesia extends CardEffect {
+        /** Emplacement de la barre d'action (autre que celui en main) dans un écran d'inventaire. */
+        static boolean forgotten(Slot slot) {
+            if (slot == null || MC.player == null || !(slot.container instanceof Inventory)) return false;
+            int i = slot.getContainerSlot();
+            return i >= 0 && i < 9 && i != MC.player.getInventory().selected;
+        }
+
+        @Override
+        public void screenOverlay(ScreenEvent.Render.Post event) {
+            if (!(event.getScreen() instanceof AbstractContainerScreen<?> cs) || MC.player == null || fade < 0.05f) return;
+            GuiGraphics g = event.getGuiGraphics();
+            float t = time(partial());
+            int a = (int) (255 * Math.min(1f, fade * 1.5f));
+            g.pose().pushPose();
+            g.pose().translate(cs.getGuiLeft(), cs.getGuiTop(), 350);
+            for (Slot slot : cs.getMenu().slots) {
+                if (!slot.isActive() || !forgotten(slot)) continue;
+                int x = slot.x, y = slot.y;
+                g.fillGradient(x, y, x + 16, y + 16, (a << 24) | 0x2A1B3D, (a << 24) | 0x140C20);
+                if (slot.hasItem()) {
+                    float wob = Mth.sin(t * 3f + slot.index) * 0.8f;
+                    g.drawString(MC.font, "?", x + 6, (int) (y + 4 + wob), (a << 24) | 0xC9A6FF, false);
+                }
+            }
+            g.pose().popPose();
+        }
+
+        @Override
+        public boolean screenTooltip(Screen screen) {
+            return !(screen instanceof AbstractContainerScreen<?> cs) || !forgotten(cs.getSlotUnderMouse());
+        }
+
         @Override
         public void hudEnd(GuiGraphics g, float partialTick) {
             if (MC.player == null || MC.options.hideGui || MC.player.isSpectator()) return;
@@ -92,7 +137,8 @@ public final class HudEffects {
                 if (i == sel) continue;
                 ItemStack stack = MC.player.getInventory().getItem(i);
                 int x = w / 2 - 90 + i * 20 + 2, y = h - 19;
-                int alpha = (int) (235 * fade);
+                // opaque : ni le nombre d'objets ni la barre d'usure ne doivent transparaître
+                int alpha = (int) (255 * Math.min(1f, fade * 1.5f));
                 g.fillGradient(x - 1, y - 1, x + 17, y + 17, (alpha << 24) | 0x2A1B3D, (alpha << 24) | 0x140C20);
                 if (!stack.isEmpty()) {
                     float wob = Mth.sin(t * 3f + i) * 0.8f;

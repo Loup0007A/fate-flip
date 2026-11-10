@@ -64,6 +64,21 @@ public final class NewEffects {
             g.pose().popPose();
             pushed = false;
         }
+
+        /** 2.2 : l'inventaire est lui aussi retourné (la souris suit). */
+        @Override
+        public org.joml.Matrix4f screenTransform(net.minecraft.client.gui.screens.Screen screen) {
+            float k = fade * fade * (3 - 2 * fade);
+            if (k < 0.001f) return null;
+            float cx = screen.width / 2f, cy = screen.height / 2f;
+            return new org.joml.Matrix4f().translate(cx, cy, 0f).rotateZ((float) Math.toRadians(180f * k)).translate(-cx, -cy, 0f);
+        }
+
+        /** La barre d'action passe en haut : le rappel de carte descend en bas à droite. */
+        @Override
+        public com.fateflip.config.FFConfig.HudCorner reminderCorner(com.fateflip.config.FFConfig.HudCorner preferred) {
+            return com.fateflip.config.FFConfig.HudCorner.BOTTOM_RIGHT;
+        }
     }
 
     /** Succès absurdes : de faux succès s'affichent régulièrement. */

@@ -15,7 +15,9 @@ CATS = {
     'mind':    ((255, 209, 102), (176, 122, 18)),
     'control': ((255, 107, 122), (163, 25, 43)),
     'sound':   ((91, 227, 154), (27, 138, 80)),
+    'curse':   ((255, 74, 74), (94, 8, 18)),
 }
+MISC = '/home/claude/fate-flip/src/main/resources/assets/fateflip/textures/misc/'
 GOLD = (233, 196, 106)
 GOLD_D = (140, 98, 30)
 
@@ -354,8 +356,95 @@ def medallion():
     img.resize((128, 128), Image.LANCZOS).save(OUT + 'medallion.png')
 
 
+def screamers():
+    """Trois visages de screamer (originaux, procéduraux), 256x256."""
+    S = 512
+    def base(seed, bg):
+        rnd = np.random.default_rng(seed)
+        img = Image.new('RGBA', (S, S), bg + (255,))
+        n = (rnd.random((S // 4, S // 4)) * 60).astype(np.uint8)
+        noise = Image.fromarray(n, 'L').resize((S, S), Image.BICUBIC)
+        grain = Image.new('RGBA', (S, S), (255, 255, 255, 0)); grain.putalpha(noise.point(lambda v: v // 3))
+        return img, grain, rnd
+
+    # 0 : visage livide, orbites vides et bouche béante
+    img, grain, rnd = base(11, (8, 4, 6))
+    face = Image.new('L', (S, S), 0)
+    fd = ImageDraw.Draw(face)
+    fd.ellipse([96, 40, 416, 500], fill=255)
+    skin = Image.new('RGBA', (S, S), (196, 188, 176, 255))
+    shade = radial(S, S, S * 0.5, S * 0.42, S * 0.48, (0, 0, 0, 0), (0, 0, 0, 200), 1.6)
+    skin.alpha_composite(shade)
+    img.paste(skin, (0, 0), face.filter(ImageFilter.GaussianBlur(6)))
+    d = ImageDraw.Draw(img)
+    for (cx, cy) in ((190, 210), (322, 210)):
+        d.ellipse([cx - 58, cy - 70, cx + 58, cy + 62], fill=(0, 0, 0, 255))
+        d.ellipse([cx - 7, cy - 4, cx + 7, cy + 10], fill=(255, 255, 255, 255))
+    mouth = [(170, 352), (342, 352), (372, 470), (256, 500), (140, 470)]
+    d.polygon(mouth, fill=(0, 0, 0, 255))
+    for i in range(9):
+        x = 178 + i * 20
+        d.polygon([(x, 352), (x + 14, 352), (x + 7, 352 + 26 + rnd.integers(0, 18))], fill=(230, 222, 200, 255))
+        d.polygon([(x - 4, 490), (x + 10, 490), (x + 3, 466 - rnd.integers(0, 16))], fill=(214, 204, 186, 255))
+    for _ in range(6):
+        x0, y0 = int(rnd.integers(120, 390)), int(rnd.integers(80, 460))
+        pts = [(x0, y0)]
+        for _ in range(5):
+            x0 += int(rnd.integers(-26, 26)); y0 += int(rnd.integers(8, 30)); pts.append((x0, y0))
+        d.line(pts, fill=(60, 10, 10, 200), width=3)
+    d.line([(190, 280), (186, 340)], fill=(120, 0, 0, 255), width=6)
+    d.line([(322, 280), (328, 350)], fill=(120, 0, 0, 255), width=6)
+    img.alpha_composite(grain)
+    img.alpha_composite(radial(S, S, S / 2, S / 2, S * 0.75, (0, 0, 0, 0), (0, 0, 0, 255), 2.2))
+    img.resize((256, 256), Image.LANCZOS).save(MISC + 'screamer_0.png')
+
+    # 1 : ombre aux yeux blancs et au sourire immense
+    img, grain, rnd = base(23, (2, 2, 4))
+    d = ImageDraw.Draw(img)
+    glow = Image.new('RGBA', (S, S), (0, 0, 0, 0))
+    gd = ImageDraw.Draw(glow)
+    for (cx, cy) in ((176, 200), (336, 200)):
+        gd.ellipse([cx - 52, cy - 34, cx + 52, cy + 34], fill=(255, 250, 240, 255))
+    gd.chord([86, 220, 426, 440], 10, 170, fill=(255, 250, 240, 255))
+    halo = glow.filter(ImageFilter.GaussianBlur(18))
+    img.alpha_composite(halo)
+    img.alpha_composite(glow)
+    for (cx, cy) in ((176, 200), (336, 200)):
+        d.ellipse([cx - 6, cy - 6, cx + 6, cy + 6], fill=(0, 0, 0, 255))
+    for i in range(16):
+        x = 110 + i * 19
+        d.line([(x, 300), (x + 3, 420)], fill=(0, 0, 0, 255), width=4)
+    d.line([(96, 312), (416, 312)], fill=(0, 0, 0, 255), width=5)
+    img.alpha_composite(grain)
+    img.alpha_composite(radial(S, S, S / 2, S / 2, S * 0.8, (0, 0, 0, 0), (0, 0, 0, 240), 2.4))
+    img.resize((256, 256), Image.LANCZOS).save(MISC + 'screamer_1.png')
+
+    # 2 : visage en pixels, yeux rouges, lignes de glitch
+    P = 16
+    px = Image.new('RGBA', (P, P), (12, 10, 14, 255))
+    pd = ImageDraw.Draw(px)
+    pd.rectangle([2, 1, 13, 14], fill=(70, 66, 74, 255))
+    pd.rectangle([3, 5, 6, 7], fill=(0, 0, 0, 255)); pd.rectangle([9, 5, 12, 7], fill=(0, 0, 0, 255))
+    pd.point([(4, 6), (11, 6)], fill=(255, 30, 30, 255))
+    pd.rectangle([4, 10, 11, 13], fill=(0, 0, 0, 255))
+    pd.point([(5, 10), (7, 10), (9, 10), (6, 13), (8, 13), (10, 13)], fill=(200, 190, 170, 255))
+    pd.point([(3, 2), (12, 3), (2, 12), (13, 9)], fill=(40, 36, 44, 255))
+    img = px.resize((S, S), Image.NEAREST)
+    arr = np.array(img)
+    rnd = np.random.default_rng(37)
+    for _ in range(14):
+        y = int(rnd.integers(0, S - 12)); h = int(rnd.integers(3, 14)); sh = int(rnd.integers(-40, 40))
+        arr[y:y + h] = np.roll(arr[y:y + h], sh, axis=1)
+    img = Image.fromarray(arr, 'RGBA')
+    red = radial(S, S, S * 0.28, S * 0.4, S * 0.16, (255, 20, 20, 140), (255, 0, 0, 0), 1.4)
+    red2 = radial(S, S, S * 0.72, S * 0.4, S * 0.16, (255, 20, 20, 140), (255, 0, 0, 0), 1.4)
+    img.alpha_composite(red); img.alpha_composite(red2)
+    img.alpha_composite(radial(S, S, S / 2, S / 2, S * 0.78, (0, 0, 0, 0), (0, 0, 0, 230), 2.2))
+    img.resize((256, 256), Image.NEAREST).save(MISC + 'screamer_2.png')
+
+
 if __name__ == '__main__':
     for cat in CATS:
         front(cat)
-    back(); burn(); glow(); spark(); gem(); runes(); shard(); medallion()
+    back(); burn(); glow(); spark(); gem(); runes(); shard(); medallion(); screamers()
     print('textures ok')

@@ -45,7 +45,14 @@ public final class HudReminder {
     public static void tick() {}
 
     private static FFConfig.HudCorner corner() {
-        return FFConfig.HUD_CORNER.get();
+        FFConfig.HudCorner c = FFConfig.HUD_CORNER.get();
+        CardEffect fx = Fate.current();
+        if (fx == null || c == FFConfig.HudCorner.HIDDEN) return c;
+        try {
+            return fx.reminderCorner(c);
+        } catch (Throwable t) {
+            return c;
+        }
     }
 
     /** Centre de la mini-carte à l'écran (utilisé par l'animation finale du tirage). */
@@ -153,6 +160,26 @@ public final class HudReminder {
             g.drawString(font, Component.translatable("fateflip.power.half_measure.badge"), 0, line, CardArt.withAlpha(0xE9C46A, 1f), false);
         }
         g.pose().popPose();
+        // 2.2 : rangée des malus permanents sous le rappel
+        java.util.Collection<CardEffect> curses = Fate.activeCurses();
+        if (!curses.isEmpty()) {
+            int n = curses.size();
+            int rowW = 13 + n * 11;
+            int iy = boxY1 + 2;
+            int ix0 = right ? boxX1 - rowW : boxX0;
+            g.fillGradient(ix0, iy, ix0 + rowW, iy + 12, 0xA0300008, 0x80120004);
+            g.fill(ix0, iy, ix0 + rowW, iy + 1, CardArt.withAlpha(0xFF4A4A, 0.7f));
+            g.drawString(font, "☠", ix0 + 3, iy + 2, 0xFFFF6B6B, false);
+            int i = 0;
+            for (CardEffect curse : curses) {
+                g.pose().pushPose();
+                g.pose().translate(ix0 + 12 + i * 11, iy + 1.5f, 0);
+                g.pose().scale(0.6f, 0.6f, 1f);
+                g.renderItem(curse.card.icon(), 0, 0);
+                g.pose().popPose();
+                i++;
+            }
+        }
         g.pose().popPose();
         g.flush();
     }

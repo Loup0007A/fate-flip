@@ -50,11 +50,12 @@ SPECS = {
     6: dict(params=(0.45, 0, 0, 0)),
     8: dict(params=(0.42, 0.56, 0.6, 0)),
     12: dict(params2=(0.56, 0.48, 0.3, 0.7)),
+    44: dict(params=(0.72, 0.78, 1.0, 1.0), params2=(0.8, 0.3, 0.55, 0.6)),
 }
 NAMES = {1: 'triptych', 2: 'mirror', 3: 'antipodes', 4: 'taquin', 5: 'kaleido', 6: 'vertigo', 7: 'portrait', 8: 'wandering',
          9: 'melt', 10: 'whirl', 11: 'fisheye', 12: 'shatter', 13: 'noir', 14: 'scarlet', 15: 'negative', 16: 'thermal',
          17: 'eightbit', 18: 'pocket', 19: 'vhs', 20: 'crt', 21: 'anaglyph', 22: 'tipsy', 23: 'tunnel', 24: 'sketch',
-         25: 'source', 26: 'psyche', 27: 'myopia', 28: 'echo', 29: 'wetlens', 30: 'comic', 31: 'cinema', 32: 'goggles', 33: 'swap', 34: 'silhouette', 35: 'glass', 36: 'pointil', 37: 'xray', 38: 'holo', 39: 'tiltshift', 40: 'wall', 41: 'droste', 42: 'ripple', 43: 'glitch'}
+         25: 'source', 26: 'psyche', 27: 'myopia', 28: 'echo', 29: 'wetlens', 30: 'comic', 31: 'cinema', 32: 'goggles', 33: 'swap', 34: 'silhouette', 35: 'glass', 36: 'pointil', 37: 'radiograph', 38: 'holo', 39: 'tiltshift', 40: 'wall', 41: 'droste', 42: 'ripple', 43: 'glitch', 44: 'sun', 45: 'fly', 46: 'bloodsky'}
 
 if __name__ == '__main__':
     modes = [int(a) for a in sys.argv[1:]] or list(NAMES)

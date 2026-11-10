@@ -2,6 +2,7 @@ package com.fateflip.client.gui;
 
 import com.fateflip.card.Card;
 import com.fateflip.card.Collection;
+import com.fateflip.card.Curses;
 import com.fateflip.card.Power;
 import com.fateflip.card.Severity;
 import com.fateflip.client.Fate;
@@ -35,11 +36,13 @@ public class DrawScreen extends Screen {
     private enum Phase { DEALING, CHOOSING, FLIPPING, ZOOMING, REVEAL, RETURNING, BURNING, FINALE }
 
     private static final class Slot {
-        final Card card;
+        Card card;
         final int index;
         float x, y, rot;
         float hover;
         boolean revealed, burned, isNew, dealtSound;
+        /** 2.2 : la carte s'est révélée maudite (malus permanent). */
+        boolean cursed;
         float flipStart = -1f, burnStart = -1f;
 
         Slot(Card card, int index) {
@@ -193,10 +196,27 @@ public class DrawScreen extends Screen {
         return maxFlips + bonusFlips - flipsUsed;
     }
 
+    /** Pour l'auto-test : force la malédiction au 3e retournement. */
+    public static boolean testForceCurse;
+
+    /** 2.2 : au 3e retournement d'un même tirage, la carte peut se révéler maudite. */
+    private Card rollCurse() {
+        if (flipsUsed + 1 != 3 || !FFConfig.CURSES.get()) return null;
+        if (!testForceCurse && rng.nextDouble() >= FFConfig.CURSE_CHANCE.get()) return null;
+        return Curses.randomMissing(rng);
+    }
+
     private void flip(Slot s) {
         s.revealed = true;
         s.flipStart = now();
-        s.isNew = Collection.get().markSeen(s.card);
+        Card curse = rollCurse();
+        if (curse != null) {
+            s.card = curse;
+            s.cursed = true;
+            s.isNew = !Collection.get().discovered(curse);
+        } else {
+            s.isNew = Collection.get().markSeen(s.card);
+        }
         flipsUsed++;
         focus = s;
         setPhase(Phase.FLIPPING);
@@ -204,6 +224,14 @@ public class DrawScreen extends Screen {
     }
 
     private void onFlipMidpoint(Slot s) {
+        if (s.cursed) {
+            particles.burst(s.x, s.y, 70, 0xFF2A2A, 190f * scale, 8f * scale);
+            particles.burst(s.x, s.y, 30, 0x1A0005, 120f * scale, 10f * scale);
+            sound(SoundEvents.ELDER_GUARDIAN_CURSE, 0.75f, 0.7f);
+            sound(SoundEvents.WITHER_SPAWN, 1.6f, 0.25f);
+            curseShake = 1f;
+            return;
+        }
         int c = s.card.category.light;
         particles.burst(s.x, s.y, 42, c, 140f * scale, 7f * scale);
         sound(SoundEvents.AMETHYST_BLOCK_CHIME, 1.1f + rng.nextFloat() * 0.3f, 1f);
@@ -229,7 +257,7 @@ public class DrawScreen extends Screen {
 
     /** ENCORE : la carte agrandie est brûlée, on en retourne une autre. */
     private void encore() {
-        if (phase != Phase.REVEAL || flipsLeft() <= 0) return;
+        if (phase != Phase.REVEAL || flipsLeft() <= 0 || (focus != null && focus.cursed)) return;
         sound(SoundEvents.UI_BUTTON_CLICK.value(), 0.8f, 0.6f);
         setPhase(Phase.RETURNING);
     }
@@ -239,7 +267,12 @@ public class DrawScreen extends Screen {
         finished = true;
         Collection.get().save();
         Card card = focus.card;
+        boolean cursed = focus.cursed;
         onClose();
+        if (cursed) {
+            Fate.onCursed(card);
+            return;
+        }
         sound(SoundEvents.PLAYER_LEVELUP, 0.75f, 0.35f);
         Fate.onChosen(card, durationFactor, reward());
     }
@@ -312,6 +345,7 @@ public class DrawScreen extends Screen {
     }
 
     private boolean midpointDone;
+    private float curseShake;
     private boolean finaleBurst;
     private int burnedCount;
     private int testHoverIndex = -1;
@@ -381,7 +415,18 @@ public class DrawScreen extends Screen {
         float outro = phase == Phase.FINALE ? easeInOut((phaseT() - 0.55f) / 0.6f) : 0f;
         float bgAlpha = intro * (1f - outro);
 
+        curseShake = Math.max(0f, curseShake - dt * 1.6f);
+        boolean shaking = curseShake > 0.01f;
+        if (shaking) {
+            g.pose().pushPose();
+            g.pose().translate((rng.nextFloat() - 0.5f) * 7f * curseShake, (rng.nextFloat() - 0.5f) * 7f * curseShake, 0);
+        }
         renderBackdrop(g, t, bgAlpha);
+        if (focus != null && focus.cursed && phase != Phase.FLIPPING) {
+            float k = phase == Phase.FINALE ? 1f - outro : 1f;
+            g.fillGradient(0, 0, width, height, CardArt.withAlpha(0x3A0008, 0.55f * k), CardArt.withAlpha(0x0A0002, 0.75f * k));
+            CardArt.glow(g, CardArt.GLOW, zoomX, zoomY, width * 0.9f, height * 0.9f, 0xC0101A, (0.35f + 0.1f * Mth.sin(t * 3f)) * k);
+        }
         renderTitle(g, t, intro * (1f - outro));
 
         // survol
@@ -425,6 +470,7 @@ public class DrawScreen extends Screen {
         particles.render(g);
         renderTimer(g, t);
         g.pose().popPose();
+        if (shaking) g.pose().popPose();
         g.flush();
     }
 
@@ -463,7 +509,8 @@ public class DrawScreen extends Screen {
         g.pose().scale(2f, 2f, 1f);
         g.drawString(font, title, -font.width(title) / 2, 0, CardArt.withAlpha(0xF3D58A, a * dim), true);
         g.pose().popPose();
-        Component sub = burnedCount == 0 ? Component.translatable("fateflip.draw.subtitle")
+        Component sub = focus != null && focus.cursed && phase != Phase.FLIPPING ? Component.translatable("fateflip.draw.subtitle.cursed")
+            : burnedCount == 0 ? Component.translatable("fateflip.draw.subtitle")
             : Component.translatable("fateflip.draw.subtitle.again");
         g.drawCenteredString(font, sub, width / 2, (int) ty + 22, CardArt.withAlpha(0xD8CBEA, a * dim));
         // compteur de retournements
@@ -667,7 +714,13 @@ public class DrawScreen extends Screen {
             g.drawString(font, l, x, y, CardArt.withAlpha(0xEDE4F5, a), false);
             y += 11;
         }
-        if (powersOn()) {
+        if (focus.cursed) {
+            y += 3;
+            for (FormattedCharSequence l : font.split(Component.translatable("fateflip.draw.cursed"), w)) {
+                g.drawString(font, l, x, y, CardArt.withAlpha(0xFF6B6B, a * (0.75f + 0.25f * Mth.sin(t * 4f))), true);
+                y += 11;
+            }
+        } else if (powersOn()) {
             y += 3;
             int gain = reward();
             Shards.icon(g, x + 5, y + 4, 10f, a, t);
@@ -680,7 +733,7 @@ public class DrawScreen extends Screen {
         }
         // boutons, alignés sur le bas de la carte
         int bottom = (int) (zoomY + 48f * zoomScale);
-        boolean canEncore = flipsLeft() > 0;
+        boolean canEncore = flipsLeft() > 0 && !focus.cursed;
         stopW = Math.min(w, 220);
         stopH = 22;
         encoreW = stopW;
@@ -698,14 +751,18 @@ public class DrawScreen extends Screen {
         if (canEncore) encoreY = Math.max(encoreY, stopY + stopH + 8);
         hoverStop = mx >= stopX && mx <= stopX + stopW && my >= stopY && my <= stopY + stopH;
         hoverEncore = canEncore && mx >= encoreX && mx <= encoreX + encoreW && my >= encoreY && my <= encoreY + encoreH;
-        button(g, stopX, stopY, stopW, stopH, canEncore ? Component.translatable("fateflip.draw.stop")
-            : Component.translatable("fateflip.draw.accept"), 0xF3D58A, 0xB07A12, 0x2A1A02, hoverStop, a, t);
+        if (focus.cursed) {
+            button(g, stopX, stopY, stopW, stopH, Component.translatable("fateflip.draw.accept_curse"), 0xFF5A5A, 0x6A0A14, 0xFFFFFF, hoverStop, a, t);
+        } else {
+            button(g, stopX, stopY, stopW, stopH, canEncore ? Component.translatable("fateflip.draw.stop")
+                : Component.translatable("fateflip.draw.accept"), 0xF3D58A, 0xB07A12, 0x2A1A02, hoverStop, a, t);
+        }
         if (canEncore) {
             button(g, encoreX, encoreY, encoreW, encoreH, Component.translatable("fateflip.draw.encore"),
                 0xE0566E, 0x7A1428, 0xFFFFFF, hoverEncore, a, t);
             Component hint = Component.translatable("fateflip.draw.encore.hint", flipsLeft());
             g.drawString(font, hint, encoreX, encoreY + encoreH + 3, CardArt.withAlpha(0xB79FCB, a), false);
-        } else {
+        } else if (!focus.cursed) {
             g.drawString(font, Component.translatable("fateflip.draw.last"), stopX, stopY + stopH + 3, CardArt.withAlpha(0xB79FCB, a), false);
         }
         g.pose().popPose();
@@ -766,7 +823,7 @@ public class DrawScreen extends Screen {
     }
 
     private int reward() {
-        return powersOn() && focus != null ? Power.reward(focus.card.severity, burnedCount) : 0;
+        return powersOn() && focus != null && !focus.cursed ? Power.reward(focus.card.severity, burnedCount) : 0;
     }
 
     private float foresightK(float t) {
@@ -787,6 +844,7 @@ public class DrawScreen extends Screen {
     /** Clé de traduction expliquant pourquoi l'atout est indisponible, ou null s'il peut être utilisé. */
     private String powerBlock(Power p) {
         if (usedPowers.contains(p)) return "fateflip.power.used";
+        if (focus != null && focus.cursed) return "fateflip.power.cursed";
         boolean choosing = phase == Phase.CHOOSING, reveal = phase == Phase.REVEAL;
         switch (p) {
             case CLAIRVOYANCE, REPRIEVE -> {
@@ -1010,6 +1068,10 @@ public class DrawScreen extends Screen {
         if (!b.isEmpty()) revive(b.get(0));
     }
 
+
+    public boolean isCursedReveal() {
+        return focus != null && focus.cursed && phase == Phase.REVEAL && phaseT() > 0.5f;
+    }
 
     public boolean isChoosing() {
         return phase == Phase.CHOOSING;

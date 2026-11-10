@@ -18,8 +18,10 @@ public final class FxPass {
         PSYCHEDELIC = 26, MYOPIA = 27, ECHOLOCATION = 28, WET_LENS = 29, COMIC = 30, CINEMASCOPE = 31,
         NIGHT_GOGGLES = 32, COLOUR_SWAP = 33;
     // 2.1
-    public static final int SILHOUETTE = 34, STAINED_GLASS = 35, POINTILLISM = 36, XRAY = 37, HOLOGRAM = 38,
+    public static final int SILHOUETTE = 34, STAINED_GLASS = 35, POINTILLISM = 36, RADIOGRAPH = 37, HOLOGRAM = 38,
         TILT_SHIFT = 39, VIDEO_WALL = 40, DROSTE = 41, RIPPLE = 42, GLITCH = 43;
+    // 2.2
+    public static final int SUN_INTOLERANCE = 44, FLY_VISION = 45, BLOOD_SKY = 46;
 
     public final int mode;
     public final Stage stage;
@@ -33,7 +35,8 @@ public final class FxPass {
         this.mode = mode;
         this.stage = stage;
         this.needsDepth = mode == THERMAL || mode == ANAGLYPH || mode == MYOPIA || mode == ECHOLOCATION
-            || mode == COMIC || mode == SKETCH || mode == SILHOUETTE || mode == XRAY;
+            || mode == COMIC || mode == SKETCH || mode == SILHOUETTE || mode == RADIOGRAPH
+            || mode == SUN_INTOLERANCE || mode == BLOOD_SKY;
         this.usesGlyphs = mode == SOURCE_CODE;
     }
 

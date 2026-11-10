@@ -51,6 +51,11 @@ public final class SoundFx {
         LATER.add(new Later(clock + Math.max(1, ticks), mark(sound)));
     }
 
+    /** Joue un son dans quelques ticks. */
+    public static void playLater(SoundInstance sound, int ticks) {
+        later(sound, ticks);
+    }
+
     /** Appelé à chaque tick client par le gestionnaire. */
     public static void tickScheduler() {
         clock++;

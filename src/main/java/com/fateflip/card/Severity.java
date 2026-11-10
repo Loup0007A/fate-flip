@@ -6,7 +6,9 @@ import net.minecraft.network.chat.Component;
 public enum Severity {
     GENTLE(1, 0xFF8EF0B0),
     STRANGE(2, 0xFFFFC857),
-    NIGHTMARE(3, 0xFFFF5470);
+    NIGHTMARE(3, 0xFFFF5470),
+    /** Malus permanent (aucune gemme). */
+    CURSED(0, 0xFFE0303A);
 
     public final int level;
     public final int color;

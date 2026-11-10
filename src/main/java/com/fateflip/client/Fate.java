@@ -4,6 +4,7 @@ import com.fateflip.FateFlip;
 import com.fateflip.card.Card;
 import com.fateflip.card.Cards;
 import com.fateflip.card.Collection;
+import com.fateflip.card.Curses;
 import com.fateflip.client.gui.DrawScreen;
 import com.fateflip.client.gui.GrimoireScreen;
 import com.fateflip.client.gui.HudReminder;
@@ -20,6 +21,8 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.LayeredDraw;
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.TitleScreen;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.options.MouseSettingsScreen;
 import net.minecraft.client.gui.screens.options.controls.ControlsScreen;
 import net.minecraft.client.gui.screens.options.controls.KeyBindsScreen;
@@ -35,8 +38,10 @@ import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.CustomizeGuiOverlayEvent;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.MovementInputUpdateEvent;
+import net.minecraftforge.client.event.RenderHighlightEvent;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.client.event.RenderLivingEvent;
+import net.minecraftforge.client.event.RenderTooltipEvent;
 import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.client.event.ViewportEvent;
 import net.minecraftforge.client.event.sound.PlaySoundEvent;
@@ -47,7 +52,13 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.Random;
 import java.util.WeakHashMap;
 
@@ -74,6 +85,17 @@ public final class Fate {
     private static Runnable deferred;
     private static final Random RANDOM = new Random();
     private static final WeakHashMap<LivingEntity, Boolean> PUSHED = new WeakHashMap<>();
+    /** 2.2 : malus permanents en cours (id -> effet), actifs en même temps que la carte. */
+    private static final Map<String, CardEffect> CURSES = new LinkedHashMap<>();
+    private static final Set<String> BROKEN_CURSES = new HashSet<>();
+    /** Malus puis carte active : tous les effets qui reçoivent les événements. */
+    private static CardEffect[] live = new CardEffect[0];
+
+    private static void rebuildLive() {
+        List<CardEffect> l = new ArrayList<>(CURSES.values());
+        if (current != null) l.add(current);
+        live = l.toArray(new CardEffect[0]);
+    }
 
     // ───────────────────────── API ─────────────────────────
 
@@ -84,6 +106,11 @@ public final class Fate {
     public static float effectProgressLeft(float partialTick) {
         if (current == null) return 0f;
         return Mth.clamp((effectTicksLeft - partialTick) / Math.max(1, effectTotalTicks), 0f, 1f);
+    }
+
+    /** Malus permanents actuellement actifs. */
+    public static java.util.Collection<CardEffect> activeCurses() {
+        return java.util.Collections.unmodifiableCollection(CURSES.values());
     }
 
     /** La carte active a été raccourcie par l'atout Demi-mesure. */
@@ -133,8 +160,10 @@ public final class Fate {
         } catch (Throwable t) {
             FateFlip.LOGGER.error("Fate Flip : la carte {} n'a pas pu démarrer", card.id, t);
             current = null;
+            rebuildLive();
             return;
         }
+        rebuildLive();
         HudReminder.announce(card);
         if (current.locksControls() && FFConfig.LOCK_CONTROLS.get()) {
             MC.gui.setOverlayMessage(Component.translatable("fateflip.controls.sealed"), false);
@@ -159,6 +188,19 @@ public final class Fate {
         HudReminder.announce(card, shards, durationFactor < 0.99f);
     }
 
+    /** La troisième carte était maudite : le malus devient permanent (aucune carte jouée ce tour-ci). */
+    public static void onCursed(Card curse) {
+        stopEffect();
+        Collection.get().addCurse(curse);
+        Collection.get().save();
+        ticksUntilDraw = FFConfig.DRAW_INTERVAL.get() * 20;
+        drawPending = false;
+        HudReminder.announce(curse);
+        MC.getSoundManager().play(SoundFx.mark(SimpleSoundInstance.forUI(SoundEvents.ELDER_GUARDIAN_CURSE, 0.7f, 0.6f)));
+        syncCurses();
+        FateFlip.LOGGER.info("Fate Flip : malus permanent « {} »", curse.id);
+    }
+
     /** L'écran de tirage a été fermé sans choix (mort, déconnexion...) : on retentera. */
     public static void onDrawAborted() {
         drawPending = true;
@@ -173,8 +215,44 @@ public final class Fate {
                 FateFlip.LOGGER.error("Fate Flip : erreur à l'arrêt de {}", current.card, t);
             }
             current = null;
+            rebuildLive();
         }
         PUSHED.clear();
+    }
+
+    /** Démarre / arrête les malus pour qu'ils correspondent à la collection. */
+    public static void syncCurses() {
+        boolean on = MC.level != null && MC.player != null && FFConfig.ENABLED.get() && FFConfig.CURSES.get();
+        Set<String> want = on ? Collection.get().curseIds() : Set.of();
+        boolean changed = false;
+        Iterator<Map.Entry<String, CardEffect>> it = CURSES.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<String, CardEffect> e = it.next();
+            if (!want.contains(e.getKey())) {
+                try {
+                    e.getValue().stop();
+                } catch (Throwable t) {
+                    FateFlip.LOGGER.error("Fate Flip : erreur à l'arrêt du malus {}", e.getKey(), t);
+                }
+                it.remove();
+                changed = true;
+            }
+        }
+        for (String id : want) {
+            if (CURSES.containsKey(id) || BROKEN_CURSES.contains(id)) continue;
+            Card c = Curses.get(id);
+            if (c == null) continue;
+            CardEffect fx = c.createEffect();
+            try {
+                fx.start();
+                CURSES.put(id, fx);
+                changed = true;
+            } catch (Throwable t) {
+                BROKEN_CURSES.add(id);
+                FateFlip.LOGGER.error("Fate Flip : le malus {} n'a pas pu démarrer", id, t);
+            }
+        }
+        if (changed) rebuildLive();
     }
 
     public static void defer(Runnable r) {
@@ -193,11 +271,12 @@ public final class Fate {
 
     @SubscribeEvent
     public static void onClientTickPre(TickEvent.ClientTickEvent.Pre event) {
-        if (current != null && MC.player != null && !MC.isPaused()) {
+        if (MC.player == null || MC.isPaused()) return;
+        for (CardEffect fx : live) {
             try {
-                current.preTick();
+                fx.preTick();
             } catch (Throwable t) {
-                crash(t);
+                crash(fx, t);
             }
         }
     }
@@ -210,12 +289,14 @@ public final class Fate {
             deferred = null;
             r.run();
         }
+        syncCurses();
         if (MC.level == null || MC.player == null) {
             if (current != null) stopEffect();
             ticksUntilDraw = -1;
             drawPending = false;
             return;
         }
+        SoundCheck.tick();
         while (ClientBoot.KEY_GRIMOIRE.consumeClick()) {
             if (MC.screen == null) MC.setScreen(new GrimoireScreen(null));
         }
@@ -226,6 +307,14 @@ public final class Fate {
         }
         if (MC.isPaused()) return;
         SoundFx.tickScheduler();
+        for (CardEffect fx : CURSES.values().toArray(new CardEffect[0])) {
+            fx.age++;
+            try {
+                fx.tick();
+            } catch (Throwable t) {
+                crash(fx, t);
+            }
+        }
 
         if (current != null) {
             current.age++;
@@ -275,9 +364,22 @@ public final class Fate {
     }
 
     private static void crash(Throwable t) {
+        crash(current, t);
+    }
+
+    private static void crash(CardEffect fx, Throwable t) {
         failures++;
-        FateFlip.LOGGER.error("Fate Flip : la carte {} a planté, elle est retirée", current == null ? "?" : current.card, t);
-        current = null;
+        if (fx != null && fx == current) {
+            FateFlip.LOGGER.error("Fate Flip : la carte {} a planté, elle est retirée", current.card, t);
+            current = null;
+        } else if (fx != null && fx.card != null) {
+            FateFlip.LOGGER.error("Fate Flip : le malus {} a planté, il est mis en sommeil", fx.card.id, t);
+            CURSES.remove(fx.card.id);
+            BROKEN_CURSES.add(fx.card.id);
+        } else {
+            FateFlip.LOGGER.error("Fate Flip : erreur d'effet", t);
+        }
+        rebuildLive();
     }
 
     // ───────────────────────── rendu ─────────────────────────
@@ -291,13 +393,16 @@ public final class Fate {
 
     @SubscribeEvent
     public static void onRenderTickPre(TickEvent.RenderTickEvent.Pre event) {
-        if (current == null || MC.level == null) return;
+        if (MC.level == null) return;
         float pt = MC.getTimer().getGameTimeDeltaPartialTick(false);
-        current.fade = fadeFor(pt);
-        try {
-            current.frame(pt);
-        } catch (Throwable t) {
-            crash(t);
+        if (current != null) current.fade = fadeFor(pt);
+        for (CardEffect fx : live) {
+            if (fx != current) fx.fade = Math.min(1f, (fx.age + pt) / 40f);
+            try {
+                fx.frame(pt);
+            } catch (Throwable t) {
+                crash(fx, t);
+            }
         }
     }
 
@@ -349,6 +454,13 @@ public final class Fate {
 
     @SubscribeEvent
     public static void onLevelStage(RenderLevelStageEvent event) {
+        for (CardEffect fx : live) {
+            try {
+                fx.renderLevel(event);
+            } catch (Throwable t) {
+                crash(fx, t);
+            }
+        }
         if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_LEVEL) return;
         if (wantsWorldDepth()) PostFx.captureWorldDepth();
         if (layersFailed) worldStage(null, event.getPartialTick());
@@ -356,26 +468,31 @@ public final class Fate {
 
     /** Première couche du HUD : effet d'écran « monde », puis début du HUD de la carte. */
     private static void worldStage(GuiGraphics g, float pt) {
-        if (current == null || MC.level == null) return;
-        FxPass p = current.pass();
-        if (p != null && p.stage == FxPass.Stage.WORLD) {
-            PostFx.apply(p, (current.age + pt) / 20f, current.fade);
+        if (MC.level == null) return;
+        if (current != null) {
+            FxPass p = current.pass();
+            if (p != null && p.stage == FxPass.Stage.WORLD) {
+                PostFx.apply(p, (current.age + pt) / 20f, current.fade);
+            }
         }
         if (g != null) {
-            try {
-                current.hudBegin(g, pt);
-            } catch (Throwable t) {
-                crash(t);
+            for (CardEffect fx : live) {
+                try {
+                    fx.hudBegin(g, pt);
+                } catch (Throwable t) {
+                    crash(fx, t);
+                }
             }
         }
     }
 
     private static void hudStage(GuiGraphics g, float pt) {
-        if (current != null) {
+        CardEffect[] l = live;
+        for (int i = l.length - 1; i >= 0; i--) {
             try {
-                current.hudEnd(g, pt);
+                l[i].hudEnd(g, pt);
             } catch (Throwable t) {
-                crash(t);
+                crash(l[i], t);
             }
         }
     }
@@ -410,33 +527,44 @@ public final class Fate {
 
     @SubscribeEvent
     public static void onCamera(ViewportEvent.ComputeCameraAngles event) {
-        if (current != null) current.camera(event);
-    }
-
-    @SubscribeEvent
-    public static void onFov(ViewportEvent.ComputeFov event) {
-        if (current != null && event.usedConfiguredFov()) {
-            event.setFOV(current.fov(event.getFOV(), (float) event.getPartialTick()));
+        for (CardEffect fx : live) {
+            try {
+                fx.camera(event);
+            } catch (Throwable t) {
+                crash(fx, t);
+            }
         }
     }
 
     @SubscribeEvent
+    public static void onFov(ViewportEvent.ComputeFov event) {
+        if (!event.usedConfiguredFov()) return;
+        for (CardEffect fx : live) event.setFOV(fx.fov(event.getFOV(), (float) event.getPartialTick()));
+    }
+
+    @SubscribeEvent
     public static void onFog(ViewportEvent.RenderFog event) {
-        if (current != null && current.fog(event)) event.setCanceled(true);
+        boolean apply = false;
+        for (CardEffect fx : live) apply |= fx.fog(event);
+        if (apply) event.setCanceled(true);
     }
 
     @SubscribeEvent
     public static void onFogColor(ViewportEvent.ComputeFogColor event) {
-        if (current != null) current.fogColor(event);
+        for (CardEffect fx : live) fx.fogColor(event);
     }
 
     @SubscribeEvent
     public static void onSound(PlaySoundEvent event) {
-        if (current == null || event.getSound() == null) return;
+        if (live.length == 0 || event.getSound() == null) return;
         SoundInstance s = event.getSound();
         if (SoundFx.isOurs(s)) return;
         try {
-            event.setSound(current.sound(s));
+            for (CardEffect fx : live) {
+                if (s == null) break;
+                s = fx.sound(s);
+            }
+            event.setSound(s);
         } catch (Throwable t) {
             FateFlip.LOGGER.debug("Fate Flip : son ignoré", t);
         }
@@ -444,11 +572,22 @@ public final class Fate {
 
     @SubscribeEvent
     public static void onMovementInput(MovementInputUpdateEvent event) {
-        if (current != null && event.getEntity() == MC.player) current.input(event.getInput(), MC.player);
+        if (event.getEntity() != MC.player) return;
+        for (CardEffect fx : live) fx.input(event.getInput(), MC.player);
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onLivingPre(RenderLivingEvent.Pre<?, ?> event) {
+        if (current == null) return;
+        try {
+            if (current.replaceLiving(event)) {
+                event.setCanceled(true);
+                return;
+            }
+        } catch (Throwable t) {
+            crash(t);
+            return;
+        }
         if (current == null || !current.transformsLiving()) return;
         PoseStack pose = event.getPoseStack();
         pose.pushPose();
@@ -466,28 +605,162 @@ public final class Fate {
 
     @SubscribeEvent
     public static void onScroll(InputEvent.MouseScrollingEvent event) {
-        if (current != null && current.scroll(event.getDeltaY())) event.setCanceled(true);
+        for (CardEffect fx : live) {
+            if (fx.scroll(event.getDeltaY())) {
+                event.setCanceled(true);
+                return;
+            }
+        }
     }
 
     @SubscribeEvent
     public static void onInteraction(InputEvent.InteractionKeyMappingTriggered event) {
-        if (current != null) current.interaction(event);
+        for (CardEffect fx : live) {
+            fx.interaction(event);
+            if (event.isCanceled()) return;
+        }
+    }
+
+    @SubscribeEvent
+    public static void onHighlight(RenderHighlightEvent.Block event) {
+        for (CardEffect fx : live) {
+            if (!fx.highlight(event)) {
+                event.setCanceled(true);
+                return;
+            }
+        }
     }
 
     @SubscribeEvent
     public static void onChat(ClientChatReceivedEvent event) {
-        if (current != null) current.chat(event);
+        for (CardEffect fx : live) fx.chat(event);
     }
 
     @SubscribeEvent
     public static void onTooltip(ItemTooltipEvent event) {
-        if (current != null) current.tooltip(event);
+        for (CardEffect fx : live) fx.tooltip(event);
+    }
+
+    // ───────────────────────── écrans d'inventaire (2.2) ─────────────────────────
+
+    /** Transformation de l'écran d'inventaire voulue par la carte active (ou null). */
+    private static org.joml.Matrix4f screenMatrix(Screen s) {
+        if (current == null || !(s instanceof AbstractContainerScreen<?>)) return null;
+        try {
+            return current.screenTransform(s);
+        } catch (Throwable t) {
+            crash(t);
+            return null;
+        }
+    }
+
+    private static org.joml.Vector3f toScreen(org.joml.Matrix4f m, double x, double y) {
+        return new org.joml.Matrix4f(m).invert().transformPosition(new org.joml.Vector3f((float) x, (float) y, 0f));
+    }
+
+    @SubscribeEvent
+    public static void onScreenRenderPre(ScreenEvent.Render.Pre event) {
+        org.joml.Matrix4f m = screenMatrix(event.getScreen());
+        if (m == null) return;
+        event.setCanceled(true);
+        org.joml.Vector3f p = toScreen(m, event.getMouseX(), event.getMouseY());
+        GuiGraphics g = event.getGuiGraphics();
+        g.pose().pushPose();
+        g.pose().mulPose(m);
+        event.getScreen().renderWithTooltip(g, Math.round(p.x), Math.round(p.y), event.getPartialTick());
+        g.pose().popPose();
+    }
+
+    @SubscribeEvent
+    public static void onScreenRenderPost(ScreenEvent.Render.Post event) {
+        if (live.length == 0 || !(event.getScreen() instanceof AbstractContainerScreen<?>)) return;
+        org.joml.Matrix4f m = screenMatrix(event.getScreen());
+        GuiGraphics g = event.getGuiGraphics();
+        g.pose().pushPose();
+        if (m != null) g.pose().mulPose(m);
+        for (CardEffect fx : live) {
+            try {
+                fx.screenOverlay(event);
+            } catch (Throwable t) {
+                crash(fx, t);
+            }
+        }
+        g.flush();
+        g.pose().popPose();
+    }
+
+    @SubscribeEvent
+    public static void onScreenClick(ScreenEvent.MouseButtonPressed.Pre event) {
+        org.joml.Matrix4f m = screenMatrix(event.getScreen());
+        if (m == null) return;
+        org.joml.Vector3f p = toScreen(m, event.getMouseX(), event.getMouseY());
+        event.setCanceled(true);
+        event.getScreen().mouseClicked(p.x, p.y, event.getButton());
+    }
+
+    @SubscribeEvent
+    public static void onScreenRelease(ScreenEvent.MouseButtonReleased.Pre event) {
+        org.joml.Matrix4f m = screenMatrix(event.getScreen());
+        if (m == null) return;
+        org.joml.Vector3f p = toScreen(m, event.getMouseX(), event.getMouseY());
+        event.setCanceled(true);
+        event.getScreen().mouseReleased(p.x, p.y, event.getButton());
+    }
+
+    @SubscribeEvent
+    public static void onScreenDrag(ScreenEvent.MouseDragged.Pre event) {
+        org.joml.Matrix4f m = screenMatrix(event.getScreen());
+        if (m == null) return;
+        org.joml.Vector3f p = toScreen(m, event.getMouseX(), event.getMouseY());
+        org.joml.Vector3f d = new org.joml.Matrix4f(m).invert()
+            .transformDirection(new org.joml.Vector3f((float) event.getDragX(), (float) event.getDragY(), 0f));
+        event.setCanceled(true);
+        event.getScreen().mouseDragged(p.x, p.y, event.getMouseButton(), d.x, d.y);
+    }
+
+    @SubscribeEvent
+    public static void onScreenScroll(ScreenEvent.MouseScrolled.Pre event) {
+        org.joml.Matrix4f m = screenMatrix(event.getScreen());
+        if (m == null) return;
+        org.joml.Vector3f p = toScreen(m, event.getMouseX(), event.getMouseY());
+        event.setCanceled(true);
+        event.getScreen().mouseScrolled(p.x, p.y, event.getDeltaX(), event.getDeltaY());
+    }
+
+    @SubscribeEvent
+    public static void onScreenKey(ScreenEvent.KeyPressed.Pre event) {
+        for (CardEffect fx : live) {
+            try {
+                if (fx.screenKey(event.getScreen(), event.getKeyCode(), event.getScanCode())) {
+                    event.setCanceled(true);
+                    return;
+                }
+            } catch (Throwable t) {
+                crash(fx, t);
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public static void onTooltipRender(RenderTooltipEvent.Pre event) {
+        Screen s = MC.screen;
+        if (s == null || live.length == 0) return;
+        for (CardEffect fx : live) {
+            if (!fx.screenTooltip(s)) {
+                event.setCanceled(true);
+                return;
+            }
+        }
     }
 
     /** Anti-triche : l'écran des contrôles est scellé tant qu'une carte « Contrôles » est active. */
     @SubscribeEvent
     public static void onScreenOpening(ScreenEvent.Opening event) {
         Screen next = event.getNewScreen();
+        if (next instanceof TitleScreen && SoundCheck.wantsIntro()) {
+            event.setNewScreen(new com.fateflip.client.gui.IntroScreen(next));
+            return;
+        }
         if (current == null || !current.locksControls() || !FFConfig.LOCK_CONTROLS.get()) return;
         if (next instanceof ControlsScreen || next instanceof KeyBindsScreen || next instanceof MouseSettingsScreen) {
             event.setCanceled(true);
@@ -507,6 +780,8 @@ public final class Fate {
     @SubscribeEvent
     public static void onLogout(ClientPlayerNetworkEvent.LoggingOut event) {
         stopEffect();
+        BROKEN_CURSES.clear();
+        SoundCheck.reset();
         ticksUntilDraw = -1;
         drawPending = false;
     }

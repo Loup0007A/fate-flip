@@ -26,6 +26,9 @@ public final class FFConfig {
     public static final ForgeConfigSpec.EnumValue<HudCorner> HUD_CORNER;
     public static final ForgeConfigSpec.BooleanValue LOCK_CONTROLS;
     public static final ForgeConfigSpec.BooleanValue POWERS;
+    public static final ForgeConfigSpec.BooleanValue CURSES;
+    public static final ForgeConfigSpec.DoubleValue CURSE_CHANCE;
+    public static final ForgeConfigSpec.BooleanValue SOUND_INTRO;
 
     static {
         ForgeConfigSpec.Builder b = new ForgeConfigSpec.Builder();
@@ -53,6 +56,11 @@ public final class FFConfig {
             .defineInRange("maxFlips", 3, 1, 5);
         POWERS = b.comment("V2 : éclats du destin et atouts (Clairvoyance, Sursis, Phénix, Demi-mesure) pendant les tirages.")
             .define("fatePowers", true);
+        CURSES = b.comment("2.2 : malus permanents. Au 3e retournement d'un même tirage, la carte peut être maudite.",
+                "false = plus aucun nouveau malus, et ceux déjà reçus sont mis en sommeil.")
+            .define("curses", true);
+        CURSE_CHANCE = b.comment("Probabilité qu'une 3e carte retournée soit un malus permanent (1/6 par défaut).")
+            .defineInRange("curseChance", 1.0 / 6.0, 0.0, 1.0);
         DISABLED_CARDS = b.comment("Identifiants des cartes à retirer du jeu, ex. [\"scrambled_keys\", \"spyglass\"]. La liste est dans le Grimoire (touche K).")
             .defineListAllowEmpty("disabledCards", List.of(), o -> o instanceof String);
         b.pop();
@@ -66,6 +74,8 @@ public final class FFConfig {
             .define("lockControlsScreen", true);
         HUD_CORNER = b.comment("Position du rappel de la carte active.")
             .defineEnum("hudCorner", HudCorner.TOP_LEFT);
+        SOUND_INTRO = b.comment("Affiche l'intro « montez le son » au premier lancement, et prévient si le son est coupé.")
+            .define("soundIntro", true);
         b.pop();
 
         SPEC = b.build();

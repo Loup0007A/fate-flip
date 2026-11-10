@@ -172,6 +172,38 @@ public final class ControlEffects {
             }
         }
 
+        /** 2.2 : dans l'inventaire aussi, les touches 1-9 (échange avec la barre) sont mélangées. */
+        @Override
+        public boolean screenKey(net.minecraft.client.gui.screens.Screen screen, int key, int scan) {
+            if (perm == null || !(screen instanceof net.minecraft.client.gui.screens.inventory.AbstractContainerScreen<?> cs)) return false;
+            if (!cs.getMenu().getCarried().isEmpty()) return false;
+            net.minecraft.world.inventory.Slot hovered = cs.getSlotUnderMouse();
+            if (hovered == null) return false;
+            for (int i = 0; i < 9; i++) {
+                if (MC.options.keyHotbarSlots[i].matches(key, scan)) {
+                    return slotClicked(cs, hovered, perm[i]);
+                }
+            }
+            return false;
+        }
+
+        private static java.lang.reflect.Method slotClicked;
+
+        private static boolean slotClicked(net.minecraft.client.gui.screens.inventory.AbstractContainerScreen<?> cs,
+                                           net.minecraft.world.inventory.Slot slot, int hotbar) {
+            try {
+                if (slotClicked == null) {
+                    slotClicked = net.minecraft.client.gui.screens.inventory.AbstractContainerScreen.class.getDeclaredMethod("slotClicked",
+                        net.minecraft.world.inventory.Slot.class, int.class, int.class, net.minecraft.world.inventory.ClickType.class);
+                    slotClicked.setAccessible(true);
+                }
+                slotClicked.invoke(cs, slot, slot.index, hotbar, net.minecraft.world.inventory.ClickType.SWAP);
+                return true;
+            } catch (Throwable t) {
+                return false;
+            }
+        }
+
         @Override
         public boolean scroll(double delta) {
             if (MC.player == null || MC.player.isSpectator() || MC.screen != null) return false;

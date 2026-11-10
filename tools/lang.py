@@ -81,7 +81,7 @@ CARDS = {
     'silhouette': ("Ombres chinoises", "Le monde n'est plus qu'une silhouette noire sur un ciel de crépuscule.", "Shadow Play", "The world becomes black silhouettes against a sunset sky."),
     'stained_glass': ("Vitrail", "Le monde vu à travers un vitrail de cathédrale.", "Stained Glass", "The world, seen through a cathedral window."),
     'pointillism': ("Pointillisme", "Peint point par point, à la manière de Seurat.", "Pointillism", "Painted dot by dot, in the style of Seurat."),
-    'xray': ("Rayons X", "Tout devient translucide et bleuté, comme une radio.", "X-Ray", "Everything turns translucent and blue, like an X-ray."),
+    'radiograph': ("Radiographie", "Tout devient translucide et bleuté, comme une radio.", "Radiograph", "Everything turns translucent and blue, like a hospital X-ray."),
     'hologram': ("Hologramme", "Le monde n'est plus qu'une projection holographique tremblotante.", "Hologram", "The world is now a flickering holographic projection."),
     'tilt_shift': ("Maquette", "Haut et bas flous, couleurs vives : le monde ressemble à une maquette miniature.", "Miniature", "Blurred edges and vivid colours: the world looks like a tiny scale model."),
     'look_back': ("Regard en arrière", "La caméra regarde derrière vous. Vous, vous avancez toujours devant.", "Look Behind", "The camera looks behind you. You still walk forward."),
@@ -95,6 +95,32 @@ CARDS = {
     'crossed_ears': ("Oreilles croisées", "Ce qui vient de gauche s'entend à droite, et inversement.", "Crossed Ears", "What comes from the left sounds like it's on the right, and vice versa."),
     'warped_vinyl': ("Vinyle voilé", "La hauteur des sons ondule comme un disque gondolé.", "Warped Vinyl", "The pitch of every sound wobbles like a warped record."),
     'elevator_music': ("Musique d'ascenseur", "Une petite mélodie tourne en boucle. Tout le reste se fait discret.", "Elevator Music", "A little tune plays on loop. Everything else goes quiet."),
+
+    # ── 2.2 ──
+    'xray': ("X-ray", "Comme le cheat : le monde s'assombrit et les minerais, coffres et générateurs des environs brillent à travers la roche.",
+             "X-Ray", "Just like the cheat: the world darkens and nearby ores, chests and spawners glow through the rock."),
+    'no_transparency': ("Transparence désactivée", "Verre, feuillages, fleurs et eau deviennent des blocs pleins. Les pixels cachés des textures se montrent.",
+                        "Transparency Off", "Glass, leaves, flowers and water turn into solid blocks. Hidden texture pixels show through."),
+    'sun_intolerance': ("Intolérance au soleil", "Là où est le soleil, vous ne voyez plus rien. Le fixer laisse une tache dans vos yeux.",
+                        "Sun Intolerance", "Wherever the sun is, you can't see a thing. Staring at it leaves a spot in your eyes."),
+    'fly_vision': ("Vision de mouche", "Vous voyez le monde à travers des centaines de facettes hexagonales.",
+                   "Fly Vision", "You see the world through hundreds of hexagonal facets."),
+    'blood_sky': ("Ciel de sang", "Le ciel vire au cramoisi, le soleil devient un disque noir et le monde baigne dans une lueur rouge.",
+                  "Blood Sky", "The sky turns crimson, the sun becomes a black disc and the world bathes in a red glow."),
+    'render_distance': ("Distance de rendu : 3", "Au-delà de trois blocs, il n'y a plus rien. Votre ordinateur vous remercie.",
+                        "Render Distance: 3", "Beyond three blocks, there's nothing left. Your computer thanks you."),
+    'screamers': ("Screamers", "De temps en temps, sans prévenir, un visage hurlant surgit en plein écran.",
+                  "Screamers", "Every now and then, without warning, a screaming face fills your screen."),
+    'hallucinations': ("Hallucinations", "Des villages, des portails en ruine et des troupeaux apparaissent au loin… et se dissipent quand on s'approche.",
+                       "Hallucinations", "Villages, ruined portals and herds appear in the distance... and fade away as you get close."),
+    'no_anim': ("Sans animation", "Plus aucune animation : les créatures glissent comme des statues, l'eau et la lave sont figées.",
+                "No Animations", "No more animations: creatures glide like statues, water and lava stand still."),
+    'cake_mobs': ("C'est du gâteau", "Toutes les créatures ressemblent à des gâteaux. Celles qui portent une bougie allumée sont hostiles.",
+                  "Piece of Cake", "Every creature looks like a cake. The ones with a lit candle are hostile."),
+    'top_down': ("Vue de dessus", "Le jeu passe en 2D, vu d'en haut. La souris déplace un pointeur libre : vous visez, cassez et posez là où il se trouve.",
+                 "Top-Down", "The game goes 2D, seen from above. Your mouse moves a free pointer: you aim, break and place wherever it is."),
+    'muffled': ("Sourdine", "Tous les sons arrivent étouffés, comme à travers un mur.",
+                "Muffled", "Every sound comes through muffled, as if through a wall."),
 }
 
 NARRATOR = {
@@ -122,6 +148,26 @@ NARRATOR = {
                ["He strikes! The air had better watch out.", "A mighty blow. Well, a blow.", "A gesture of... moderate violence.", "He swings. The blocks tremble. A little."]),
     'use': (["Il utilise quelque chose. Quoi ? Mystère. Pourquoi ? Grand mystère.", "Un clic droit plein d'espoir.", "Il agit. Les conséquences, on verra plus tard.", "Encore un clic. Le génie au travail."],
             ["He uses something. What? A mystery. Why? A greater mystery.", "A hopeful right-click.", "Taking action. Consequences can wait.", "Another click. Genius at work."]),
+}
+
+# Malus permanents (2.2) : id: (nom FR, desc FR, nom EN, desc EN)
+CURSES = {
+    'lightning_rod': ("Paratonnerre", "Par temps d'orage, la foudre tombe sans cesse autour de vous.",
+                      "Lightning Rod", "During thunderstorms, lightning keeps striking all around you."),
+    'short_arms': ("Bras courts", "Vous atteignez les blocs 1,5 bloc moins loin, et les créatures 1 bloc moins loin.",
+                   "Short Arms", "You reach blocks 1.5 blocks less far, and creatures 1 block less far."),
+    'side_stitch': ("Point de côté", "Après 15 secondes de sprint, impossible de courir pendant 4 secondes.",
+                    "Side Stitch", "After 15 seconds of sprinting, you can't run for 4 seconds."),
+    'butterfingers': ("Mains moites", "Quand vous êtes blessé, l'objet en main glisse parfois vers l'emplacement voisin.",
+                      "Butterfingers", "When you get hurt, the item in your hand sometimes slips to the next slot."),
+    'nyctophobia': ("Peur du noir", "Dans l'obscurité, votre vue se resserre et votre cœur s'emballe.",
+                    "Fear of the Dark", "In the dark, your vision narrows and your heart starts racing."),
+    'hay_fever': ("Rhume des foins", "Près des fleurs, vous éternuez : la visée sursaute et vos yeux se ferment.",
+                  "Hay Fever", "Near flowers you sneeze: your aim jolts and your eyes snap shut."),
+    'lingering_mist': ("Brume tenace", "Une brume pâle vous suit partout et raccourcit votre vue.",
+                       "Lingering Mist", "A pale mist follows you everywhere and shortens your view."),
+    'trick_knee': ("Genou capricieux", "De temps en temps, votre genou lâche et vous force à vous accroupir.",
+                   "Trick Knee", "Every now and then, your knee gives way and forces you to crouch."),
 }
 
 FR = {
@@ -206,6 +252,35 @@ FR = {
     'fateflip.achievement.13': "Sauter sans raison",
     'fateflip.achievement.14': "Survivre à ce succès",
     'fateflip.achievement.15': "Ouvrir les yeux",
+    'fateflip.category.curse': "Malus",
+    'fateflip.severity.cursed': "Permanent",
+    'fateflip.draw.subtitle.cursed': "La carte est maudite…",
+    'fateflip.draw.cursed': "☠ Malus permanent : il restera actif après ce tirage, et après tous les suivants.",
+    'fateflip.draw.accept_curse': "Subir la malédiction",
+    'fateflip.power.cursed': "Rien ne peut conjurer un malus.",
+    'fateflip.grimoire.curse.active': "☠ Actif — pour toujours",
+    'fateflip.grimoire.curse.gone': "Levé",
+    'fateflip.grimoire.curse.times': "Subi %s fois",
+    'fateflip.grimoire.curse.unknown': "Malus inconnu",
+    'fateflip.grimoire.curse.unknown.desc': "Un malus peut frapper au 3e retournement d'un même tirage (1 chance sur 6).",
+    'fateflip.cmd.curse.list': "Malus actifs : %s · tous : %s",
+    'fateflip.cmd.curse.removed': "Malus levé : %s",
+    'fateflip.cmd.curse.cleared': "Tous les malus sont levés.",
+    'fateflip.curse.side_stitch.msg': "Point de côté ! Impossible de courir…",
+    'fateflip.curse.butterfingers.msg': "Vos mains glissent !",
+    'fateflip.curse.trick_knee.msg': "Votre genou lâche !",
+    'fateflip.top_down.hint': "Souris : pointeur · Avancer = haut de l'écran, Reculer = bas, Gauche / Droite = côtés",
+    'fateflip.sound.muted.title': "Fate Flip : le son est coupé",
+    'fateflip.sound.muted': "Beaucoup de cartes se jouent à l'oreille. Montez le volume !",
+    'fateflip.intro.title': "Fate Flip — montez le son",
+    'fateflip.intro.head': "Montez le son !",
+    'fateflip.intro.body': "Fate Flip se joue aussi avec les oreilles : voix trafiquées, bruits fantômes, orchestre, cris, silence de mort… Mettez un casque ou montez le volume avant de jouer.",
+    'fateflip.intro.volume': "Volume général : %s %%",
+    'fateflip.intro.volume.off': "Volume général : 0 %% — vous n'entendrez rien !",
+    'fateflip.intro.test': "♪ Tester le son",
+    'fateflip.intro.test.hint': "Vous entendez la mélodie ? Parfait.",
+    'fateflip.intro.settings': "Réglages du son…",
+    'fateflip.intro.go': "C'est parti !",
 }
 EN = {
     'key.categories.fateflip': "Fate Flip",
@@ -289,9 +364,43 @@ EN = {
     'fateflip.achievement.13': "Jump for no reason",
     'fateflip.achievement.14': "Survive this achievement",
     'fateflip.achievement.15': "Open your eyes",
+    'fateflip.category.curse': "Curses",
+    'fateflip.severity.cursed': "Permanent",
+    'fateflip.draw.subtitle.cursed': "This card is cursed...",
+    'fateflip.draw.cursed': "☠ Permanent curse: it stays active after this draw, and after every draw to come.",
+    'fateflip.draw.accept_curse': "Accept the curse",
+    'fateflip.power.cursed': "Nothing can ward off a curse.",
+    'fateflip.grimoire.curse.active': "☠ Active — forever",
+    'fateflip.grimoire.curse.gone': "Lifted",
+    'fateflip.grimoire.curse.times': "Suffered %s times",
+    'fateflip.grimoire.curse.unknown': "Unknown curse",
+    'fateflip.grimoire.curse.unknown.desc': "A curse may strike on the 3rd flip of a single draw (1 chance in 6).",
+    'fateflip.cmd.curse.list': "Active curses: %s · all: %s",
+    'fateflip.cmd.curse.removed': "Curse lifted: %s",
+    'fateflip.cmd.curse.cleared': "All curses lifted.",
+    'fateflip.curse.side_stitch.msg': "Side stitch! You can't run...",
+    'fateflip.curse.butterfingers.msg': "Your hands slip!",
+    'fateflip.curse.trick_knee.msg': "Your knee gives way!",
+    'fateflip.top_down.hint': "Mouse: pointer · Forward = up the screen, Back = down, Left / Right = sideways",
+    'fateflip.sound.muted.title': "Fate Flip: sound is off",
+    'fateflip.sound.muted': "Many cards play out through sound. Turn it up!",
+    'fateflip.intro.title': "Fate Flip — turn up the sound",
+    'fateflip.intro.head': "Turn up the sound!",
+    'fateflip.intro.body': "Fate Flip is played with your ears too: warped voices, phantom noises, orchestras, screams, dead silence... Put on headphones or turn up the volume before you play.",
+    'fateflip.intro.volume': "Master volume: %s%%",
+    'fateflip.intro.volume.off': "Master volume: 0%% — you won't hear a thing!",
+    'fateflip.intro.test': "♪ Test the sound",
+    'fateflip.intro.test.hint': "Hear the melody? Perfect.",
+    'fateflip.intro.settings': "Sound settings...",
+    'fateflip.intro.go': "Let's go!",
 }
 
 for cid, (nfr, dfr, nen, den) in CARDS.items():
+    FR[f'card.fateflip.{cid}.name'] = nfr
+    FR[f'card.fateflip.{cid}.desc'] = dfr
+    EN[f'card.fateflip.{cid}.name'] = nen
+    EN[f'card.fateflip.{cid}.desc'] = den
+for cid, (nfr, dfr, nen, den) in CURSES.items():
     FR[f'card.fateflip.{cid}.name'] = nfr
     FR[f'card.fateflip.{cid}.desc'] = dfr
     EN[f'card.fateflip.{cid}.name'] = nen
@@ -304,4 +413,4 @@ for trig, (fr, en) in NARRATOR.items():
 for name, data in (('fr_fr', FR), ('en_us', EN)):
     with open(OUT + name + '.json', 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
-print(len(CARDS), 'cartes,', len(FR), 'clés')
+print(len(CARDS), 'cartes,', len(CURSES), 'malus,', len(FR), 'clés')

@@ -699,7 +699,7 @@ vec3 fxPointillism(vec2 uv) {
     }
     return mix(outc, paper, smoothstep(0.85, 1.0, best) * step(best, 1.0));
 }
-// 37 — Rayons X
+// 37 — Radiographie
 vec3 fxXray(vec2 uv) {
     vec2 px = 1.5 / OutSize;
     float l = lum(blur9(uv, 0.002));
@@ -805,6 +805,108 @@ vec3 fxGlitch(vec2 uv) {
     return c;
 }
 
+// ───────────────────────── 2.2 ─────────────────────────
+// 44 — Intolérance au soleil. Params = (soleil u, soleil v, visible à l'écran, force)
+// Params2 = (face au soleil -1..1, persistance u, persistance v, persistance force)
+vec3 fxSun(vec2 uv) {
+    vec2 sp = Params.xy;
+    float on = Params.z, k = Params.w;
+    float face = smoothstep(0.45, 1.0, Params2.x) * k;
+    vec2 d = (uv - sp) * vec2(aspect(), 1.0);
+    float r = length(d);
+    // le soleil caché derrière le relief éblouit beaucoup moins
+    vec2 spc = clamp(sp, vec2(0.002), vec2(0.998));
+    float vis = on * k * (isSky(spc) ? 1.0 : 0.3);
+    // chaleur qui fait onduler l'air autour du soleil
+    float heat = vis * (1.0 - smoothstep(0.0, 0.55, r));
+    vec2 wob = vec2(sin(uv.y * 90.0 + Time * 7.0), cos(uv.x * 80.0 + Time * 6.0)) * 0.004 * heat;
+    vec3 c = tex(uv + wob);
+    // surexposition : les zones claires débordent
+    vec3 bl = blur9(uv, 0.012);
+    c += max(bl - 0.55, 0.0) * (1.6 * face + 2.2 * heat);
+    // le disque aveuglant : on ne voit plus rien là où est le soleil
+    float core = vis * (1.0 - smoothstep(0.10 + 0.10 * face, 0.36 + 0.34 * face, r));
+    float halo = vis * exp(-r * 3.2) * 0.9;
+    // traînée horizontale façon objectif anamorphique
+    float streak = vis * exp(-abs(d.y) * 70.0) * exp(-abs(d.x) * 1.6);
+    // reflets fantômes le long de l'axe soleil -> centre
+    vec2 axis = vec2(0.5) - sp;
+    vec3 ghosts = vec3(0.0);
+    for (int i = 1; i <= 4; i++) {
+        float f = float(i) * 0.55;
+        vec2 gp = sp + axis * (1.0 + f);
+        float gr = length((uv - gp) * vec2(aspect(), 1.0));
+        float size = 0.025 + 0.022 * float(i);
+        float ring = smoothstep(size, size * 0.7, gr) * (0.6 + 0.4 * smoothstep(size * 0.5, size, gr));
+        vec3 tint = i == 1 ? vec3(0.4, 1.0, 0.6) : i == 2 ? vec3(1.0, 0.5, 0.3) : i == 3 ? vec3(0.5, 0.6, 1.0) : vec3(1.0, 0.9, 0.4);
+        ghosts += tint * ring * 0.22;
+    }
+    ghosts *= vis;
+    // exposition de la scène, puis le soleil par-dessus (blanc pur)
+    c = 1.0 - exp(-c * (1.25 + 1.4 * face));
+    vec3 white = vec3(1.0, 0.99, 0.94);
+    c = mix(c, white, clamp(core * 1.3 + halo * 0.55 + face * 0.6, 0.0, 1.0));
+    c += vec3(1.0, 0.82, 0.55) * streak * 0.9 + ghosts;
+    // franges colorées au bord de la zone aveuglée
+    float edge = vis * smoothstep(0.08, 0.0, abs(r - (0.38 + 0.3 * face))) * 0.35;
+    c += vec3(0.9, 0.3, 1.0) * edge;
+    // persistance rétinienne : une tache sombre reste là où était le soleil
+    float ai = Params2.w * (1.0 - smoothstep(0.04, 0.22, length((uv - Params2.yz) * vec2(aspect(), 1.0))));
+    c = mix(c, c * vec3(0.25, 0.12, 0.42) + vec3(0.04, 0.1, 0.02), clamp(ai * 1.2, 0.0, 0.9));
+    if (Calm > 0.5) c = min(c, vec3(0.86));
+    return c;
+}
+// 45 — Vision de mouche : une mosaïque d'yeux hexagonaux, chacun avec son propre point de vue.
+vec3 fxFly(vec2 uv) {
+    vec2 p = (uv - 0.5) * vec2(aspect(), 1.0);
+    float rr = length(p);
+    p *= 1.0 - 0.18 * rr * rr;
+    float cell = 0.088;
+    vec2 s = vec2(1.0, 1.7320508);
+    vec2 q = p / cell;
+    vec4 hc = floor(vec4(q, q - vec2(0.5, 1.0)) / s.xyxy) + 0.5;
+    vec4 h = vec4(q - hc.xy * s, q - (hc.zw + 0.5) * s);
+    vec4 hex = dot(h.xy, h.xy) < dot(h.zw, h.zw) ? vec4(h.xy, hc.xy) : vec4(h.zw, hc.zw + 0.5);
+    vec2 local = hex.xy;                        // dans la facette, |local| <= ~0.58
+    vec2 center = hex.zw * s * cell;            // centre de la facette (repère p)
+    vec2 cuv = center / vec2(aspect(), 1.0) + 0.5;
+    // chaque facette voit une portion agrandie et un peu décalée du monde
+    float seed = hash12(hex.zw);
+    vec2 jitter = (hash22(hex.zw + 3.0) - 0.5) * 0.012;
+    vec2 suv = cuv + jitter + local * cell * 1.9 / vec2(aspect(), 1.0);
+    vec3 c = tex(suv);
+    // reflets irisés propres à chaque facette
+    c *= mix(vec3(1.0), 0.75 + 0.5 * hsv2rgb(vec3(fract(seed + Time * 0.03), 0.6, 1.0)), 0.22);
+    // bombé : centre lumineux, bords sombres, liseré noir entre les facettes
+    float hd = max(abs(local.x) * 0.866 + abs(local.y) * 0.5, abs(local.y)) / 0.5;
+    c *= 1.15 - 0.55 * hd * hd;
+    c *= smoothstep(1.0, 0.86, hd);
+    float spec = smoothstep(0.35, 0.0, length(local - vec2(-0.16, 0.2)));
+    c += vec3(0.9, 1.0, 0.95) * spec * 0.18;
+    return c * vignette(uv, 0.5);
+}
+// 46 — Ciel de sang
+vec3 fxBloodSky(vec2 uv) {
+    vec3 c = tex(uv);
+    float sky = isSky(uv) ? 1.0 : 0.0;
+    float d = linDepth(uv);
+    float l = lum(c);
+    // le ciel : dégradé cramoisi qui garde le relief lumineux du ciel d'origine
+    vec3 top = vec3(0.22, 0.0, 0.03), hor = vec3(0.9, 0.16, 0.06);
+    vec3 skyc = mix(top, hor, smoothstep(0.3, 0.9, l));
+    float n = noise(uv * vec2(5.0, 2.5) + vec2(Time * 0.04, 0.0)) * noise(uv * vec2(11.0, 6.0) - vec2(Time * 0.025, Time * 0.01));
+    skyc += vec3(0.32, 0.03, 0.0) * smoothstep(0.15, 0.6, n);
+    // le soleil (ou la lune) devient un disque noir cerné de rouge
+    float body = smoothstep(0.9, 0.99, l);
+    skyc = mix(skyc, vec3(0.04, 0.0, 0.0), body);
+    skyc += vec3(1.0, 0.2, 0.05) * smoothstep(0.75, 0.9, l) * (1.0 - body) * 0.6;
+    // le sol : lumière rouge et brume cramoisie au loin
+    vec3 land = c * vec3(1.08, 0.6, 0.52);
+    land = mix(land, hor * 0.55, smoothstep(24.0, 180.0, d) * 0.75);
+    c = mix(land, skyc, sky);
+    return c * vignette(uv, 0.45);
+}
+
 void main() {
     vec2 uv = texCoord;
     vec3 orig = texture(DiffuseSampler, uv).rgb;
@@ -852,6 +954,9 @@ void main() {
     else if (Mode == 41) c = fxDroste(uv);
     else if (Mode == 42) c = fxRipple(uv);
     else if (Mode == 43) c = fxGlitch(uv);
+    else if (Mode == 44) c = fxSun(uv);
+    else if (Mode == 45) c = fxFly(uv);
+    else if (Mode == 46) c = fxBloodSky(uv);
 
     // Les effets « géométriques » gèrent eux-mêmes l'intensité ; les autres sont fondus.
     bool selfFaded = Mode == 9 || Mode == 10 || Mode == 11 || Mode == 12 || Mode == 22 || Mode == 23 || Mode == 27 || Mode == 31 || Mode == 39 || Mode == 42;
