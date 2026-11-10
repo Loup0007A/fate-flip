@@ -159,6 +159,7 @@ public final class ClientSelfTest {
                 });
                 step("shot " + card.id, 4, () -> {
                     check(Fate.current() != null && Fate.current().card == card, "carte " + card.id + " active");
+                    if (Fate.current() instanceof com.fateflip.effect.XRay x) FateFlip.LOGGER.info("[CLIENTTEST] x-ray : {} blocs repérés", x.count());
                     shot("fx_" + card.id);
                 });
             } else {

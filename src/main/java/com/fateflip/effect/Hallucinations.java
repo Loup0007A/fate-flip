@@ -148,8 +148,16 @@ public class Hallucinations extends CardEffect {
         return m;
     }
 
+    /** Hauteur du sol : seule la carte MOTION_BLOCKING est envoyée au client ; sinon on cherche à la main. */
     private int ground(int x, int z) {
-        return MC.level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
+        int y = MC.level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z);
+        if (y > MC.level.getMinBuildHeight() + 1) return y;
+        BlockPos.MutableBlockPos m = new BlockPos.MutableBlockPos(x, Mth.floor(MC.player.getY()) + 24, z);
+        for (int i = 0; i < 64 && m.getY() > MC.level.getMinBuildHeight(); i++) {
+            m.move(Direction.DOWN);
+            if (!MC.level.getBlockState(m).getCollisionShape(MC.level, m).isEmpty()) return m.getY() + 1;
+        }
+        return Mth.floor(MC.player.getY());
     }
 
     /** Pose un morceau (coordonnées locales tournées) au niveau du sol de son coin. */

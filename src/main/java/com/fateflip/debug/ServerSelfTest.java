@@ -60,6 +60,20 @@ public final class ServerSelfTest {
         };
         for (int i = 0; i < hotbar.length; i++) sp.getInventory().setItem(i, hotbar[i]);
         sp.getInventory().selected = 2;
+        // quelques minerais enfouis devant le joueur, pour la capture de la carte X-ray
+        net.minecraft.world.level.block.Block[] ores = {
+            net.minecraft.world.level.block.Blocks.DIAMOND_ORE, net.minecraft.world.level.block.Blocks.GOLD_ORE,
+            net.minecraft.world.level.block.Blocks.IRON_ORE, net.minecraft.world.level.block.Blocks.EMERALD_ORE,
+            net.minecraft.world.level.block.Blocks.REDSTONE_ORE, net.minecraft.world.level.block.Blocks.LAPIS_ORE,
+            net.minecraft.world.level.block.Blocks.COPPER_ORE, net.minecraft.world.level.block.Blocks.COAL_ORE,
+            net.minecraft.world.level.block.Blocks.CHEST, net.minecraft.world.level.block.Blocks.SPAWNER
+        };
+        for (int i = 0; i < ores.length; i++) {
+            int x = spawn.getX() - 4 + i;
+            int z = spawn.getZ() + 4 + (i % 3) * 2;
+            int gy = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
+            level.setBlock(new BlockPos(x, gy - 3 - (i % 2), z), ores[i].defaultBlockState(), 2);
+        }
         EntityType<?>[] mobs = {EntityType.COW, EntityType.SHEEP, EntityType.VILLAGER, EntityType.PIG, EntityType.GOAT, EntityType.CHICKEN};
         for (int i = 0; i < mobs.length; i++) {
             int x = spawn.getX() - 5 + i * 2;

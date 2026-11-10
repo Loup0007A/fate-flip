@@ -146,15 +146,16 @@ public class IntroScreen extends Screen {
             g.fill(-4 + i, -h, -3 + i, h, body);
         }
         g.fill(-4, 6, 8, 7, dark);
-        // ondes : trois arcs qui s'éloignent
+        // ondes : trois arcs en pixels qui s'éloignent
         for (int w = 0; w < 3; w++) {
-            float phase = (t * 0.9f + w / 3f) % 1f;
-            float r = 14f + phase * 26f;
-            float fade = (1f - phase) * a;
-            for (int k = -6; k <= 6; k++) {
-                float ang = k / 6f * 0.85f;
-                float x = 10f + Mth.cos(ang) * r, y = Mth.sin(ang) * r;
-                CardArt.spark(g, x, y, 5f, 0xF3D58A, 0.9f * fade);
+            float phase = (t * 0.8f + w / 3f) % 1f;
+            float r = 12f + phase * 30f;
+            int col = CardArt.withAlpha(0xF3D58A, (1f - phase) * a);
+            int steps = (int) (r * 1.6f);
+            for (int k = 0; k <= steps; k++) {
+                float ang = -0.9f + 1.8f * k / steps;
+                int x = (int) (8f + Mth.cos(ang) * r), y = (int) (Mth.sin(ang) * r);
+                g.fill(x, y, x + 2, y + 2, col);
             }
         }
         g.pose().popPose();

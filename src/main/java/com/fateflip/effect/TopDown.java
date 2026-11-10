@@ -47,6 +47,12 @@ public class TopDown extends CardEffect {
     private double lastFov = 30.0;
     private boolean inReach;
 
+    /** Rien n'est remappé dans les options : inutile de sceller l'écran des contrôles. */
+    @Override
+    public boolean locksControls() {
+        return false;
+    }
+
     private float ease() {
         return fade * fade * (3 - 2 * fade);
     }
@@ -296,7 +302,7 @@ public class TopDown extends CardEffect {
         g.renderOutline(cx - 3, cy - 3, 7, 7, inReach ? 0xFFF3D58A : 0x80707080);
         if (age < 120) {
             float a = Math.min(1f, (120 - age) / 30f);
-            g.drawCenteredString(MC.font, Component.translatable("fateflip.top_down.hint"), g.guiWidth() / 2, g.guiHeight() - 62,
+            g.drawCenteredString(MC.font, Component.translatable("fateflip.top_down.hint"), g.guiWidth() / 2, g.guiHeight() - 96,
                 ((int) (a * 255) << 24) | 0xF3D58A);
         }
         g.pose().popPose();

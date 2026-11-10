@@ -44,7 +44,7 @@ META=$(jq -n --arg cl "$NOTES" --arg name "Fate Flip ${VERSION}" --argjson gv "$
 
 HTTP=$(curl -sS -o /tmp/cf-response.json -w "%{http_code}" \
   -H "X-Api-Token: ${CF_TOKEN}" \
-  -F "metadata=${META}" \
+  --form-string "metadata=${META}" \
   -F "file=@${JAR}" \
   "$API/projects/${CF_PROJECT}/upload-file")
 cat /tmp/cf-response.json; echo

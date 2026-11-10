@@ -2,7 +2,6 @@ package com.fateflip.effect;
 
 import com.fateflip.FateFlip;
 import com.fateflip.config.FFConfig;
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.shaders.FogShape;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -256,9 +255,9 @@ public final class WorldEffects {
             boolean calm = FFConfig.REDUCE_FLASHING.get();
             int w = g.guiWidth(), h = g.guiHeight();
             float a = t < 0.75f ? 1f : (1f - t) / 0.25f;
-            float zoom = 1.25f - 0.2f * Math.min(1f, t * 4f);
+            float zoom = 1.3f - 0.22f * Math.min(1f, t * 4f);
             float shake = (calm ? 3f : 12f) * (1f - t);
-            float size = Math.max(w, h) * zoom * (calm ? 0.8f : 1f);
+            float size = h * zoom * (calm ? 0.8f : 1f);
             float x = (w - size) / 2f + (rng.nextFloat() - 0.5f) * shake, y = (h - size) / 2f + (rng.nextFloat() - 0.5f) * shake;
             g.pose().pushPose();
             g.pose().translate(0, 0, 900);

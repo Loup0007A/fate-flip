@@ -22,7 +22,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.client.model.data.ModelData;
-import net.minecraftforge.common.Tags;
 import org.joml.Quaternionf;
 import org.lwjgl.opengl.GL11;
 
@@ -59,20 +58,32 @@ public class XRay extends CardEffect {
         }
     }
 
-    /** Couleur du contour selon la nature du bloc, ou -1 s'il n'est pas intéressant. */
+    private static final java.util.Map<net.minecraft.world.level.block.Block, Integer> COLORS = new java.util.IdentityHashMap<>();
+
+    /**
+     * Couleur du contour selon la nature du bloc, ou -1 s'il n'est pas intéressant.
+     * On se fie au nom du bloc (…_ore, minerais modés compris) plutôt qu'aux tags,
+     * qui dépendent de ce que le serveur envoie.
+     */
     static int colorOf(BlockState s) {
-        if (s.is(Blocks.SPAWNER)) return 0xC060FF;
-        if (s.is(Blocks.CHEST) || s.is(Blocks.TRAPPED_CHEST) || s.is(Blocks.BARREL)) return 0xE0A040;
-        if (!s.is(Tags.Blocks.ORES)) return -1;
-        if (s.is(Tags.Blocks.ORES_DIAMOND)) return 0x5CF2FF;
-        if (s.is(Tags.Blocks.ORES_EMERALD)) return 0x3CFF6A;
-        if (s.is(Tags.Blocks.ORES_GOLD)) return 0xFFD23C;
-        if (s.is(Tags.Blocks.ORES_IRON)) return 0xE8B89A;
-        if (s.is(Tags.Blocks.ORES_REDSTONE)) return 0xFF3030;
-        if (s.is(Tags.Blocks.ORES_LAPIS)) return 0x3C6AFF;
-        if (s.is(Tags.Blocks.ORES_COPPER)) return 0xFF8A4C;
-        if (s.is(Tags.Blocks.ORES_COAL)) return 0x808080;
-        if (s.is(Tags.Blocks.ORES_NETHERITE_SCRAP)) return 0xB07A5A;
+        return COLORS.computeIfAbsent(s.getBlock(), XRay::classify);
+    }
+
+    private static int classify(net.minecraft.world.level.block.Block b) {
+        if (b == Blocks.SPAWNER || b == Blocks.TRIAL_SPAWNER) return 0xC060FF;
+        if (b == Blocks.CHEST || b == Blocks.TRAPPED_CHEST || b == Blocks.BARREL) return 0xE0A040;
+        if (b == Blocks.ANCIENT_DEBRIS) return 0xB07A5A;
+        String path = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(b).getPath();
+        if (!path.endsWith("_ore")) return -1;
+        if (path.contains("diamond")) return 0x5CF2FF;
+        if (path.contains("emerald")) return 0x3CFF6A;
+        if (path.contains("gold")) return 0xFFD23C;
+        if (path.contains("iron")) return 0xE8B89A;
+        if (path.contains("redstone")) return 0xFF3030;
+        if (path.contains("lapis")) return 0x3C6AFF;
+        if (path.contains("copper")) return 0xFF8A4C;
+        if (path.contains("coal")) return 0x808080;
+        if (path.contains("quartz")) return 0xF0E8E0;
         return 0xFFFFFF;
     }
 
@@ -125,7 +136,7 @@ public class XRay extends CardEffect {
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
         BufferBuilder bb = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
         var m = pose.last().pose();
-        float a = 0.72f * fade;
+        float a = 0.78f * fade;
         // un grand carré juste devant la caméra (repère caméra : on annule la rotation)
         PoseStack screen = new PoseStack();
         var sm = screen.last().pose();
