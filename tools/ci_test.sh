@@ -31,8 +31,19 @@ grep -E "\[SELFTEST\]|Exception|ERROR" "$OUT/selftest.log" | head -50
 # ---- Client ----
 mkdir -p client/mods && cp "$JAR" client/mods/
 printf 'onboardAccessibility:false\npauseOnLostFocus:false\ntutorialStep:none\nsoundCategory_master:0.0\nnarrator:0\nguiScale:3\nskipMultiplayerWarning:true\njoinedFirstServer:true\nrenderDistance:8\n' > client/options.txt
+# Minecraft 26.x : choix du moteur de rendu (opengl / vulkan), BACKEND vide = valeur par défaut du jeu
+[ -n "${BACKEND:-}" ] && echo "preferredGraphicsBackend:${BACKEND}" >> client/options.txt
+VERSION="${LOADER}::${LV}"; LAUNCH=()
+if [[ "$LV" =~ ^2[6-9]\. ]]; then
+  # Minecraft 26.x : installeur officiel du loader (client), puis lancement de la version installée
+  mkdir -p mcmain && echo '{"profiles":{}}' > mcmain/launcher_profiles.json
+  java -jar srv/installer.jar --installClient mcmain > "$OUT/client-installer.log" 2>&1 || tail -30 "$OUT/client-installer.log"
+  VERSION=$(ls mcmain/versions | grep -i "$LOADER" | head -1)
+  echo "version installée : $VERSION"
+  LAUNCH=(--jvm "$(command -v java)")
+fi
 LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a -s "-screen 0 1280x720x24" timeout 1700 \
-  portablemc --main-dir "$PWD/mcmain" start --mc-dir "$PWD/client" "${LOADER}::${LV}" \
+  portablemc --main-dir "$PWD/mcmain" start --mc-dir "$PWD/client" "${LAUNCH[@]}" "$VERSION" \
   -u Tester --join-server 127.0.0.1 --resolution 1280x720 \
   --jvm-arg=-Xmx3G,-Dfateflip.clienttest=true > "$OUT/clienttest.log" 2>&1
 echo "client exit $?"

@@ -174,7 +174,11 @@ public final class HudEffects {
         private static final ResourceLocation ALT = ResourceLocation.withDefaultNamespace("alt");
 
         static Component alt(Component c) {
+            //#if mc26
+            //$$ return Component.empty().append(c).withStyle(s -> s.withFont(new net.minecraft.network.chat.FontDescription.Resource(ALT)));
+            //#else
             return Component.empty().append(c).withStyle(s -> s.withFont(ALT));
+            //#endif
         }
 
         @Override

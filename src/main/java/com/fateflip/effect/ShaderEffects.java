@@ -347,6 +347,34 @@ public final class ShaderEffects {
             super(FxPass.SUN_INTOLERANCE, Stage.WORLD);
         }
 
+        //#if mc26
+        //$$ @Override
+        //$$ public void submitLevel(net.neoforged.neoforge.client.event.SubmitCustomGeometryEvent e) {
+        //$$     if (MC.level == null) return;
+        //$$     var cs = e.getLevelRenderState().cameraRenderState;
+        //$$     float pt = e.getLevelRenderState().worldPartialTicks;
+        //$$     net.minecraft.client.Camera cam = MC.gameRenderer.mainCamera();
+        //$$     float angle = cam.attributeProbe().getValue(net.minecraft.world.attribute.EnvironmentAttributes.SUN_ANGLE, pt) * Mth.DEG_TO_RAD;
+        //$$     org.joml.Vector3f sun = new org.joml.Vector3f(-Mth.sin(angle), Mth.cos(angle), 0f);
+        //$$     org.joml.Matrix4f view = new org.joml.Matrix4f(cs.viewRotationMatrix);
+        //$$     org.joml.Matrix4f proj = new org.joml.Matrix4f(cs.projectionMatrix);
+        //$$     org.joml.Vector4f clip = new org.joml.Vector4f(sun.x, sun.y, sun.z, 0f);
+        //$$     view.transform(clip);
+        //$$     proj.transform(clip);
+        //$$     if (clip.w > 1e-4f) {
+        //$$         float nx = clip.x / clip.w, ny = clip.y / clip.w;
+        //$$         sunU = nx * 0.5f + 0.5f;
+        //$$         sunV = ny * 0.5f + 0.5f;
+        //$$         onScreen = Math.abs(nx) < 1.8f && Math.abs(ny) < 1.8f ? 1f : 0f;
+        //$$     } else {
+        //$$         onScreen = 0f;
+        //$$     }
+        //$$     facing = new org.joml.Vector3f(cam.forwardVector()).dot(sun);
+        //$$     boolean sky = MC.level.dimensionType().skybox() == net.minecraft.world.level.dimension.DimensionType.Skybox.OVERWORLD;
+        //$$     float elevation = Mth.clamp(sun.y * 5f + 0.35f, 0f, 1f);
+        //$$     strength = sky ? elevation * (1f - 0.7f * MC.level.getRainLevel(pt)) : 0f;
+        //$$ }
+        //#else
         @Override
         public void renderLevel(net.minecraftforge.client.event.RenderLevelStageEvent e) {
             if (e.getStage() != net.minecraftforge.client.event.RenderLevelStageEvent.Stage.AFTER_SKY || MC.level == null) return;
@@ -372,6 +400,7 @@ public final class ShaderEffects {
             float elevation = Mth.clamp(sun.y * 5f + 0.35f, 0f, 1f);
             strength = sky ? elevation * (1f - 0.7f * MC.level.getRainLevel(pt)) : 0f;
         }
+        //#endif
 
         @Override
         public void tick() {

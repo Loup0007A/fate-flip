@@ -5,7 +5,9 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.toasts.Toast;
+//#if !mc26
 import net.minecraft.client.gui.components.toasts.ToastComponent;
+//#endif
 import net.minecraft.client.player.Input;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
@@ -118,6 +120,31 @@ public final class NewEffects {
             this.icon = icon;
         }
 
+        //#if mc26
+        //$$ private Visibility wanted = Visibility.SHOW;
+        //$$
+        //$$ @Override
+        //$$ public Visibility getWantedVisibility() {
+        //$$     return wanted;
+        //$$ }
+        //$$
+        //$$ @Override
+        //$$ public void update(net.minecraft.client.gui.components.toasts.ToastManager toasts, long time) {
+        //$$     if (!played && time > 0L) {
+        //$$         played = true;
+        //$$         toasts.getMinecraft().getSoundManager().play(SoundFx.mark(SimpleSoundInstance.forUI(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, 1.2f, 0.25f)));
+        //$$     }
+        //$$     wanted = time >= 5000L * toasts.getNotificationDisplayTimeMultiplier() ? Visibility.HIDE : Visibility.SHOW;
+        //$$ }
+        //$$
+        //$$ @Override
+        //$$ public void extractRenderState(GuiGraphicsExtractor g, net.minecraft.client.gui.Font font, long time) {
+        //$$     com.fateflip.platform.Compat.toastBackground(g, width(), height());
+        //$$     com.fateflip.platform.Compat.text(g, font, Component.translatable("fateflip.achievement.header"), 30, 7, 0xFFFFFF00, false);
+        //$$     com.fateflip.platform.Compat.text(g, font, font.plainSubstrByWidth(title.getString(), width() - 36), 30, 18, 0xFFFFFFFF, false);
+        //$$     g.fakeItem(icon, 8, 8);
+        //$$ }
+        //#else
         @Override
         public Visibility render(GuiGraphics g, ToastComponent toasts, long time) {
             com.fateflip.platform.Compat.toastBackground(g, width(), height());
@@ -131,6 +158,7 @@ public final class NewEffects {
             }
             return time >= 5000L * toasts.getNotificationDisplayTimeMultiplier() ? Visibility.HIDE : Visibility.SHOW;
         }
+        //#endif
     }
 
     /** Apesanteur : les créatures flottent et tournoient lentement (en apparence seulement). */

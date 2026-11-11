@@ -30,6 +30,7 @@ public final class ClientBoot {
         //#if mc26
         //$$ modBus.addListener(ClientBoot::onPipelines);
         //$$ modBus.addListener(ClientBoot::onPictureInPicture);
+        //$$ modBus.addListener(ClientBoot::onRenderStateModifiers);
         //#else
         modBus.addListener(ClientBoot::onShaders);
         //#endif
@@ -63,6 +64,17 @@ public final class ClientBoot {
     //$$ private static void onPipelines(net.neoforged.neoforge.client.event.RegisterRenderPipelinesEvent event) {
     //$$     event.registerPipeline(PostFx.PIPELINE);
     //$$     com.fateflip.render.Pipelines.register(event);
+    //$$ }
+    //$$
+    //$$ /** 26.x : les créatures sont dessinées depuis un « état de rendu » ; on y accroche l'entité pour les cartes. */
+    //$$ @SuppressWarnings({"unchecked", "rawtypes"})
+    //$$ private static void onRenderStateModifiers(net.neoforged.neoforge.client.renderstate.RegisterRenderStateModifiersEvent event) {
+    //$$     java.util.function.BiConsumer<net.minecraft.world.entity.LivingEntity, net.minecraft.client.renderer.entity.state.LivingEntityRenderState> attach =
+    //$$         (e, s) -> {
+    //$$             s.setRenderData(Fate.ENTITY_KEY, e);
+    //$$             Fate.livingState(e, s);
+    //$$         };
+    //$$     event.registerEntityModifier((Class) net.minecraft.client.renderer.entity.LivingEntityRenderer.class, (java.util.function.BiConsumer) attach);
     //$$ }
     //$$
     //$$ private static void onPictureInPicture(net.neoforged.neoforge.client.event.RegisterPictureInPictureRenderersEvent event) {

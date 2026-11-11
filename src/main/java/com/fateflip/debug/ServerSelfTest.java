@@ -10,7 +10,9 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+//#if !mc26
 import net.minecraft.world.level.GameRules;
+//#endif
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraftforge.event.entity.player.PlayerEvent;
@@ -35,17 +37,36 @@ public final class ServerSelfTest {
         if (!ENABLED) return;
         MinecraftServer server = event.getServer();
         ServerLevel level = server.overworld();
+        //#if mc26
+        //$$ var rules = level.getGameRules();
+        //$$ rules.set(net.minecraft.world.level.gamerules.GameRules.ADVANCE_TIME, false, server);
+        //$$ rules.set(net.minecraft.world.level.gamerules.GameRules.ADVANCE_WEATHER, false, server);
+        //$$ rules.set(net.minecraft.world.level.gamerules.GameRules.SPAWN_MOBS, false, server);
+        //$$ var src = server.createCommandSourceStack().withSuppressedOutput();
+        //$$ server.getCommands().performPrefixedCommand(src, "time set 5000");
+        //$$ server.getCommands().performPrefixedCommand(src, "weather clear 999999");
+        //#else
         level.setDayTime(5000);
         level.setWeatherParameters(999999, 0, false, false);
         level.getGameRules().getRule(GameRules.RULE_DAYLIGHT).set(false, server);
         level.getGameRules().getRule(GameRules.RULE_WEATHER_CYCLE).set(false, server);
         level.getGameRules().getRule(GameRules.RULE_DOMOBSPAWNING).set(false, server);
+        //#endif
         FateFlip.LOGGER.info("[SELFTEST] READY");
     }
 
     @SubscribeEvent
     public static void onLogin(PlayerEvent.PlayerLoggedInEvent event) {
         if (!ENABLED || !(event.getEntity() instanceof ServerPlayer sp)) return;
+        //#if mc26
+        //$$ ServerLevel level = sp.level();
+        //$$ MinecraftServer server = level.getServer();
+        //$$ server.getPlayerList().op(new net.minecraft.server.players.NameAndId(sp.getGameProfile()));
+        //$$ sp.setGameMode(GameType.CREATIVE);
+        //$$ BlockPos spawn = level.getRespawnData().pos();
+        //$$ int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, spawn.getX(), spawn.getZ());
+        //$$ sp.teleportTo(level, spawn.getX() + 0.5, y + 0.2, spawn.getZ() + 0.5, java.util.Set.of(), 0f, 12f, true);
+        //#else
         MinecraftServer server = sp.getServer();
         server.getPlayerList().op(sp.getGameProfile());
         sp.setGameMode(GameType.CREATIVE);
@@ -53,6 +74,7 @@ public final class ServerSelfTest {
         BlockPos spawn = level.getSharedSpawnPos();
         int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, spawn.getX(), spawn.getZ());
         sp.teleportTo(level, spawn.getX() + 0.5, y + 0.2, spawn.getZ() + 0.5, 0f, 12f);
+        //#endif
         ItemStack[] hotbar = {
             new ItemStack(Items.DIAMOND_SWORD), new ItemStack(Items.DIAMOND_PICKAXE), new ItemStack(Items.BREAD, 12),
             new ItemStack(Items.TORCH, 32), new ItemStack(Items.APPLE, 5), new ItemStack(Items.BOW),

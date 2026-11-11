@@ -1,14 +1,17 @@
 package com.fateflip.effect;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+//#if !mc26
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Camera;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.Sheets;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
+import net.minecraftforge.client.model.data.ModelData;
+//#endif
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -32,7 +35,6 @@ import net.minecraft.world.level.block.state.properties.SlabType;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
-import net.minecraftforge.client.model.data.ModelData;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -248,11 +250,20 @@ public class Hallucinations extends CardEffect {
         piece(m, o, rot, -8, 5, house());
         piece(m, o, rot, 6, 4, farm());
         piece(m, o, rot, 3, 2, lamp());
+        //#if mc26
+        //$$ java.util.List<net.minecraft.resources.ResourceKey<VillagerProfession>> jobs =
+        //$$     java.util.List.of(VillagerProfession.FARMER, VillagerProfession.LIBRARIAN, VillagerProfession.CLERIC, VillagerProfession.FLETCHER);
+        //#else
         VillagerProfession[] jobs = {VillagerProfession.FARMER, VillagerProfession.LIBRARIAN, VillagerProfession.CLERIC, VillagerProfession.FLETCHER};
+        //#endif
         for (int i = 0; i < 3; i++) {
             Villager v = EntityType.VILLAGER.create(MC.level);
             if (v == null) continue;
+            //#if mc26
+            //$$ v.setVillagerData(v.getVillagerData().withProfession(MC.level.registryAccess(), jobs.get(rng.nextInt(jobs.size()))));
+            //#else
             v.setVillagerData(v.getVillagerData().setProfession(jobs[rng.nextInt(jobs.length)]));
+            //#endif
             figure(m, v, o.getX() + rng.nextInt(9) - 4 + 0.5, o.getZ() + rng.nextInt(9) - 4 + 0.5);
         }
         Entity golem = EntityType.IRON_GOLEM.create(MC.level);
@@ -302,6 +313,72 @@ public class Hallucinations extends CardEffect {
 
     // ───────────────────────── rendu ─────────────────────────
 
+    //#if mc26
+    //$$ /** 26.x : blocs et figurants soumis avec le reste du monde (blocs translucides en fondu). */
+    //$$ @Override
+    //$$ public void submitLevel(net.neoforged.neoforge.client.event.SubmitCustomGeometryEvent e) {
+    //$$     if (mirages.isEmpty() || MC.level == null) return;
+    //$$     var ls = e.getLevelRenderState();
+    //$$     float pt = ls.worldPartialTicks;
+    //$$     Vec3 cp = ls.cameraRenderState.pos;
+    //$$     var collector = e.getSubmitNodeCollector();
+    //$$     PoseStack pose = e.getPoseStack();
+    //$$     for (Mirage m : mirages) {
+    //$$         float a = Mth.lerp(pt, m.alphaO, m.alpha) * fade;
+    //$$         if (a <= 0.02f) continue;
+    //$$         float shimmer = 0.85f + 0.15f * Mth.sin((age + pt) * 0.3f + (float) m.center.x);
+    //$$         final int alpha = (int) (Math.min(1f, a * shimmer) * 255);
+    //$$         final Mirage mm = m;
+    //$$         collector.submitCustomGeometry(pose, net.minecraft.client.renderer.rendertype.RenderTypes.translucentMovingBlock(), (p, vc) -> {
+    //$$             var models = MC.getModelManager().getBlockStateModelSet();
+    //$$             var parts = new ArrayList<net.minecraft.client.renderer.block.dispatch.BlockStateModelPart>();
+    //$$             var quad = new com.mojang.blaze3d.vertex.QuadInstance();
+    //$$             quad.setOverlayCoords(net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY);
+    //$$             net.minecraft.util.RandomSource random = net.minecraft.util.RandomSource.create();
+    //$$             for (Placed b : mm.blocks) {
+    //$$                 BlockPos up = b.pos.above();
+    //$$                 quad.setLightCoords(net.minecraft.util.LightCoordsUtil.pack(
+    //$$                     MC.level.getBrightness(net.minecraft.world.level.LightLayer.BLOCK, up), MC.level.getBrightness(net.minecraft.world.level.LightLayer.SKY, up)));
+    //$$                 PoseStack.Pose at = p.copy();
+    //$$                 at.translate((float) (b.pos.getX() - cp.x), (float) (b.pos.getY() - cp.y), (float) (b.pos.getZ() - cp.z));
+    //$$                 parts.clear();
+    //$$                 random.setSeed(42L);
+    //$$                 models.get(b.state).collectParts(random, parts);
+    //$$                 for (var part : parts) {
+    //$$                     for (net.minecraft.core.Direction d : net.minecraft.core.Direction.values()) put(vc, at, part.getQuads(d), quad, b, alpha);
+    //$$                     put(vc, at, part.getQuads(null), quad, b, alpha);
+    //$$                 }
+    //$$             }
+    //$$         });
+    //$$         if (a > 0.6f) {
+    //$$             var dispatcher = MC.getEntityRenderDispatcher();
+    //$$             for (Figure f : m.figures) {
+    //$$                 f.entity.setYRot(f.yaw);
+    //$$                 if (f.entity instanceof LivingEntity le) { le.yBodyRot = le.yBodyRotO = le.yHeadRot = le.yHeadRotO = f.yaw; }
+    //$$                 var state = dispatcher.extractEntity(f.entity, pt);
+    //$$                 state.lightCoords = net.minecraft.util.LightCoordsUtil.pack(
+    //$$                     MC.level.getBrightness(net.minecraft.world.level.LightLayer.BLOCK, BlockPos.containing(f.x, f.y + 1, f.z)),
+    //$$                     MC.level.getBrightness(net.minecraft.world.level.LightLayer.SKY, BlockPos.containing(f.x, f.y + 1, f.z)));
+    //$$                 dispatcher.submit(state, ls.cameraRenderState, f.x - cp.x, f.y - cp.y, f.z - cp.z, pose, collector);
+    //$$             }
+    //$$         }
+    //$$     }
+    //$$ }
+    //$$
+    //$$ private static void put(com.mojang.blaze3d.vertex.VertexConsumer vc, PoseStack.Pose at,
+    //$$                         java.util.List<net.minecraft.client.resources.model.geometry.BakedQuad> quads,
+    //$$                         com.mojang.blaze3d.vertex.QuadInstance quad, Placed b, int alpha) {
+    //$$     for (var q : quads) {
+    //$$         int rgb = 0xFFFFFF;
+    //$$         if (q.materialInfo().isTinted()) {
+    //$$             var source = MC.getBlockColors().getTintSource(b.state, q.materialInfo().tintIndex());
+    //$$             if (source != null) rgb = source.colorInWorld(b.state, MC.level, b.pos) & 0xFFFFFF;
+    //$$         }
+    //$$         quad.setColor((alpha << 24) | rgb);
+    //$$         vc.putBakedQuad(at, q, quad);
+    //$$     }
+    //$$ }
+    //#else
     /** Tampon qui multiplie l'opacité de chaque sommet (fondu des blocs). */
     //#if mc1201
     //$$ private static final class Faded implements VertexConsumer {
@@ -398,4 +475,5 @@ public class Hallucinations extends CardEffect {
             com.fateflip.render.WorldView.end();
         }
     }
+    //#endif
 }

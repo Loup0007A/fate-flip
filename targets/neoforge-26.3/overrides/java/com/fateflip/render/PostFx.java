@@ -262,6 +262,10 @@ public final class PostFx {
             + ", aperçu " + (snapshotValid ? "oui" : "non");
     }
 
+    public static String debugApply(FxPass pass) {
+        return "26.x : non mesuré";
+    }
+
     public static boolean isBroken() {
         return failed;
     }

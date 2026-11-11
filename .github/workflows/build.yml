@@ -23,7 +23,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [ forge-1.21.1, neoforge-1.21.1, forge-1.20.1 ]
+        target: [ forge-1.21.1, neoforge-1.21.1, forge-1.20.1, neoforge-26.3 ]
     steps:
       - uses: actions/checkout@v4
 
@@ -97,13 +97,15 @@ jobs:
           - { name: forge-1.21,      target: forge-1.21.1,    loader: forge,    loader_version: 1.21-51.0.33 }
           - { name: neoforge-1.21.1, target: neoforge-1.21.1, loader: neoforge, loader_version: 21.1.265 }
           - { name: forge-1.20.1,    target: forge-1.20.1,    loader: forge,    loader_version: 1.20.1-47.4.23 }
+          - { name: neoforge-26.3,   target: neoforge-26.3,   loader: neoforge, loader_version: 26.3.0.101, java: 25, backend: opengl }
+          - { name: neoforge-26.3-vulkan, target: neoforge-26.3, loader: neoforge, loader_version: 26.3.0.101, java: 25, backend: vulkan }
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 21
+          java-version: ${{ matrix.java || 21 }}
 
       - uses: actions/download-artifact@v4
         with:
@@ -112,9 +114,9 @@ jobs:
 
       - name: Client et serveur de test
         run: |
-          sudo apt-get update -qq && sudo apt-get install -y -qq xvfb libgl1-mesa-dri mesa-utils > /dev/null
+          sudo apt-get update -qq && sudo apt-get install -y -qq xvfb libgl1-mesa-dri mesa-utils mesa-vulkan-drivers libvulkan1 > /dev/null
           pip install -q portablemc==5.0.6
-          bash tools/ci_test.sh out/*.jar "${{ matrix.loader }}" "${{ matrix.loader_version }}" "${{ matrix.name }}"
+          BACKEND="${{ matrix.backend }}" bash tools/ci_test.sh out/*.jar "${{ matrix.loader }}" "${{ matrix.loader_version }}" "${{ matrix.name }}"
 
       - name: Upload logs and screenshots
         if: always()
@@ -215,4 +217,5 @@ jobs:
           bash curseforge/upload.sh "out/fateflip-$V-forge-1.21.1.jar" "$V" "Fate Flip $V (Forge 1.21–1.21.1)" "1.21,1.21.1" "Forge" "Java 21" || FAIL=1
           bash curseforge/upload.sh "out/fateflip-$V-neoforge-1.21.1.jar" "$V" "Fate Flip $V (NeoForge 1.21–1.21.1)" "1.21,1.21.1" "NeoForge" "Java 21" || FAIL=1
           bash curseforge/upload.sh "out/fateflip-$V-forge-1.20.1.jar" "$V" "Fate Flip $V (Forge 1.20.1)" "1.20.1" "Forge" "Java 17" || FAIL=1
+          bash curseforge/upload.sh "out/fateflip-$V-neoforge-26.3.jar" "$V" "Fate Flip $V (NeoForge 26.3)" "26.3" "NeoForge" "Java 25" || FAIL=1
           exit $FAIL

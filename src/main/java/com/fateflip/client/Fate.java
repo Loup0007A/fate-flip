@@ -17,6 +17,8 @@ import com.fateflip.render.PostFx;
 import com.mojang.blaze3d.vertex.PoseStack;
 //#if !mc1201
 import net.minecraft.client.DeltaTracker;
+//#endif
+//#if !mc1201 && !mc26
 import net.minecraft.client.gui.LayeredDraw;
 //#endif
 import net.minecraft.client.Minecraft;
@@ -457,6 +459,14 @@ public final class Fate {
 
     /** Le rappel de carte et l'annonce sont dessinés après l'effet plein écran : ils restent lisibles. */
     private static void drawOverlay(float pt) {
+        //#if mc26
+        //$$ // 26.x : une petite interface à part, dessinée après tout le reste
+        //$$ try {
+        //$$     com.fateflip.render.Overlay.draw(g -> HudReminder.render(g, pt));
+        //$$ } catch (Throwable t) {
+        //$$     FateFlip.LOGGER.error("Fate Flip : erreur de dessin du rappel", t);
+        //$$ }
+        //#else
         try {
             com.mojang.blaze3d.platform.Window win = MC.getWindow();
             float far = Platform.guiFarPlane();
@@ -474,6 +484,7 @@ public final class Fate {
         } catch (Throwable t) {
             FateFlip.LOGGER.error("Fate Flip : erreur de dessin du rappel", t);
         }
+        //#endif
     }
 
     private static boolean fullStageAllowed() {
@@ -481,6 +492,32 @@ public final class Fate {
         return s == null || s instanceof ChatScreen;
     }
 
+    //#if mc26
+    //$$ /** 26.x : fin du rendu du monde (avant la main) ; les étapes sont des sous-classes de l'événement. */
+    //$$ @SubscribeEvent
+    //$$ public static void onLevelStage(RenderLevelStageEvent.AfterLevel event) {
+    //$$     for (CardEffect fx : live) {
+    //$$         try {
+    //$$             fx.renderLevel(event);
+    //$$         } catch (Throwable t) {
+    //$$             crash(fx, t);
+    //$$         }
+    //$$     }
+    //$$     if (wantsWorldDepth()) PostFx.captureWorldDepth();
+    //$$ }
+    //$$
+    //$$ /** 26.x : géométrie ajoutée au monde (X-ray, hallucinations...). */
+    //$$ @SubscribeEvent
+    //$$ public static void onSubmitLevel(net.neoforged.neoforge.client.event.SubmitCustomGeometryEvent event) {
+    //$$     for (CardEffect fx : live) {
+    //$$         try {
+    //$$             fx.submitLevel(event);
+    //$$         } catch (Throwable t) {
+    //$$             crash(fx, t);
+    //$$         }
+    //$$     }
+    //$$ }
+    //#else
     @SubscribeEvent
     public static void onLevelStage(RenderLevelStageEvent event) {
         for (CardEffect fx : live) {
@@ -494,6 +531,7 @@ public final class Fate {
         if (wantsWorldDepth()) PostFx.captureWorldDepth();
         if (layersFailed) worldStage(null, Platform.partialTick(event));
     }
+    //#endif
 
     /** Première couche du HUD : effet d'écran « monde », puis début du HUD de la carte. */
     private static void worldStage(GuiGraphics g, float pt) {
@@ -501,7 +539,11 @@ public final class Fate {
         if (current != null) {
             FxPass p = current.pass();
             if (p != null && p.stage == FxPass.Stage.WORLD) {
+                //#if mc26
+                //$$ PostFx.applyWorld(g, p, (current.age + pt) / 20f, current.fade);
+                //#else
                 PostFx.apply(p, (current.age + pt) / 20f, current.fade);
+                //#endif
             }
         }
         if (g != null) {
@@ -544,7 +586,7 @@ public final class Fate {
             layersInstalled = true;
             return;
         }
-        //#if mc1201
+        //#if mc1201 || mc26
         //$$ layersFailed = true;
         //#else
         try {
@@ -585,15 +627,21 @@ public final class Fate {
 
     @SubscribeEvent
     public static void onFov(ViewportEvent.ComputeFov event) {
+        //#if mc26
+        //$$ for (CardEffect fx : live) event.setFOV((float) fx.fov(event.getFOV(), event.getPartialTick()));
+        //#else
         if (!event.usedConfiguredFov()) return;
         for (CardEffect fx : live) event.setFOV(fx.fov(event.getFOV(), (float) event.getPartialTick()));
+        //#endif
     }
 
     @SubscribeEvent
     public static void onFog(ViewportEvent.RenderFog event) {
         boolean apply = false;
         for (CardEffect fx : live) apply |= fx.fog(event);
+        //#if !mc26
         if (apply) event.setCanceled(true);
+        //#endif
     }
 
     @SubscribeEvent
@@ -620,7 +668,13 @@ public final class Fate {
     @SubscribeEvent
     public static void onMovementInput(MovementInputUpdateEvent event) {
         if (event.getEntity() != MC.player) return;
+        //#if mc26
+        //$$ com.fateflip.platform.MoveInput in = com.fateflip.platform.MoveInput.from(event.getInput());
+        //$$ for (CardEffect fx : live) fx.input(in, MC.player);
+        //$$ in.applyTo(event.getInput());
+        //#else
         for (CardEffect fx : live) fx.input(event.getInput(), MC.player);
+        //#endif
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -636,10 +690,16 @@ public final class Fate {
             return;
         }
         if (current == null || !current.transformsLiving()) return;
+        //#if mc26
+        //$$ LivingEntity entity = livingOf(event.getRenderState());
+        //#else
+        LivingEntity entity = event.getEntity();
+        //#endif
+        if (entity == null) return;
         PoseStack pose = event.getPoseStack();
         pose.pushPose();
-        if (current.living(event.getEntity(), pose, event.getPartialTick())) {
-            PUSHED.put(event.getEntity(), Boolean.TRUE);
+        if (current.living(entity, pose, event.getPartialTick())) {
+            PUSHED.put(entity, Boolean.TRUE);
         } else {
             pose.popPose();
         }
@@ -647,8 +707,32 @@ public final class Fate {
 
     @SubscribeEvent
     public static void onLivingPost(RenderLivingEvent.Post<?, ?> event) {
-        if (PUSHED.remove(event.getEntity()) != null) event.getPoseStack().popPose();
+        //#if mc26
+        //$$ LivingEntity entity = livingOf(event.getRenderState());
+        //#else
+        LivingEntity entity = event.getEntity();
+        //#endif
+        if (entity != null && PUSHED.remove(entity) != null) event.getPoseStack().popPose();
     }
+
+    //#if mc26
+    //$$ /** 26.x : l'entité est accrochée à son état de rendu (voir ClientBoot.onRenderStateModifiers). */
+    //$$ public static final net.minecraft.util.context.ContextKey<LivingEntity> ENTITY_KEY =
+    //$$     new net.minecraft.util.context.ContextKey<>(FateFlip.id("entity"));
+    //$$
+    //$$ public static LivingEntity livingOf(net.minecraft.client.renderer.entity.state.LivingEntityRenderState state) {
+    //$$     return state.getRenderData(ENTITY_KEY);
+    //$$ }
+    //$$
+    //$$ public static void livingState(LivingEntity e, net.minecraft.client.renderer.entity.state.LivingEntityRenderState s) {
+    //$$     if (current == null) return;
+    //$$     try {
+    //$$         current.livingState(e, s);
+    //$$     } catch (Throwable t) {
+    //$$         crash(t);
+    //$$     }
+    //$$ }
+    //#endif
 
     @SubscribeEvent
     public static void onScroll(InputEvent.MouseScrollingEvent event) {
@@ -742,7 +826,12 @@ public final class Fate {
         if (m == null) return;
         org.joml.Vector3f p = toScreen(m, event.getMouseX(), event.getMouseY());
         event.setCanceled(true);
+        //#if mc26
+        //$$ event.getScreen().mouseClicked(new net.minecraft.client.input.MouseButtonEvent(p.x, p.y, event.getMouseButtonEvent().buttonInfo()),
+        //$$     event.isDoubleClick());
+        //#else
         event.getScreen().mouseClicked(p.x, p.y, event.getButton());
+        //#endif
     }
 
     @SubscribeEvent
@@ -751,7 +840,11 @@ public final class Fate {
         if (m == null) return;
         org.joml.Vector3f p = toScreen(m, event.getMouseX(), event.getMouseY());
         event.setCanceled(true);
+        //#if mc26
+        //$$ event.getScreen().mouseReleased(new net.minecraft.client.input.MouseButtonEvent(p.x, p.y, event.getMouseButtonEvent().buttonInfo()));
+        //#else
         event.getScreen().mouseReleased(p.x, p.y, event.getButton());
+        //#endif
     }
 
     @SubscribeEvent
@@ -762,7 +855,11 @@ public final class Fate {
         org.joml.Vector3f d = new org.joml.Matrix4f(m).invert()
             .transformDirection(new org.joml.Vector3f((float) event.getDragX(), (float) event.getDragY(), 0f));
         event.setCanceled(true);
+        //#if mc26
+        //$$ event.getScreen().mouseDragged(new net.minecraft.client.input.MouseButtonEvent(p.x, p.y, event.getMouseButtonEvent().buttonInfo()), d.x, d.y);
+        //#else
         event.getScreen().mouseDragged(p.x, p.y, event.getMouseButton(), d.x, d.y);
+        //#endif
     }
 
     @SubscribeEvent

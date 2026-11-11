@@ -6,7 +6,8 @@
   ],
   "delete": [
     "resources/META-INF/mods.toml",
-    "resources/assets/fateflip/shaders/core/screen_fx.json"
+    "resources/assets/fateflip/shaders/core/screen_fx.json",
+    "java/com/fateflip/render/WorldView.java"
   ],
   "rewrites": [
     [
@@ -212,6 +213,234 @@
     [
       "InputConstants.Type.KEYSYM",
       "InputConstants.Type.KEYBOARD"
+    ],
+    [
+      "import net.minecraft.client.player.Input;",
+      "import com.fateflip.platform.MoveInput;"
+    ],
+    [
+      "re:\\bInput (in|input)\\b",
+      "MoveInput \\1"
+    ],
+    [
+      "import net.neoforged.neoforge.client.event.RenderHighlightEvent;",
+      "import net.neoforged.neoforge.client.event.ExtractBlockOutlineRenderStateEvent;"
+    ],
+    [
+      "RenderHighlightEvent.Block",
+      "ExtractBlockOutlineRenderStateEvent"
+    ],
+    [
+      "re:RenderLivingEvent\\.(Pre|Post)<\\?, \\?>",
+      "RenderLivingEvent.\\1<?, ?, ?>"
+    ],
+    [
+      "re:\\.mulPose\\((?=(?:com\\.mojang\\.math\\.)?Axis\\.)",
+      ".rotate("
+    ],
+    [
+      "re:\\b(MC|mc|minecraft|this\\.minecraft|Minecraft\\.getInstance\\(\\))\\.options\\.hideGui\\b",
+      "\\1.gui.hud.isHidden()"
+    ],
+    [
+      ".invertYMouse()",
+      ".invertMouseY()"
+    ],
+    [
+      "re:\\.getInventory\\(\\)\\.selected = ([^;]+);",
+      ".getInventory().setSelectedSlot(\\1);"
+    ],
+    [
+      "re:\\.getInventory\\(\\)\\.selected\\b",
+      ".getInventory().getSelectedSlot()"
+    ],
+    [
+      ".getSlotUnderMouse()",
+      ".getHoveredSlot()"
+    ],
+    [
+      ".getGuiLeft()",
+      ".getLeftPos()"
+    ],
+    [
+      ".getGuiTop()",
+      ".getTopPos()"
+    ],
+    [
+      "net.minecraft.world.inventory.ClickType",
+      "net.minecraft.world.inventory.ContainerInput"
+    ],
+    [
+      "re:\\.isSolidRender\\([^)]*\\)",
+      ".isSolidRender()"
+    ],
+    [
+      "re:\\.getCamera\\(\\)\\.getPosition\\(\\)",
+      ".getCamera().position()"
+    ],
+    [
+      "re:\\bcam\\.getPosition\\(\\)",
+      "cam.position()"
+    ],
+    [
+      ".getMainCamera().getPosition()",
+      ".getMainCamera().position()"
+    ],
+    [
+      "re:(\\S+)\\.swapPaint\\(([^;]*)\\);",
+      "com.fateflip.platform.Compat.swapPaint(\\1, \\2);"
+    ],
+    [
+      "re:\\.matches\\((\\w+), (\\w+)\\)",
+      ".matches(new net.minecraft.client.input.KeyEvent(\\1, \\2, 0))"
+    ],
+    [
+      "re:\\bEntityType\\.([A-Z][A-Z_0-9]+)\\b",
+      "net.minecraft.world.entity.EntityTypes.\\1"
+    ],
+    [
+      "re:\\.create\\((level|MC\\.level)\\)",
+      ".create(\\1, net.minecraft.world.entity.EntitySpawnReason.LOAD)"
+    ],
+    [
+      ".moveTo(",
+      ".snapTo("
+    ],
+    [
+      ".getMinBuildHeight()",
+      ".getMinY()"
+    ],
+    [
+      ".getMaxBuildHeight()",
+      ".getMaxY()"
+    ],
+    [
+      ".getMainCamera()",
+      ".mainCamera()"
+    ],
+    [
+      ".mainCamera().getYRot()",
+      ".mainCamera().yRot()"
+    ],
+    [
+      ".mainCamera().getXRot()",
+      ".mainCamera().xRot()"
+    ],
+    [
+      "SoundEvents.WOLF_PANT,",
+      "SoundEvents.WOLF_PANT_BABY.value(),"
+    ],
+    [
+      "import net.minecraft.world.entity.MobSpawnType;",
+      "import net.minecraft.world.entity.EntitySpawnReason;"
+    ],
+    [
+      "MobSpawnType.",
+      "EntitySpawnReason."
+    ],
+    [
+      "re:\\b(inv|inventory)\\.selected = ([^;]+);",
+      "\\1.setSelectedSlot(\\2);"
+    ],
+    [
+      "re:\\b(inv|inventory)\\.selected\\b",
+      "\\1.getSelectedSlot()"
+    ],
+    [
+      "import net.minecraft.client.renderer.FogRenderer;\n",
+      ""
+    ],
+    [
+      "import com.mojang.blaze3d.shaders.FogShape;\n",
+      ""
+    ],
+    [
+      "re:e\\.getMode\\(\\) != FogRenderer\\.FogMode\\.FOG_TERRAIN",
+      "false"
+    ],
+    [
+      "re:\\s*if \\(k > 0\\.5f\\) e\\.setFogShape\\(FogShape\\.SPHERE\\);",
+      ""
+    ],
+    [
+      "public Identifier getLocation() { return inner.getLocation(); }",
+      "public Identifier getIdentifier() { return inner.getIdentifier(); }"
+    ],
+    [
+      "re:@Override public WeighedSoundEvents resolve\\(SoundManager manager\\) \\{ return inner\\.resolve\\(manager\\); \\}",
+      "@Override public WeighedSoundEvents getOrResolve(SoundManager manager) { return inner.getOrResolve(manager); }\n        @Override public WeighedSoundEvents getSoundEvent() { return inner.getSoundEvent(); }"
+    ],
+    [
+      "s.resolve(CardEffect.MC.getSoundManager())",
+      "s.getOrResolve(CardEffect.MC.getSoundManager())"
+    ],
+    [
+      ".value().getLocation()",
+      ".value().location()"
+    ],
+    [
+      "animal.getLocation()",
+      "animal.location()"
+    ],
+    [
+      "re:\\bs\\.getLocation\\(\\)",
+      "s.getIdentifier()"
+    ],
+    [
+      "SoundEvents.COW_AMBIENT",
+      "net.minecraft.sounds.SoundEvent.createVariableRangeEvent(net.minecraft.resources.Identifier.withDefaultNamespace(\"entity.cow.ambient\"))"
+    ],
+    [
+      "SoundEvents.PIG_AMBIENT",
+      "SoundEvents.PIG_AMBIENT_BABY.value()"
+    ],
+    [
+      "SoundEvents.CAT_AMBIENT",
+      "SoundEvents.CAT_AMBIENT_BABY.value()"
+    ],
+    [
+      "SoundEvents.CHICKEN_AMBIENT",
+      "SoundEvents.CHICKEN_AMBIENT_BABY.value()"
+    ],
+    [
+      "SoundEvents.WOLF_AMBIENT",
+      "SoundEvents.WOLF_AMBIENT_BABY.value()"
+    ],
+    [
+      ".renderWithTooltip(",
+      ".extractRenderStateWithTooltipAndSubtitles("
+    ],
+    [
+      "event.getKeyCode(), event.getScanCode()",
+      "event.getKey(), event.getKeycode()"
+    ],
+    [
+      "net.minecraft.world.entity.npc.Villager",
+      "net.minecraft.world.entity.npc.villager.Villager"
+    ],
+    [
+      "net.minecraft.client.renderer.texture.Tickable;",
+      "net.minecraft.client.renderer.texture.TickableTexture;"
+    ],
+    [
+      "re:\\bTickable\\b",
+      "TickableTexture"
+    ],
+    [
+      "mc().screen",
+      "mc().gui.screen()"
+    ],
+    [
+      "mc().setScreen(",
+      "mc().gui.setScreen("
+    ],
+    [
+      "Blocks.RED_CANDLE_CAKE",
+      "Blocks.DYED_CANDLE_CAKE.red()"
+    ],
+    [
+      "re:Screenshot\\.grab\\(([^,]+), ([^,]+), ([^,]+),",
+      "Screenshot.grab(\\1, \\2, \\3, 1,"
     ]
   ],
   "shader_rewrites": [

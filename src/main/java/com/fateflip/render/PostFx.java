@@ -237,6 +237,34 @@ public final class PostFx {
         }
     }
 
+    /** Pour l'auto-test : applique un passage tout de suite et lit le centre de l'image (avant / après). */
+    public static String debugApply(FxPass pass) {
+        if (!ready() || pass == null) return "indisponible";
+        try {
+            RenderTarget main = Minecraft.getInstance().getMainRenderTarget();
+            int prev = GlStateManager.getBoundFramebuffer();
+            captureWorldDepth();
+            float[] before = readCenter(main.frameBufferId, main);
+            int e0 = GL11.glGetError();
+            apply(pass, 1f, 1f);
+            int e1 = GL11.glGetError();
+            float[] after = readCenter(main.frameBufferId, main);
+            float[] copied = copy != null ? readCenter(copy.frameBufferId, copy) : new float[4];
+            GlStateManager._glBindFramebuffer(GL30.GL_FRAMEBUFFER, prev);
+            return "gl " + e0 + "/" + e1 + " avant=" + java.util.Arrays.toString(before) + " après=" + java.util.Arrays.toString(after)
+                + " copie=" + java.util.Arrays.toString(copied) + " cassé=" + failed;
+        } catch (Throwable t) {
+            return "erreur " + t;
+        }
+    }
+
+    private static float[] readCenter(int fbo, RenderTarget t) {
+        float[] px = new float[4];
+        GlStateManager._glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, fbo);
+        GL11.glReadPixels(t.width / 2, t.height / 2, 1, 1, GL11.GL_RGBA, GL11.GL_FLOAT, px);
+        return px;
+    }
+
     public static boolean isBroken() {
         return failed;
     }

@@ -111,6 +111,14 @@ public abstract class CardEffect {
     /** Rendu supplémentaire dans le monde (étapes AFTER_ENTITIES / AFTER_LEVEL...). */
     public void renderLevel(RenderLevelStageEvent event) {}
 
+    //#if mc26
+    //$$ /** 26.x : retouche de l'état de rendu d'une créature, juste après son extraction. */
+    //$$ public void livingState(LivingEntity entity, net.minecraft.client.renderer.entity.state.LivingEntityRenderState state) {}
+    //$$
+    //$$ /** 26.x : géométrie ajoutée au rendu du monde (soumise avec les entités, voir SubmitCustomGeometryEvent). */
+    //$$ public void submitLevel(net.neoforged.neoforge.client.event.SubmitCustomGeometryEvent event) {}
+    //#endif
+
     /** Remplace le rendu d'une créature. @return true pour annuler le rendu vanilla. */
     public boolean replaceLiving(RenderLivingEvent.Pre<?, ?> event) {
         return false;

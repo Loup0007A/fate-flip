@@ -119,7 +119,11 @@ public final class CurseEffects {
 
         @Override
         public boolean highlight(RenderHighlightEvent.Block event) {
+            //#if mc26
+            //$$ return !tooFar(event.getHitResult());
+            //#else
             return !tooFar(event.getTarget());
+            //#endif
         }
     }
 

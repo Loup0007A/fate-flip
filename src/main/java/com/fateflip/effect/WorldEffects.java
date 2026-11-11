@@ -7,8 +7,10 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.FogRenderer;
+//#if !mc26
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
+//#endif
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.texture.Tickable;
 import net.minecraft.client.renderer.texture.TextureAtlas;
@@ -24,10 +26,12 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CandleCakeBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FogType;
+//#if !mc26
 import net.minecraftforge.client.ChunkRenderTypeSet;
+import net.minecraftforge.client.model.data.ModelData;
+//#endif
 import net.minecraftforge.client.event.RenderLivingEvent;
 import net.minecraftforge.client.event.ViewportEvent;
-import net.minecraftforge.client.model.data.ModelData;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -61,6 +65,47 @@ public final class WorldEffects {
      * bloc plein (les pixels transparents des textures deviennent visibles).
      */
     public static class NoTransparency extends CardEffect {
+        //#if mc26
+        //$$ // 26.x : chaque couche de section garde son maillage ; on dessine juste « découpe » et « translucide »
+        //$$ // avec le pipeline des blocs pleins (les pixels transparents deviennent visibles), et les feuilles opaques.
+        //$$ private static final net.minecraft.client.renderer.chunk.ChunkSectionLayer[] LAYERS = {
+        //$$     net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, net.minecraft.client.renderer.chunk.ChunkSectionLayer.TRANSLUCENT};
+        //$$ private final Object[][] saved = new Object[LAYERS.length][];
+        //$$ private Boolean leaves;
+        //$$
+        //$$ private static void swap(net.minecraft.client.renderer.chunk.ChunkSectionLayer layer, Object single, Object multi) throws Exception {
+        //$$     Field a = com.fateflip.platform.Compat.field(net.minecraft.client.renderer.chunk.ChunkSectionLayer.class, "pipeline", null);
+        //$$     Field b = com.fateflip.platform.Compat.field(net.minecraft.client.renderer.chunk.ChunkSectionLayer.class, "multiDrawPipeline", null);
+        //$$     a.set(layer, single);
+        //$$     b.set(layer, multi);
+        //$$ }
+        //$$
+        //$$ @Override
+        //$$ public void start() {
+        //$$     var solid = net.minecraft.client.renderer.chunk.ChunkSectionLayer.SOLID;
+        //$$     try {
+        //$$         for (int i = 0; i < LAYERS.length; i++) {
+        //$$             saved[i] = new Object[] {LAYERS[i].pipeline(false), LAYERS[i].pipeline(true)};
+        //$$             swap(LAYERS[i], solid.pipeline(false), solid.pipeline(true));
+        //$$         }
+        //$$     } catch (Throwable t) {
+        //$$         FateFlip.LOGGER.warn("Fate Flip : couches de rendu inaccessibles, transparence conservée", t);
+        //$$     }
+        //$$     leaves = MC.options.cutoutLeaves().get();
+        //$$     MC.options.cutoutLeaves().set(false);
+        //$$ }
+        //$$
+        //$$ @Override
+        //$$ public void stop() {
+        //$$     try {
+        //$$         for (int i = 0; i < LAYERS.length; i++) if (saved[i] != null) swap(LAYERS[i], saved[i][0], saved[i][1]);
+        //$$     } catch (Throwable t) {
+        //$$         FateFlip.LOGGER.warn("Fate Flip : couches de rendu non restaurées", t);
+        //$$     }
+        //$$     if (leaves != null) MC.options.cutoutLeaves().set(leaves);
+        //$$ }
+        //$$ }
+        //#else
         private static final ChunkRenderTypeSet SOLID = ChunkRenderTypeSet.of(RenderType.solid());
         private Map<Object, Object> blocks, fluids;
         private Map<Object, Object> savedBlocks, savedFluids;
@@ -111,6 +156,7 @@ public final class WorldEffects {
             MC.levelRenderer.allChanged();
         }
     }
+    //#endif
 
     // ───────────────────────── Sans animation ─────────────────────────
 
@@ -155,12 +201,24 @@ public final class WorldEffects {
         public void frame(float partialTick) {
             var p = MC.player;
             if (p == null) return;
+            //#if !mc26
             p.attackAnim = p.oAttackAnim = 0f;
             p.swinging = false;
+            //#endif
             p.xBob = p.xBobO = p.getXRot();
             p.yBob = p.yBobO = p.getYRot();
         }
 
+        //#if mc26
+        //$$ /** 26.x : on fige directement l'état de rendu de chaque créature. */
+        //$$ @Override
+        //$$ public void livingState(LivingEntity e, net.minecraft.client.renderer.entity.state.LivingEntityRenderState s) {
+        //$$     s.walkAnimationPos = 0f;
+        //$$     s.walkAnimationSpeed = 0f;
+        //$$     s.yRot = 0f;
+        //$$     if (s instanceof net.minecraft.client.renderer.entity.state.ArmedEntityRenderState a) a.swingAnimation = 0f;
+        //$$ }
+        //#else
         @Override
         public boolean replaceLiving(RenderLivingEvent.Pre<?, ?> event) {
             LivingEntity e = event.getEntity();
@@ -172,6 +230,7 @@ public final class WorldEffects {
             e.yBodyRotO = e.yBodyRot;
             return false;
         }
+        //#endif
     }
 
     // ───────────────────────── C'est du gâteau ─────────────────────────
@@ -181,6 +240,44 @@ public final class WorldEffects {
         private static final BlockState CAKE = Blocks.CAKE.defaultBlockState();
         private static final BlockState ANGRY = Blocks.RED_CANDLE_CAKE.defaultBlockState().setValue(CandleCakeBlock.LIT, true);
 
+        //#if mc26
+        //$$ private static final net.minecraft.client.renderer.block.model.BlockDisplayContext DISPLAY =
+        //$$     net.minecraft.client.renderer.block.model.BlockDisplayContext.create();
+        //$$ private final net.minecraft.client.renderer.block.BlockModelRenderState cake = new net.minecraft.client.renderer.block.BlockModelRenderState();
+        //$$ private final net.minecraft.client.renderer.block.BlockModelRenderState angry = new net.minecraft.client.renderer.block.BlockModelRenderState();
+        //$$ private boolean resolved;
+        //$$
+        //$$ @Override
+        //$$ public boolean replaceLiving(RenderLivingEvent.Pre<?, ?, ?> event) {
+        //$$     LivingEntity e = com.fateflip.client.Fate.livingOf(event.getRenderState());
+        //$$     if (!(e instanceof Mob) || fade < 0.5f) return false;
+        //$$     if (!resolved) {
+        //$$         MC.getBlockModelResolver().update(cake, CAKE, DISPLAY);
+        //$$         MC.getBlockModelResolver().update(angry, ANGRY, DISPLAY);
+        //$$         resolved = true;
+        //$$     }
+        //$$     var state = event.getRenderState();
+        //$$     float pt = event.getPartialTick();
+        //$$     PoseStack pose = event.getPoseStack();
+        //$$     float s = Mth.clamp((e.getBbWidth() + e.getBbHeight()) * 0.5f / 0.7f, 0.35f, 6f);
+        //$$     s *= Math.min(1f, (fade - 0.5f) * 4f);
+        //$$     float speed = Math.min(1f, state.walkAnimationSpeed);
+        //$$     float hop = Math.abs(Mth.sin(state.walkAnimationPos * 0.6f)) * speed * 0.3f * s;
+        //$$     pose.pushPose();
+        //$$     pose.translate(0, hop, 0);
+        //$$     pose.mulPose(Axis.YP.rotationDegrees(180f - state.bodyRot));
+        //$$     if (state.deathTime > 0) {
+        //$$         float d = Math.min(1f, (state.deathTime - 1f) / 20f * 1.6f);
+        //$$         pose.mulPose(Axis.ZP.rotationDegrees(d * 90f));
+        //$$     }
+        //$$     pose.scale(s, s, s);
+        //$$     pose.translate(-0.5, 0, -0.5);
+        //$$     int overlay = net.minecraft.client.renderer.entity.LivingEntityRenderer.getOverlayCoords(state, 0f);
+        //$$     (e instanceof Enemy ? angry : cake).submit(pose, event.getSubmitNodeCollector(), state.lightCoords, overlay, 0);
+        //$$     pose.popPose();
+        //$$     return true;
+        //$$ }
+        //#else
         @Override
         public boolean replaceLiving(RenderLivingEvent.Pre<?, ?> event) {
             LivingEntity e = event.getEntity();
@@ -207,6 +304,7 @@ public final class WorldEffects {
             pose.popPose();
             return true;
         }
+        //#endif
     }
 
     // ───────────────────────── Screamers ─────────────────────────

@@ -64,6 +64,12 @@ public final class Compat {
         level.addEntity(entity);
     }
 
+    /** Molette sur la barre d'objets (Inventory.swapPaint n'existe plus). */
+    public static void swapPaint(net.minecraft.world.entity.player.Inventory inv, double direction) {
+        inv.setSelectedSlot(net.minecraft.client.ScrollWheelHandler.getNextScrollWheelSelection(direction, inv.getSelectedSlot(),
+            net.minecraft.world.entity.player.Inventory.getSelectionSize()));
+    }
+
     // ── réflexion (26.x n'est plus obfusqué : noms Mojang) ──
 
     public static Field field(Class<?> owner, String name, String srg) throws NoSuchFieldException {

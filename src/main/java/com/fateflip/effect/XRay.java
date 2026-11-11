@@ -1,10 +1,18 @@
 package com.fateflip.effect;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.core.BlockPos;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.client.event.RenderLevelStageEvent;
+//#if !mc26
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
@@ -14,16 +22,10 @@ import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.core.BlockPos;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.client.model.data.ModelData;
 import org.joml.Quaternionf;
 import org.lwjgl.opengl.GL11;
+//#endif
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -122,6 +124,64 @@ public class XRay extends CardEffect {
         }
     }
 
+    //#if mc26
+    //$$ /**
+    //$$  * 26.x : le monde est assombri par un cube autour de la caméra, puis les minerais et leur halo coloré
+    //$$  * sont soumis par-dessus, sans test de profondeur (ordres 1000, 1001, 1002 : dans cet ordre).
+    //$$  */
+    //$$ @Override
+    //$$ public void submitLevel(net.neoforged.neoforge.client.event.SubmitCustomGeometryEvent e) {
+    //$$     if (MC.level == null || fade < 0.05f) return;
+    //$$     Vec3 cp = e.getLevelRenderState().cameraRenderState.pos;
+    //$$     var collector = e.getSubmitNodeCollector();
+    //$$     PoseStack pose = e.getPoseStack();
+    //$$     final List<Ore> ores = found;
+    //$$     final int dark = ((int) (0.78f * fade * 255) << 24) | 0x05080F;
+    //$$     collector.order(1000).submitCustomGeometry(pose, com.fateflip.render.Pipelines.XRAY_TINT,
+    //$$         (p, vc) -> box(p, vc, -3f, -3f, -3f, 3f, 3f, 3f, dark));
+    //$$     collector.order(1001).submitCustomGeometry(pose, com.fateflip.render.Pipelines.XRAY_BLOCKS, (p, vc) -> {
+    //$$         var models = MC.getModelManager().getBlockStateModelSet();
+    //$$         var parts = new ArrayList<net.minecraft.client.renderer.block.dispatch.BlockStateModelPart>();
+    //$$         var quad = new com.mojang.blaze3d.vertex.QuadInstance();
+    //$$         quad.setColor(0xFFFFFFFF);
+    //$$         quad.setLightCoords(net.minecraft.util.LightCoordsUtil.FULL_BRIGHT);
+    //$$         quad.setOverlayCoords(OverlayTexture.NO_OVERLAY);
+    //$$         net.minecraft.util.RandomSource random = net.minecraft.util.RandomSource.create();
+    //$$         for (Ore o : ores) {
+    //$$             PoseStack.Pose at = p.copy();
+    //$$             at.translate((float) (o.pos.getX() - cp.x), (float) (o.pos.getY() - cp.y), (float) (o.pos.getZ() - cp.z));
+    //$$             parts.clear();
+    //$$             random.setSeed(42L);
+    //$$             models.get(o.state).collectParts(random, parts);
+    //$$             for (var part : parts) {
+    //$$                 for (net.minecraft.core.Direction d : net.minecraft.core.Direction.values()) {
+    //$$                     for (var q : part.getQuads(d)) vc.putBakedQuad(at, q, quad);
+    //$$                 }
+    //$$                 for (var q : part.getQuads(null)) vc.putBakedQuad(at, q, quad);
+    //$$             }
+    //$$         }
+    //$$     });
+    //$$     final int alpha = (int) (0.28f * fade * 255);
+    //$$     collector.order(1002).submitCustomGeometry(pose, com.fateflip.render.Pipelines.XRAY_TINT, (p, vc) -> {
+    //$$         for (Ore o : ores) {
+    //$$             float x = (float) (o.pos.getX() - cp.x), y = (float) (o.pos.getY() - cp.y), z = (float) (o.pos.getZ() - cp.z);
+    //$$             box(p, vc, x - 0.02f, y - 0.02f, z - 0.02f, x + 1.02f, y + 1.02f, z + 1.02f, (alpha << 24) | o.color);
+    //$$         }
+    //$$     });
+    //$$ }
+    //$$
+    //$$ /** Les six faces d'une boîte, d'une seule couleur. */
+    //$$ private static void box(PoseStack.Pose p, com.mojang.blaze3d.vertex.VertexConsumer vc,
+    //$$                         float x0, float y0, float z0, float x1, float y1, float z1, int argb) {
+    //$$     float[][] f = {
+    //$$         {x0, y0, z0, x1, y0, z0, x1, y0, z1, x0, y0, z1}, {x0, y1, z0, x0, y1, z1, x1, y1, z1, x1, y1, z0},
+    //$$         {x0, y0, z0, x0, y1, z0, x1, y1, z0, x1, y0, z0}, {x0, y0, z1, x1, y0, z1, x1, y1, z1, x0, y1, z1},
+    //$$         {x0, y0, z0, x0, y0, z1, x0, y1, z1, x0, y1, z0}, {x1, y0, z0, x1, y1, z0, x1, y1, z1, x1, y0, z1}};
+    //$$     for (float[] q : f) {
+    //$$         for (int i = 0; i < 12; i += 3) vc.addVertex(p, q[i], q[i + 1], q[i + 2]).setColor(argb);
+    //$$     }
+    //$$ }
+    //#else
     @Override
     public void renderLevel(RenderLevelStageEvent e) {
         if (e.getStage() != RenderLevelStageEvent.Stage.AFTER_LEVEL || MC.level == null || fade < 0.05f) return;
@@ -166,6 +226,7 @@ public class XRay extends CardEffect {
         }
         buffers.endBatch(RenderType.lines());
     }
+    //#endif
 
     /** Pour l'auto-test. */
     public int count() {

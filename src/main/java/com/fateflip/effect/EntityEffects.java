@@ -95,7 +95,11 @@ public final class EntityEffects {
 
         private ParticleOptions confetti() {
             int rgb = Mth.hsvToRgb(rng.nextFloat(), 0.75f, 1f);
+            //#if mc26
+            //$$ return new DustParticleOptions(rgb, 1.3f);
+            //#else
             return new DustParticleOptions(new Vector3f(((rgb >> 16) & 255) / 255f, ((rgb >> 8) & 255) / 255f, (rgb & 255) / 255f), 1.3f);
+            //#endif
         }
 
         @Override
