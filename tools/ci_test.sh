@@ -19,7 +19,7 @@ mkdir -p srv && cd srv
 curl -sSfL -o installer.jar "$INSTALLER" || { echo "installeur introuvable : $INSTALLER"; exit 1; }
 java -jar installer.jar --installServer . > installer.log 2>&1 || (tail -30 installer.log; exit 1)
 echo "eula=true" > eula.txt
-printf 'online-mode=false\nspawn-protection=0\nlevel-seed=fateflip\ngamemode=creative\nspawn-monsters=false\n' > server.properties
+printf 'online-mode=false\nwhite-list=false\nenforce-whitelist=false\nspawn-protection=0\nlevel-seed=fateflip\ngamemode=creative\nspawn-monsters=false\n' > server.properties
 mkdir -p mods && cp "$JAR" mods/
 printf -- '\n-Dfateflip.selftest=true\n' >> user_jvm_args.txt
 chmod +x run.sh

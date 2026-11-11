@@ -15,6 +15,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.resources.ResourceLocation;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL30;
 
 /**
@@ -203,11 +204,34 @@ public final class PostFx {
         float far = mc.gameRenderer.getDepthFar();
         sh.safeGetUniform("DepthRange").set(0.05f, far);
         sh.apply();
+        bindForSure(pass, new int[] {colorTex, depthTex, handTex, aux});
         com.fateflip.platform.Compat.drawTexQuad(x0, y0, x1, y1, u0, v0, u1, v1);
         sh.clear();
         RenderSystem.depthMask(true);
         RenderSystem.enableDepthTest();
         RenderSystem.enableCull();
+    }
+
+    private static boolean bindLogged;
+
+    /**
+     * Relie vraiment chaque texture à son unité (0..3 : ordre des « samplers » du shader). Le cache de
+     * GlStateManager peut ne plus correspondre à l'état réel d'OpenGL (code qui lie des textures sans lui) :
+     * ShaderInstance.apply() saute alors la liaison et l'effet lit une autre texture.
+     */
+    private static void bindForSure(FxPass pass, int[] textures) {
+        int active = GlStateManager._getActiveTexture();
+        StringBuilder log = !bindLogged && pass.needsDepth ? new StringBuilder() : null;
+        for (int i = 0; i < textures.length; i++) {
+            GL13.glActiveTexture(GL13.GL_TEXTURE0 + i);
+            if (log != null) log.append(' ').append(i).append(':').append(GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)).append('/').append(textures[i]);
+            GL11.glBindTexture(GL11.GL_TEXTURE_2D, textures[i]);
+        }
+        GL13.glActiveTexture(active);
+        if (log != null) {
+            bindLogged = true;
+            FateFlip.LOGGER.info("Fate Flip : textures de l'effet (réelle/attendue){}", log);
+        }
     }
 
     private static void fail(Throwable t) {
