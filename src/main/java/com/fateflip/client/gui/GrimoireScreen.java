@@ -189,8 +189,14 @@ public class GrimoireScreen extends Screen {
         boolean known = col.discovered(card);
         int x = (int) panelX;
         int w = (int) panelW;
-        float s = Math.min(1.5f, (height - gridY - 120) / 96f);
-        s = Math.max(s, 0.7f);
+        boolean curseCard = card.category == Category.CURSE;
+        int textH = known
+            ? 12 + 12 + 10 * font.split(card.description(), w).size() + 4 + (curseCard ? 20 : 10) + 10
+            : 12 + 10 * font.split(Component.translatable(curseCard ? "fateflip.grimoire.curse.unknown.desc"
+                : "fateflip.grimoire.unknown.desc"), w).size();
+        // la carte rapetisse pour que le texte s'arrête au-dessus du pied de page
+        float s = Math.min(1.5f, (height - 18 - gridY - 8 - textH) / 96f);
+        s = Math.max(s, 0.5f);
         float cx = x + 32f * s;
         float cy = gridY;
         CardArt.glow(g, CardArt.GLOW, cx, cy + 48f * s, 64f * s * 1.7f, 96f * s * 1.5f, known ? card.category.light : 0xE9C46A, 0.35f);

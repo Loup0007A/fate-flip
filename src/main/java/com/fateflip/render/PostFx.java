@@ -1,6 +1,7 @@
 package com.fateflip.render;
 
 import com.fateflip.FateFlip;
+import com.fateflip.client.Fate;
 import com.fateflip.config.FFConfig;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.pipeline.TextureTarget;
@@ -68,6 +69,11 @@ public final class PostFx {
             worldDepth = ensure(worldDepth, main.width, main.height, true);
             if (main.isStencilEnabled() && !worldDepth.isStencilEnabled()) worldDepth.enableStencil();
             worldDepth.copyDepthFrom(main);
+            if (!captureLogged && Fate.current() != null && Fate.current().pass() != null && Fate.current().pass().needsDepth) {
+                captureLogged = true;
+                FateFlip.LOGGER.info("Fate Flip : capture de profondeur en cours de rendu : principale={} copie={} ciseaux={} fbo={}",
+                    readDepth(main), readDepth(worldDepth), GL11.glIsEnabled(GL11.GL_SCISSOR_TEST), prev);
+            }
             GlStateManager._glBindFramebuffer(GL30.GL_FRAMEBUFFER, prev);
             worldDepthFresh = true;
             depthCaptures++;
@@ -212,7 +218,14 @@ public final class PostFx {
         RenderSystem.enableCull();
     }
 
-    private static boolean bindLogged;
+    private static boolean bindLogged, captureLogged;
+
+    private static float readDepth(RenderTarget t) {
+        float[] v = new float[1];
+        GlStateManager._glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, t.frameBufferId);
+        GL11.glReadPixels(t.width / 2, t.height / 2, 1, 1, GL11.GL_DEPTH_COMPONENT, GL11.GL_FLOAT, v);
+        return v[0];
+    }
 
     /**
      * Relie vraiment chaque texture à son unité (0..3 : ordre des « samplers » du shader). Le cache de
@@ -230,7 +243,9 @@ public final class PostFx {
         GL13.glActiveTexture(active);
         if (log != null) {
             bindLogged = true;
-            FateFlip.LOGGER.info("Fate Flip : textures de l'effet (réelle/attendue){}", log);
+            FateFlip.LOGGER.info("Fate Flip : textures de l'effet (réelle/attendue){} ; profondeur copiée au centre={} étape={} fraîche={}",
+                log, worldDepth != null ? readDepth(worldDepth) : -1f, pass.stage, worldDepthFresh);
+            GlStateManager._glBindFramebuffer(GL30.GL_FRAMEBUFFER, Minecraft.getInstance().getMainRenderTarget().frameBufferId);
         }
     }
 

@@ -52,6 +52,7 @@ public class Hallucinations extends CardEffect {
         final Entity entity;
         final double x, y, z;
         float yaw;
+        boolean idSet;
 
         Figure(Entity entity, double x, double y, double z, float yaw) {
             this.entity = entity;
@@ -353,6 +354,11 @@ public class Hallucinations extends CardEffect {
     //$$         if (a > 0.6f) {
     //$$             var dispatcher = MC.getEntityRenderDispatcher();
     //$$             for (Figure f : m.figures) {
+    //$$                 if (!f.idSet) {
+    //$$                     // un figurant n'existe que chez ce client : identifiant négatif, jamais utilisé par le serveur
+    //$$                     f.entity.setId(nextFakeId--);
+    //$$                     f.idSet = true;
+    //$$                 }
     //$$                 f.entity.setYRot(f.yaw);
     //$$                 if (f.entity instanceof LivingEntity le) { le.yBodyRot = le.yBodyRotO = le.yHeadRot = le.yHeadRotO = f.yaw; }
     //$$                 var state = dispatcher.extractEntity(f.entity, pt);
@@ -364,6 +370,8 @@ public class Hallucinations extends CardEffect {
     //$$         }
     //$$     }
     //$$ }
+    //$$
+    //$$ private static int nextFakeId = -1_000_000;
     //$$
     //$$ private static void put(com.mojang.blaze3d.vertex.VertexConsumer vc, PoseStack.Pose at,
     //$$                         java.util.List<net.minecraft.client.resources.model.geometry.BakedQuad> quads,

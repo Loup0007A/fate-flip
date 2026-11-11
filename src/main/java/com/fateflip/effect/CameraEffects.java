@@ -163,19 +163,50 @@ public final class CameraEffects {
 
     /** Éclipse : la nuit, pour vous seul. */
     public static class Eclipse extends CardEffect {
+        //#if mc26
+        //$$ // 26.x : l'heure vient des horloges du monde ; on fige celle de l'Overworld sur minuit (côté client)
+        //$$ // et on la rend à la fin (le serveur ne la renvoie que lorsqu'elle change).
+        //$$ private long savedTicks = Long.MIN_VALUE, savedGameTime;
+        //$$ private float savedRate = 1f;
+        //$$
+        //$$ private static java.util.Optional<? extends net.minecraft.core.Holder<net.minecraft.world.clock.WorldClock>> clock() {
+        //$$     if (MC.level == null) return java.util.Optional.empty();
+        //$$     return MC.level.registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.WORLD_CLOCK)
+        //$$         .get(net.minecraft.world.clock.WorldClocks.OVERWORLD);
+        //$$ }
+        //$$
+        //$$ @Override
+        //$$ public void start() {
+        //$$     var holder = clock();
+        //$$     if (holder.isEmpty()) return;
+        //$$     var inst = MC.level.clockManager().getInstance(holder.get());
+        //$$     savedTicks = inst.totalTicks();
+        //$$     savedRate = inst.rate();
+        //$$     savedGameTime = MC.level.getGameTime();
+        //$$ }
+        //$$
+        //$$ @Override
+        //$$ public void stop() {
+        //$$     var holder = clock();
+        //$$     if (holder.isEmpty() || savedTicks == Long.MIN_VALUE) return;
+        //$$     long now = MC.level.getGameTime();
+        //$$     long ticks = savedTicks + (long) ((now - savedGameTime) * savedRate);
+        //$$     MC.level.clockManager().handleUpdates(now, java.util.Map.of(holder.get(),
+        //$$         new net.minecraft.world.clock.ClockNetworkState(ticks, 0f, savedRate)));
+        //$$ }
+        //#endif
+
         @Override
         public void frame(float partialTick) {
             if (MC.level == null) return;
             //#if mc26
-            //$$ // 26.x : l'heure vient des horloges du monde ; on fige celle de l'Overworld sur minuit (côté client)
-            //$$ var holder = MC.level.registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.WORLD_CLOCK)
-            //$$     .get(net.minecraft.world.clock.WorldClocks.OVERWORLD);
+            //$$ var holder = clock();
             //$$ if (holder.isEmpty()) return;
             //$$ var clocks = MC.level.clockManager();
             //$$ var inst = clocks.getInstance(holder.get());
             //$$ long day = Math.floorDiv(inst.totalTicks(), 24000L);
             //$$ clocks.handleUpdates(MC.level.getGameTime(), java.util.Map.of(holder.get(),
-            //$$     new net.minecraft.world.clock.ClockNetworkState(day * 24000L + 18000L, 0f, inst.rate())));
+            //$$     new net.minecraft.world.clock.ClockNetworkState(day * 24000L + 18000L, 0f, 0f)));
             //#else
             long day = Math.floorDiv(MC.level.getDayTime(), 24000L);
             MC.level.setDayTime(day * 24000L + 18000L);
