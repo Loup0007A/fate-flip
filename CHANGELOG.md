@@ -1,11 +1,15 @@
 # Changelog
 
+## 2.5.1
+
+- **Forge 1.20.1**: the 28 screen effects that only change the world (Noir, VHS, Thermal Vision, 3D Glasses, Tunnel Vision, Comic Book…) no longer turn the screen black with Fancy graphics. The HUD vignette was drawn with the wrong blending right after the effect.
+- Forge 1.20.1 : les 28 effets d'écran « monde » (Noir, VHS, Vision thermique, Lunettes 3D…) ne donnent plus un écran noir en graphismes « Détaillés » (le vignettage du HUD était mal mélangé juste après l'effet).
+
 ## 2.5.0
 
 - **New: Minecraft 26.3 (NeoForge 26.3)** — `fateflip-2.5.0-neoforge-26.3.jar`, Java 25. Every card, curse, power and the Grimoire work, with both the **OpenGL** and the new **Vulkan** renderer (both tested in-game by the CI).
-- **Forge 1.20.1**: screen effects that only change the world (Noir, VHS, Thermal Vision, 3D Glasses, Tunnel Vision…) no longer turn the screen black.
 - Grimoire: long card descriptions no longer run into the footer.
-- Nouveau : un jar pour Minecraft 26.3 (NeoForge, OpenGL et Vulkan) ; Forge 1.20.1 : les effets d'écran « monde » ne donnent plus un écran noir ; grimoire : le texte ne déborde plus.
+- Nouveau : un jar pour Minecraft 26.3 (NeoForge, OpenGL et Vulkan) ; grimoire : le texte ne déborde plus.
 
 ## 2.4.0
 

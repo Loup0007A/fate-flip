@@ -215,6 +215,21 @@ public final class PostFx {
         }
     }
 
+    /** Pour l'auto-test : luminance d'un point du sol (en bas à gauche) de la dernière image. */
+    public static float sampleGround() {
+        try {
+            RenderTarget main = Minecraft.getInstance().getMainRenderTarget();
+            int prev = GlStateManager.getBoundFramebuffer();
+            float[] v = new float[4];
+            GlStateManager._glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, main.frameBufferId);
+            GL11.glReadPixels(main.width * 12 / 100, main.height * 20 / 100, 1, 1, GL11.GL_RGBA, GL11.GL_FLOAT, v);
+            GlStateManager._glBindFramebuffer(GL30.GL_FRAMEBUFFER, prev);
+            return 0.299f * v[0] + 0.587f * v[1] + 0.114f * v[2];
+        } catch (Throwable t) {
+            return -1f;
+        }
+    }
+
     public static boolean isBroken() {
         return failed;
     }

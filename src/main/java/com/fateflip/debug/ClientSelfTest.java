@@ -164,6 +164,11 @@ public final class ClientSelfTest {
                 step("shot " + card.id, 4, () -> {
                     check(Fate.current() != null && Fate.current().card == card, "carte " + card.id + " active");
                     if (Fate.current() instanceof com.fateflip.effect.XRay x) FateFlip.LOGGER.info("[CLIENTTEST] x-ray : {} blocs repérés", x.count());
+                    if (card.id.equals("noir") || card.id.equals("vhs") || card.id.equals("anaglyph")) {
+                        // effet « monde » : le sol doit rester visible (1.20.1 : le vignettage noircissait tout)
+                        float l = PostFx.sampleGround();
+                        check(l < 0f || l > 0.05f, "image visible avec " + card.id + " (luminance " + l + ")");
+                    }
                     shot("fx_" + card.id);
                 });
             } else {

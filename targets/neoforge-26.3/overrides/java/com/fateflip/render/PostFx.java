@@ -256,6 +256,11 @@ public final class PostFx {
         }
     }
 
+    /** Pour l'auto-test : pas de lecture d'image en 26.x (Vulkan possible). */
+    public static float sampleGround() {
+        return -1f;
+    }
+
     public static boolean isBroken() {
         return failed;
     }

@@ -41,11 +41,6 @@ public final class ClientBoot {
         //#endif
         //#if mc1201
         //$$ modBus.addListener(ClientBoot::onOverlays);
-        //$$ if (Boolean.getBoolean("fateflip.clienttest")) {
-        //$$     net.minecraftforge.common.MinecraftForge.EVENT_BUS.addListener(com.fateflip.debug.OverlayProbe::pre);
-        //$$     net.minecraftforge.common.MinecraftForge.EVENT_BUS.addListener(com.fateflip.debug.OverlayProbe::post);
-        //$$     net.minecraftforge.common.MinecraftForge.EVENT_BUS.addListener(com.fateflip.debug.OverlayProbe::end);
-        //$$ }
         //#endif
     }
 
