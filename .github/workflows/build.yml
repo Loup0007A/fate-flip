@@ -114,7 +114,7 @@ jobs:
 
       - name: Client et serveur de test
         run: |
-          sudo apt-get update -qq && sudo apt-get install -y -qq xvfb libgl1-mesa-dri mesa-utils mesa-vulkan-drivers libvulkan1 > /dev/null
+          sudo apt-get update -qq && sudo apt-get install -y -qq xvfb libgl1-mesa-dri mesa-utils mesa-vulkan-drivers libvulkan1 libegl1 libegl-mesa0 > /dev/null
           pip install -q portablemc==5.0.6
           BACKEND="${{ matrix.backend }}" bash tools/ci_test.sh out/*.jar "${{ matrix.loader }}" "${{ matrix.loader_version }}" "${{ matrix.name }}"
 

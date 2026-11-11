@@ -71,7 +71,11 @@ import java.util.WeakHashMap;
  * Le chef d'orchestre : compte à rebours des tirages, ouverture de l'écran de cartes,
  * vie de l'effet actif et relais de tous les événements Forge vers cet effet.
  */
+//#if mc26
+//$$ // 26.x : les mods sont construits avant Minecraft ; ce gestionnaire est enregistré plus tard (ClientBoot.onClientSetup)
+//#else
 @Mod.EventBusSubscriber(modid = FateFlip.MOD_ID, value = Dist.CLIENT)
+//#endif
 public final class Fate {
 
     private Fate() {}

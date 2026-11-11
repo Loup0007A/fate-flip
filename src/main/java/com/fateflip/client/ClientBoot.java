@@ -31,6 +31,7 @@ public final class ClientBoot {
         //$$ modBus.addListener(ClientBoot::onPipelines);
         //$$ modBus.addListener(ClientBoot::onPictureInPicture);
         //$$ modBus.addListener(ClientBoot::onRenderStateModifiers);
+        //$$ modBus.addListener(ClientBoot::onClientSetup);
         //#else
         modBus.addListener(ClientBoot::onShaders);
         //#endif
@@ -64,6 +65,14 @@ public final class ClientBoot {
     //$$ private static void onPipelines(net.neoforged.neoforge.client.event.RegisterRenderPipelinesEvent event) {
     //$$     event.registerPipeline(PostFx.PIPELINE);
     //$$     com.fateflip.render.Pipelines.register(event);
+    //$$ }
+    //$$
+    //$$ /** 26.x : Minecraft existe enfin ; les classes qui le gardent en champ statique peuvent être chargées. */
+    //$$ private static void onClientSetup(net.neoforged.fml.event.lifecycle.FMLClientSetupEvent event) {
+    //$$     event.enqueueWork(() -> {
+    //$$         net.neoforged.neoforge.common.NeoForge.EVENT_BUS.register(Fate.class);
+    //$$         net.neoforged.neoforge.common.NeoForge.EVENT_BUS.register(com.fateflip.debug.ClientSelfTest.class);
+    //$$     });
     //$$ }
     //$$
     //$$ /** 26.x : les créatures sont dessinées depuis un « état de rendu » ; on y accroche l'entité pour les cartes. */

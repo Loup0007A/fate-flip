@@ -30,7 +30,11 @@ import java.util.function.BooleanSupplier;
  * Test visuel client (CI uniquement, -Dfateflip.clienttest=true) : déroule un tirage
  * complet, joue chaque carte et prend des captures d'écran.
  */
+//#if mc26
+//$$ // 26.x : enregistré par ClientBoot.onClientSetup (Minecraft doit exister avant l'initialisation de la classe)
+//#else
 @Mod.EventBusSubscriber(modid = FateFlip.MOD_ID, value = Dist.CLIENT)
+//#endif
 public final class ClientSelfTest {
 
     private ClientSelfTest() {}

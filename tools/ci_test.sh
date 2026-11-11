@@ -33,6 +33,8 @@ mkdir -p client/mods && cp "$JAR" client/mods/
 printf 'onboardAccessibility:false\npauseOnLostFocus:false\ntutorialStep:none\nsoundCategory_master:0.0\nnarrator:0\nguiScale:3\nskipMultiplayerWarning:true\njoinedFirstServer:true\nrenderDistance:8\n' > client/options.txt
 # Minecraft 26.x : choix du moteur de rendu (opengl / vulkan), BACKEND vide = valeur par défaut du jeu
 [ -n "${BACKEND:-}" ] && echo "preferredGraphicsBackend:${BACKEND}" >> client/options.txt
+# Sous Xvfb, GLX ne propose pas de visuel « sRGB » demandé par 26.x : on passe SDL par EGL
+[ "${BACKEND:-}" = "opengl" ] && export SDL_VIDEO_FORCE_EGL=1 SDL_VIDEO_X11_FORCE_EGL=1
 VERSION="${LOADER}::${LV}"; LAUNCH=()
 if [[ "$LV" =~ ^2[6-9]\. ]]; then
   # Minecraft 26.x : installeur officiel du loader (client), puis lancement de la version installée
@@ -50,6 +52,7 @@ echo "client exit $?"
 grep -E "CLIENTTEST|FateFlip|Exception|ERROR|GL error|shader" "$OUT/clienttest.log" | head -150
 grep -q "CLIENTTEST\] RESULT" "$OUT/clienttest.log" || tail -80 "$OUT/clienttest.log"
 cp client/screenshots/*.png "$OUT/screenshots/" 2>/dev/null || true
+cp client/crash-reports/*.txt "$OUT/" 2>/dev/null || true
 ls "$OUT/screenshots" | wc -l
 pkill -f "nogui" || true
 wait
