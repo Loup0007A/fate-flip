@@ -1,9 +1,4 @@
 {
-    "blend": {
-        "func": "add",
-        "srcrgb": "one",
-        "dstrgb": "zero"
-    },
     "vertex": "fateflip:screen_fx",
     "fragment": "fateflip:screen_fx",
     "attributes": [

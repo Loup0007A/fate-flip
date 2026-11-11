@@ -1,7 +1,6 @@
 package com.fateflip.render;
 
 import com.fateflip.FateFlip;
-import com.fateflip.client.Fate;
 import com.fateflip.config.FFConfig;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.pipeline.TextureTarget;
@@ -16,7 +15,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.resources.ResourceLocation;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL30;
 
 /**
@@ -42,7 +40,6 @@ public final class PostFx {
     private static boolean worldDepthFresh;
     private static boolean snapshotValid;
     private static boolean failed;
-    private static int depthCaptures;
 
     public static ShaderInstance shader;
 
@@ -69,14 +66,8 @@ public final class PostFx {
             worldDepth = ensure(worldDepth, main.width, main.height, true);
             if (main.isStencilEnabled() && !worldDepth.isStencilEnabled()) worldDepth.enableStencil();
             worldDepth.copyDepthFrom(main);
-            if (!captureLogged && Fate.current() != null && Fate.current().pass() != null && Fate.current().pass().needsDepth) {
-                captureLogged = true;
-                FateFlip.LOGGER.info("Fate Flip : capture de profondeur en cours de rendu : principale={} copie={} ciseaux={} fbo={}",
-                    readDepth(main), readDepth(worldDepth), GL11.glIsEnabled(GL11.GL_SCISSOR_TEST), prev);
-            }
             GlStateManager._glBindFramebuffer(GL30.GL_FRAMEBUFFER, prev);
             worldDepthFresh = true;
-            depthCaptures++;
         } catch (Throwable t) {
             fail(t);
         }
@@ -120,10 +111,7 @@ public final class PostFx {
             Minecraft mc = Minecraft.getInstance();
             RenderTarget main = mc.getMainRenderTarget();
             copy = ensure(copy, main.width, main.height, false);
-            tracing = pass.stage == FxPass.Stage.WORLD && !worldTraced;
-            String pxMain = tracing ? px(main.frameBufferId, main) : null;
             blitColor(main, copy);
-            String pxCopy = tracing ? px(copy.frameBufferId, copy) : null;
             int depthTex = copy.getColorTextureId();
             int handTex = depthTex;
             if (pass.needsDepth && worldDepth != null && worldDepthFresh) {
@@ -138,13 +126,6 @@ public final class PostFx {
             }
             main.bindWrite(true);
             draw(pass, copy.getColorTextureId(), depthTex, handTex, 0f, 0f, 1f, 1f, main.width, main.height, time, intensity);
-            if (tracing) {
-                tracing = false;
-                worldTraced = true;
-                int err = GL11.glGetError();
-                FateFlip.LOGGER.info("Fate Flip : passage « monde » : image={} copie={} résultat={} erreur={} intensité={} {}",
-                    pxMain, pxCopy, px(main.frameBufferId, main), err, intensity, traceState);
-            }
             main.bindWrite(true);
             RenderSystem.enableBlend();
             RenderSystem.defaultBlendFunc();
@@ -220,8 +201,6 @@ public final class PostFx {
         float far = mc.gameRenderer.getDepthFar();
         sh.safeGetUniform("DepthRange").set(0.05f, far);
         sh.apply();
-        bindForSure(pass, new int[] {colorTex, depthTex, handTex, aux});
-        if (tracing) traceState = glState(sh.getId());
         com.fateflip.platform.Compat.drawTexQuad(x0, y0, x1, y1, u0, v0, u1, v1);
         sh.clear();
         RenderSystem.depthMask(true);
@@ -229,146 +208,11 @@ public final class PostFx {
         RenderSystem.enableCull();
     }
 
-    private static boolean bindLogged, captureLogged, tracing, worldTraced;
-    private static String traceState = "";
-    private static int probes = 2;
-
-    /** Diagnostic : couleur d'un point du monde (pas le centre : réticule) dans une cible. */
-    private static String px(int fbo, RenderTarget t) {
-        float[] v = new float[4];
-        GlStateManager._glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, fbo);
-        GL11.glReadPixels(t.width * 3 / 10, t.height * 6 / 10, 1, 1, GL11.GL_RGBA, GL11.GL_FLOAT, v);
-        return String.format(java.util.Locale.ROOT, "(%.2f %.2f %.2f %.2f)", v[0], v[1], v[2], v[3]);
-    }
-
-    /** Diagnostic : état OpenGL au moment de dessiner le passage. */
-    private static String glState(int program) {
-        int[] vp = new int[4];
-        GL11.glGetIntegerv(GL11.GL_VIEWPORT, vp);
-        java.nio.ByteBuffer mask = org.lwjgl.BufferUtils.createByteBuffer(16);
-        GL11.glGetBooleanv(GL11.GL_COLOR_WRITEMASK, mask);
-        StringBuilder units = new StringBuilder();
-        int active = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE);
-        for (int i = 0; i < 4; i++) {
-            GL13.glActiveTexture(GL13.GL_TEXTURE0 + i);
-            units.append(' ').append(GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D))
-                .append('/').append(GL11.glGetInteger(org.lwjgl.opengl.GL33.GL_SAMPLER_BINDING));
-        }
-        GL13.glActiveTexture(active);
-        String samplers = "";
-        int cur = GL11.glGetInteger(org.lwjgl.opengl.GL20.GL_CURRENT_PROGRAM);
-        if (cur != 0) {
-            StringBuilder sb = new StringBuilder();
-            for (String n : new String[] {"DiffuseSampler", "DepthSampler", "HandDepthSampler", "AuxSampler"}) {
-                int loc = org.lwjgl.opengl.GL20.glGetUniformLocation(cur, n);
-                sb.append(' ').append(loc < 0 ? "-" : String.valueOf(org.lwjgl.opengl.GL20.glGetUniformi(cur, loc)));
-            }
-            samplers = sb.toString();
-        }
-        return "programme=" + cur + "/" + program + " unités(texture/sampler)=" + units + " samplers=" + samplers
-            + " mélange=" + GL11.glIsEnabled(GL11.GL_BLEND) + " profondeur=" + GL11.glIsEnabled(GL11.GL_DEPTH_TEST)
-            + " ciseaux=" + GL11.glIsEnabled(GL11.GL_SCISSOR_TEST) + " stencil=" + GL11.glIsEnabled(GL11.GL_STENCIL_TEST)
-            + " masque=" + mask.get(0) + mask.get(1) + mask.get(2) + mask.get(3)
-            + " vue=" + vp[0] + "," + vp[1] + "," + vp[2] + "x" + vp[3]
-            + " fbo=" + GL11.glGetInteger(GL30.GL_DRAW_FRAMEBUFFER_BINDING) + " vao=" + GL11.glGetInteger(GL30.GL_VERTEX_ARRAY_BINDING);
-    }
-
-    /** Diagnostic : couleur du monde plus loin dans la frame (après le passage « monde »). */
-    public static void probe(String where) {
-        if (!worldTraced || probes <= 0 || !ready()) return;
-        probes--;
-        try {
-            int prev = GlStateManager.getBoundFramebuffer();
-            RenderTarget main = Minecraft.getInstance().getMainRenderTarget();
-            FateFlip.LOGGER.info("Fate Flip : image {} : {}", where, px(main.frameBufferId, main));
-            GlStateManager._glBindFramebuffer(GL30.GL_FRAMEBUFFER, prev);
-        } catch (Throwable t) {
-            fail(t);
-        }
-    }
-
-    private static float readDepth(RenderTarget t) {
-        float[] v = new float[1];
-        GlStateManager._glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, t.frameBufferId);
-        GL11.glReadPixels(t.width / 2, t.height / 2, 1, 1, GL11.GL_DEPTH_COMPONENT, GL11.GL_FLOAT, v);
-        return v[0];
-    }
-
-    /**
-     * Relie vraiment chaque texture à son unité (0..3 : ordre des « samplers » du shader). Le cache de
-     * GlStateManager peut ne plus correspondre à l'état réel d'OpenGL (code qui lie des textures sans lui) :
-     * ShaderInstance.apply() saute alors la liaison et l'effet lit une autre texture.
-     */
-    private static void bindForSure(FxPass pass, int[] textures) {
-        int active = GlStateManager._getActiveTexture();
-        StringBuilder log = !bindLogged && pass.needsDepth ? new StringBuilder() : null;
-        for (int i = 0; i < textures.length; i++) {
-            GL13.glActiveTexture(GL13.GL_TEXTURE0 + i);
-            if (log != null) log.append(' ').append(i).append(':').append(GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)).append('/').append(textures[i]);
-            GL11.glBindTexture(GL11.GL_TEXTURE_2D, textures[i]);
-        }
-        GL13.glActiveTexture(active);
-        if (log != null) {
-            bindLogged = true;
-            FateFlip.LOGGER.info("Fate Flip : textures de l'effet (réelle/attendue){} ; profondeur copiée au centre={} étape={} fraîche={}",
-                log, worldDepth != null ? readDepth(worldDepth) : -1f, pass.stage, worldDepthFresh);
-            GlStateManager._glBindFramebuffer(GL30.GL_FRAMEBUFFER, Minecraft.getInstance().getMainRenderTarget().frameBufferId);
-        }
-    }
-
     private static void fail(Throwable t) {
         if (!failed) {
             failed = true;
             FateFlip.LOGGER.error("Fate Flip : les effets d'écran sont désactivés suite à une erreur graphique", t);
         }
-    }
-
-    /** Pour l'auto-test : profondeur lue au centre de la dernière capture et de l'image principale. */
-    public static String debugDepth() {
-        if (worldDepth == null) return "aucune capture";
-        try {
-            int prev = GlStateManager.getBoundFramebuffer();
-            float[] v = new float[1];
-            GlStateManager._glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, worldDepth.frameBufferId);
-            GL11.glReadPixels(worldDepth.width / 2, worldDepth.height / 2, 1, 1, GL11.GL_DEPTH_COMPONENT, GL11.GL_FLOAT, v);
-            float captured = v[0];
-            RenderTarget main = Minecraft.getInstance().getMainRenderTarget();
-            GlStateManager._glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, main.frameBufferId);
-            GL11.glReadPixels(main.width / 2, main.height / 2, 1, 1, GL11.GL_DEPTH_COMPONENT, GL11.GL_FLOAT, v);
-            GlStateManager._glBindFramebuffer(GL30.GL_FRAMEBUFFER, prev);
-            return "captures=" + depthCaptures + " capturée=" + captured + " principale=" + v[0]
-                + " loin=" + Minecraft.getInstance().gameRenderer.getDepthFar() + " gl=" + GL11.glGetError();
-        } catch (Throwable t) {
-            return "erreur " + t;
-        }
-    }
-
-    /** Pour l'auto-test : applique un passage tout de suite et lit le centre de l'image (avant / après). */
-    public static String debugApply(FxPass pass) {
-        if (!ready() || pass == null) return "indisponible";
-        try {
-            RenderTarget main = Minecraft.getInstance().getMainRenderTarget();
-            int prev = GlStateManager.getBoundFramebuffer();
-            captureWorldDepth();
-            float[] before = readCenter(main.frameBufferId, main);
-            int e0 = GL11.glGetError();
-            apply(pass, 1f, 1f);
-            int e1 = GL11.glGetError();
-            float[] after = readCenter(main.frameBufferId, main);
-            float[] copied = copy != null ? readCenter(copy.frameBufferId, copy) : new float[4];
-            GlStateManager._glBindFramebuffer(GL30.GL_FRAMEBUFFER, prev);
-            return "gl " + e0 + "/" + e1 + " avant=" + java.util.Arrays.toString(before) + " après=" + java.util.Arrays.toString(after)
-                + " copie=" + java.util.Arrays.toString(copied) + " cassé=" + failed;
-        } catch (Throwable t) {
-            return "erreur " + t;
-        }
-    }
-
-    private static float[] readCenter(int fbo, RenderTarget t) {
-        float[] px = new float[4];
-        GlStateManager._glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, fbo);
-        GL11.glReadPixels(t.width / 2, t.height / 2, 1, 1, GL11.GL_RGBA, GL11.GL_FLOAT, px);
-        return px;
     }
 
     public static boolean isBroken() {

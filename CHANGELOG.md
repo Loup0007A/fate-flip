@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.5.0
+
+- **New: Minecraft 26.3 (NeoForge 26.3)** — `fateflip-2.5.0-neoforge-26.3.jar`, Java 25. Every card, curse, power and the Grimoire work, with both the **OpenGL** and the new **Vulkan** renderer (both tested in-game by the CI).
+- **Forge 1.20.1**: screen effects that only change the world (Noir, VHS, Thermal Vision, 3D Glasses, Tunnel Vision…) no longer turn the screen black.
+- Grimoire: long card descriptions no longer run into the footer.
+- Nouveau : un jar pour Minecraft 26.3 (NeoForge, OpenGL et Vulkan) ; Forge 1.20.1 : les effets d'écran « monde » ne donnent plus un écran noir ; grimoire : le texte ne déborde plus.
+
 ## 2.4.0
 
 - **More versions**: Fate Flip now comes in several jars, built from the same code and each tested in-game by the CI:

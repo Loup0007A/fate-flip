@@ -256,20 +256,7 @@ public final class PostFx {
         }
     }
 
-    /** Pour l'auto-test. */
-    public static String debugDepth() {
-        return "26.x : capture " + (worldDepth != null ? worldDepth.width + "x" + worldDepth.height : "aucune")
-            + ", aperçu " + (snapshotValid ? "oui" : "non");
-    }
-
-    public static String debugApply(FxPass pass) {
-        return "26.x : non mesuré";
-    }
-
     public static boolean isBroken() {
         return failed;
     }
-
-    /** Diagnostic des anciennes versions (sans objet en 26.x). */
-    public static void probe(String where) {}
 }

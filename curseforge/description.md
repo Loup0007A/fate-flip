@@ -80,6 +80,7 @@ Some cards distort, rotate or flicker the screen, and **Screamers** shows sudden
 Client only. One jar per version (pick the matching file on the Files tab):
 - Minecraft **1.21 – 1.21.1**, **Forge 51+** or **NeoForge 21.0 / 21.1**, Java 21
 - Minecraft **1.20.1**, **Forge 47**, Java 17
+- Minecraft **26.3**, **NeoForge 26.3**, Java 25 (OpenGL and Vulkan)
 
 ---
 
