@@ -1,0 +1,57 @@
+[32m[09:50:25.335] [main/INFO] [Launcher/MODLAUNCHER]: ModLauncher running: args [--launchTarget, forgeserver, --fml.neoForgeVersion, 21.1.265, --fml.fmlVersion, 4.0.45, --fml.mcVersion, 1.21.1, --fml.neoFormVersion, 20240808.144430, nogui] 
+[m[32m[09:50:25.337] [main/INFO] [Launcher/MODLAUNCHER]: JVM identified as Eclipse Adoptium OpenJDK 64-Bit Server VM 21.0.13+9-LTS 
+[m[32m[09:50:25.338] [main/INFO] [Launcher/MODLAUNCHER]: ModLauncher 11.0.5+main.901c6ea8 starting: java version 21.0.13 by Eclipse Adoptium; OS Linux arch amd64 version 7.0.0-1019-azure 
+[m[32m[09:50:25.425] [main/INFO] [loading.ImmediateWindowHandler/]: ImmediateWindowProvider not loading because launch target is forgeserver 
+[m[32m[09:50:25.462] [main/INFO] [mixin/]: SpongePowered MIXIN Subsystem Version=0.8.7 Source=union:/home/runner/work/fate-flip/fate-flip/ci-work/neoforge-1.21.1/srv/libraries/net/fabricmc/sponge-mixin/0.16.4+mixin.0.8.7/sponge-mixin-0.16.4+mixin.0.8.7.jar%2373!/ Service=ModLauncher Env=SERVER 
+[m[32m[09:50:25.688] [main/INFO] [loading.moddiscovery.ModDiscoverer/SCAN]: Found mod file "server-1.21.1-20240808.144430-srg.jar" [locator: production server provider +net.neoforged:neoforge:21.1.265:server] 
+[m[32m[09:50:25.711] [main/INFO] [loading.moddiscovery.ModDiscoverer/SCAN]: Found mod file "neoforge-21.1.265-universal.jar" [locator: PathBasedLocator[name=neoforge, paths=[libraries/net/neoforged/neoforge/21.1.265/neoforge-21.1.265-universal.jar]], reader: mod manifest] 
+[m[32m[09:50:25.717] [main/INFO] [loading.moddiscovery.ModDiscoverer/SCAN]: Found mod file "fateflip-2.5.1-neoforge-1.21.1.jar" [locator: {mods folder locator at /home/runner/work/fate-flip/fate-flip/ci-work/neoforge-1.21.1/srv/mods}, reader: mod manifest] 
+[m[32m[09:50:25.790] [main/INFO] [loading.moddiscovery.locators.JarInJarDependencyLocator/]: Found 2 dependencies adding them to mods collection 
+[m[32m[09:50:25.790] [main/INFO] [loading.moddiscovery.ModDiscoverer/SCAN]: Found gamelibrary file "mixinextras-neoforge-0.5.5.jar" [parent: neoforge-21.1.265-universal.jar, locator: jarinjar, reader: mod manifest] 
+[m[32m[09:50:25.790] [main/INFO] [loading.moddiscovery.ModDiscoverer/SCAN]: Found library file "net.neoforged.neoforge-coremods-21.1.265.jar" [parent: neoforge-21.1.265-universal.jar, locator: jarinjar, reader: mod manifest] 
+[m[32m[09:50:25.791] [main/INFO] [loading.moddiscovery.ModDiscoverer/]: 
+     Mod List:
+		Name Version (Mod Id)
+
+		Fate Flip 2.5.1 (fateflip)
+		Minecraft 1.21.1 (minecraft)
+		NeoForge 21.1.265 (neoforge) 
+[m[32m[09:50:26.435] [main/INFO] [LaunchServiceHandler/MODLAUNCHER]: Launching target 'forgeserver' with arguments [nogui] 
+[mWARN StatusConsoleListener Advanced terminal features are not available in this environment
+[09:50:27] [main/INFO] [MixinExtras|Service/]: Initializing MixinExtras via com.llamalad7.mixinextras.service.MixinExtrasServiceImpl(version=0.5.5).
+[09:50:31] [modloading-worker-0/INFO] [ne.ne.ne.co.NeoForgeMod/NEOFORGE-MOD]: NeoForge mod loading, version 21.1.265, for MC 1.21.1
+[09:50:32] [main/INFO] [mojang/YggdrasilAuthenticationService]: Environment: Environment[sessionHost=https://sessionserver.mojang.com, servicesHost=https://api.minecraftservices.com, name=PROD]
+[09:50:32] [main/WARN] [minecraft/VanillaPackResourcesBuilder]: Assets URL 'union:/home/runner/work/fate-flip/fate-flip/ci-work/neoforge-1.21.1/srv/libraries/net/minecraft/server/1.21.1-20240808.144430/server-1.21.1-20240808.144430-srg.jar%23118!/assets/.mcassetsroot' uses unexpected schema
+[09:50:32] [main/WARN] [minecraft/VanillaPackResourcesBuilder]: Assets URL 'union:/home/runner/work/fate-flip/fate-flip/ci-work/neoforge-1.21.1/srv/libraries/net/minecraft/server/1.21.1-20240808.144430/server-1.21.1-20240808.144430-srg.jar%23118!/data/.mcassetsroot' uses unexpected schema
+[09:50:33] [main/INFO] [minecraft/Main]: No existing world data, creating new world
+[09:50:33] [main/INFO] [minecraft/RecipeManager]: Loaded 1290 recipes
+[09:50:33] [main/INFO] [minecraft/AdvancementTree]: Loaded 1399 advancements
+[09:50:34] [Server thread/INFO] [minecraft/DedicatedServer]: Starting minecraft server version 1.21.1
+[09:50:34] [Server thread/INFO] [minecraft/DedicatedServer]: Loading properties
+[09:50:34] [Server thread/INFO] [minecraft/DedicatedServer]: Default game type: CREATIVE
+[09:50:34] [Server thread/INFO] [minecraft/MinecraftServer]: Generating keypair
+[09:50:34] [Server thread/INFO] [minecraft/DedicatedServer]: Starting Minecraft server on *:25565
+[09:50:34] [Server thread/INFO] [minecraft/ServerConnectionListener]: Using epoll channel type
+[09:50:34] [Server thread/WARN] [minecraft/DedicatedServer]: **** SERVER IS RUNNING IN OFFLINE/INSECURE MODE!
+[09:50:34] [Server thread/WARN] [minecraft/DedicatedServer]: The server will make no attempt to authenticate usernames. Beware.
+[09:50:34] [Server thread/WARN] [minecraft/DedicatedServer]: While this makes the game possible to play without internet access, it also opens up the ability for hackers to connect with any username they choose.
+[09:50:34] [Server thread/WARN] [minecraft/DedicatedServer]: To change this, set "online-mode" to "true" in the server.properties file.
+[09:50:34] [Server thread/INFO] [minecraft/DedicatedServer]: Preparing level "world"
+[09:50:38] [Server thread/INFO] [minecraft/MinecraftServer]: Preparing start region for dimension minecraft:overworld
+[09:50:38] [Worker-Main-2/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 2%
+[09:50:38] [Worker-Main-2/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 2%
+[09:50:39] [Worker-Main-3/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 2%
+[09:50:39] [Worker-Main-1/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 10%
+[09:50:40] [Worker-Main-2/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 18%
+[09:50:40] [Worker-Main-2/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 40%
+[09:50:41] [Worker-Main-2/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 51%
+[09:50:41] [Server thread/INFO] [minecraft/LoggerChunkProgressListener]: Time elapsed: 3510 ms
+[09:50:41] [Server thread/INFO] [minecraft/DedicatedServer]: Done (7.301s)! For help, type "help"
+[09:50:41] [Server thread/INFO] [ne.ne.ne.se.pe.PermissionAPI/]: Successfully initialized permission handler neoforge:default_handler
+[09:50:41] [Server thread/INFO] [FateFlip/]: [SELFTEST] READY
+[09:51:42] [Server thread/INFO] [minecraft/PlayerList]: Tester[/127.0.0.1:53472] logged in with entity id 11 at (-6.5, 70.0, 8.5)
+[09:51:43] [Server thread/INFO] [minecraft/MinecraftServer]: Tester joined the game
+[09:51:43] [Server thread/INFO] [FateFlip/]: [SELFTEST] scène prête pour Tester
+[09:56:20] [Server thread/INFO] [minecraft/ServerGamePacketListenerImpl]: Tester lost connection: Disconnected
+[09:56:20] [Server thread/INFO] [minecraft/MinecraftServer]: Tester left the game
+WARN StatusConsoleListener Unable to register Log4j shutdown hook because JVM is shutting down. Using SimpleLogger

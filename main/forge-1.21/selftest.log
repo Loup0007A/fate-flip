@@ -1,0 +1,72 @@
+WARN StatusConsoleListener The use of package scanning to locate plugins is deprecated and will be removed in a future release
+WARN StatusConsoleListener The use of package scanning to locate plugins is deprecated and will be removed in a future release
+WARN StatusConsoleListener The use of package scanning to locate plugins is deprecated and will be removed in a future release
+WARN StatusConsoleListener The use of package scanning to locate plugins is deprecated and will be removed in a future release
+WARN StatusConsoleListener Advanced terminal features are not available in this environment
+[09:50:11] [main/INFO] [cp.mo.mo.Launcher/MODLAUNCHER]: ModLauncher running: args [--launchTarget, forge_server, nogui]
+[09:50:11] [main/INFO] [cp.mo.mo.Launcher/MODLAUNCHER]: JVM identified as Eclipse Adoptium OpenJDK 64-Bit Server VM 21.0.13+9-LTS
+[09:50:11] [main/INFO] [cp.mo.mo.Launcher/MODLAUNCHER]: ModLauncher 10.2.1 starting: java version 21.0.13 by Eclipse Adoptium; OS Linux arch amd64 version 7.0.0-1019-azure
+[09:50:11] [main/WARN] [ne.mi.fm.lo.FMLConfig/CORE]: Configuration file /home/runner/work/fate-flip/fate-flip/ci-work/forge-1.21/srv/config/fml.toml is not correct. Correcting
+[09:50:11] [main/INFO] [ne.mi.fm.lo.FMLConfig/CORE]: Incorrect key [earlyWindowSkipGLVersions] was corrected from null to []
+[09:50:11] [main/INFO] [ne.mi.fm.lo.FMLConfig/CORE]: Incorrect key [earlyWindowLogHelpMessage] was corrected from null to true
+[09:50:11] [main/INFO] [ne.mi.fm.lo.FMLConfig/CORE]: Incorrect key [earlyWindowSquir] was corrected from null to false
+[09:50:11] [main/INFO] [ne.mi.fm.lo.FMLConfig/CORE]: Incorrect key [earlyWindowShowCPU] was corrected from null to false
+[09:50:11] [main/INFO] [ne.mi.fm.lo.ImmediateWindowHandler/]: ImmediateWindowProvider not loading because launch target is forge_server
+[09:50:11] [main/INFO] [mixin/]: SpongePowered MIXIN Subsystem Version=0.8.7 Source=jar:file:///home/runner/work/fate-flip/fate-flip/ci-work/forge-1.21/srv/libraries/org/spongepowered/mixin/0.8.7/mixin-0.8.7.jar!/ Service=ModLauncher Env=SERVER
+[09:50:12] [main/INFO] [ne.mi.fm.lo.mo.JarInJarDependencyLocator/]: No dependencies to load found. Skipping!
+[09:50:12] [main/INFO] [cp.mo.mo.LaunchServiceHandler/MODLAUNCHER]: Launching target 'forge_server' with arguments [nogui]
+[09:50:12] [main/WARN] [os.ut.FileUtil/]: Configuration conflict: there is more than one oshi.properties file on the classpath: [jar:file:///home/runner/work/fate-flip/fate-flip/ci-work/forge-1.21/srv/libraries/com/github/oshi/oshi-core/6.4.10/oshi-core-6.4.10.jar!/oshi.properties, jar:file:/home/runner/work/fate-flip/fate-flip/ci-work/forge-1.21/srv/libraries/com/github/oshi/oshi-core/6.4.10/oshi-core-6.4.10.jar!/oshi.properties, jar:file:///home/runner/work/fate-flip/fate-flip/ci-work/forge-1.21/srv/libraries/com/github/oshi/oshi-core/6.4.10/oshi-core-6.4.10.jar!/oshi.properties, jar:file:/home/runner/work/fate-flip/fate-flip/ci-work/forge-1.21/srv/libraries/com/github/oshi/oshi-core/6.4.10/oshi-core-6.4.10.jar!/oshi.properties]
+[09:50:13] [main/WARN] [os.ut.FileUtil/]: Configuration conflict: there is more than one oshi.architecture.properties file on the classpath: [jar:file:///home/runner/work/fate-flip/fate-flip/ci-work/forge-1.21/srv/libraries/com/github/oshi/oshi-core/6.4.10/oshi-core-6.4.10.jar!/oshi.architecture.properties, jar:file:/home/runner/work/fate-flip/fate-flip/ci-work/forge-1.21/srv/libraries/com/github/oshi/oshi-core/6.4.10/oshi-core-6.4.10.jar!/oshi.architecture.properties, jar:file:///home/runner/work/fate-flip/fate-flip/ci-work/forge-1.21/srv/libraries/com/github/oshi/oshi-core/6.4.10/oshi-core-6.4.10.jar!/oshi.architecture.properties, jar:file:/home/runner/work/fate-flip/fate-flip/ci-work/forge-1.21/srv/libraries/com/github/oshi/oshi-core/6.4.10/oshi-core-6.4.10.jar!/oshi.architecture.properties]
+[09:50:16] [modloading-worker-0/INFO] [ne.mi.co.ForgeMod/FORGEMOD]: Forge mod loading, version 51.0.33, for MC 1.21 with MCP 20240613.102039
+[09:50:16] [modloading-worker-0/INFO] [ne.mi.co.MinecraftForge/FORGE]: MinecraftForge v51.0.33 Initialized
+[09:50:16] [modloading-worker-0/INFO] [ne.mi.co.ForgeMod/FORGEMOD]: Opening jdk.naming.dns/com.sun.jndi.dns to java.naming
+[09:50:17] [Forge Version Check/INFO] [ne.mi.fm.VersionChecker/]: [forge] Starting version check at https://files.minecraftforge.net/net/minecraftforge/forge/promotions_slim.json
+[09:50:17] [Forge Version Check/INFO] [ne.mi.fm.VersionChecker/]: [forge] Found status: BETA Current: 51.0.33 Target: 51.0.33
+[09:50:17] [main/INFO] [mojang/YggdrasilAuthenticationService]: Environment: Environment[sessionHost=https://sessionserver.mojang.com, servicesHost=https://api.minecraftservices.com, name=PROD]
+[09:50:18] [main/INFO] [minecraft/Main]: No existing world data, creating new world
+[09:50:18] [main/INFO] [minecraft/RecipeManager]: Loaded 1290 recipes
+[09:50:18] [main/INFO] [minecraft/AdvancementTree]: Loaded 1399 advancements
+[09:50:18] [Server thread/INFO] [minecraft/DedicatedServer]: Starting minecraft server version 1.21
+[09:50:18] [Server thread/INFO] [minecraft/DedicatedServer]: Loading properties
+[09:50:18] [Server thread/INFO] [minecraft/DedicatedServer]: Default game type: CREATIVE
+[09:50:18] [Server thread/INFO] [minecraft/MinecraftServer]: Generating keypair
+[09:50:19] [Server thread/INFO] [minecraft/DedicatedServer]: Starting Minecraft server on *:25565
+[09:50:19] [Server thread/INFO] [minecraft/ServerConnectionListener]: Using epoll channel type
+[09:50:19] [Server thread/WARN] [minecraft/DedicatedServer]: **** SERVER IS RUNNING IN OFFLINE/INSECURE MODE!
+[09:50:19] [Server thread/WARN] [minecraft/DedicatedServer]: The server will make no attempt to authenticate usernames. Beware.
+[09:50:19] [Server thread/WARN] [minecraft/DedicatedServer]: While this makes the game possible to play without internet access, it also opens up the ability for hackers to connect with any username they choose.
+[09:50:19] [Server thread/WARN] [minecraft/DedicatedServer]: To change this, set "online-mode" to "true" in the server.properties file.
+[09:50:19] [Server thread/WARN] [ne.mi.co.ForgeConfigSpec/CORE]: Configuration file ./world/serverconfig/forge-server.toml is not correct. Correcting
+[09:50:19] [Server thread/WARN] [ne.mi.co.ForgeConfigSpec/CORE]: Incorrect key server was corrected from null to its default, SynchronizedConfig{DataHolder:{}}. 
+[09:50:19] [Server thread/WARN] [ne.mi.co.ForgeConfigSpec/CORE]: Incorrect key server.removeErroringBlockEntities was corrected from null to its default, false. 
+[09:50:19] [Server thread/WARN] [ne.mi.co.ForgeConfigSpec/CORE]: Incorrect key server.removeErroringEntities was corrected from null to its default, false. 
+[09:50:19] [Server thread/WARN] [ne.mi.co.ForgeConfigSpec/CORE]: Incorrect key server.fullBoundingBoxLadders was corrected from null to its default, false. 
+[09:50:19] [Server thread/WARN] [ne.mi.co.ForgeConfigSpec/CORE]: Incorrect key server.permissionHandler was corrected from null to its default, forge:default_handler. 
+[09:50:19] [Server thread/WARN] [ne.mi.co.ForgeConfigSpec/CORE]: Incorrect key server.advertiseDedicatedServerToLan was corrected from null to its default, true. 
+[09:50:19] [Server thread/INFO] [minecraft/DedicatedServer]: Preparing level "world"
+[09:50:22] [Server thread/INFO] [minecraft/MinecraftServer]: Preparing start region for dimension minecraft:overworld
+[09:50:22] [Worker-Main-1/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 2%
+[09:50:22] [Worker-Main-3/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 2%
+[09:50:23] [Worker-Main-2/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 2%
+[09:50:23] [Worker-Main-2/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 18%
+[09:50:24] [Worker-Main-2/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 51%
+[09:50:24] [Worker-Main-3/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 51%
+[09:50:24] [Server thread/INFO] [minecraft/LoggerChunkProgressListener]: Time elapsed: 2652 ms
+[09:50:24] [Server thread/INFO] [minecraft/DedicatedServer]: Done (5.704s)! For help, type "help"
+[09:50:24] [Server thread/INFO] [ne.mi.se.pe.PermissionAPI/]: Successfully initialized permission handler forge:default_handler
+[09:50:24] [Server thread/INFO] [FateFlip/]: [SELFTEST] READY
+[09:51:04] [Server thread/INFO] [minecraft/PlayerList]: Tester[/127.0.0.1:42046] logged in with entity id 11 at (9.5, 67.0, 8.5)
+[09:51:04] [Server thread/INFO] [minecraft/MinecraftServer]: Tester joined the game
+[09:51:04] [Server thread/INFO] [FateFlip/]: [SELFTEST] scène prête pour Tester
+[09:55:36] [Server thread/INFO] [minecraft/ServerGamePacketListenerImpl]: Tester lost connection: Disconnected
+[09:55:36] [Server thread/INFO] [minecraft/MinecraftServer]: Tester left the game
+[09:55:37] [Server thread/INFO] [minecraft/MinecraftServer]: Stopping server
+[09:55:37] [Server thread/INFO] [minecraft/MinecraftServer]: Saving players
+[09:55:37] [Server thread/INFO] [minecraft/MinecraftServer]: Saving worlds
+[09:55:38] [Server thread/INFO] [minecraft/MinecraftServer]: Saving chunks for level 'ServerLevel[world]'/minecraft:overworld
+[09:55:38] [Server thread/INFO] [minecraft/MinecraftServer]: Saving chunks for level 'ServerLevel[world]'/minecraft:the_end
+[09:55:38] [Server thread/INFO] [minecraft/MinecraftServer]: Saving chunks for level 'ServerLevel[world]'/minecraft:the_nether
+[09:55:38] [Server thread/INFO] [minecraft/MinecraftServer]: ThreadedAnvilChunkStorage (world): All chunks are saved
+[09:55:38] [Server thread/INFO] [minecraft/MinecraftServer]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[09:55:38] [Server thread/INFO] [minecraft/MinecraftServer]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[09:55:38] [Server thread/INFO] [minecraft/MinecraftServer]: ThreadedAnvilChunkStorage: All dimensions are saved
