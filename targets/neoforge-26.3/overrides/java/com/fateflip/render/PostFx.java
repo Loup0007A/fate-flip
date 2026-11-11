@@ -269,4 +269,7 @@ public final class PostFx {
     public static boolean isBroken() {
         return failed;
     }
+
+    /** Diagnostic des anciennes versions (sans objet en 26.x). */
+    public static void probe(String where) {}
 }

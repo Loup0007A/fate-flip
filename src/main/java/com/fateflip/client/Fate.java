@@ -449,6 +449,7 @@ public final class Fate {
     private static void renderTickEnd() {
         try {
             float pt = com.fateflip.platform.Compat.partialTick();
+            PostFx.probe("en fin de frame");
             if (current != null && MC.level != null && fullStageAllowed()) {
                 FxPass p = current.pass();
                 if (p != null && p.stage == FxPass.Stage.FULL) {
@@ -562,6 +563,7 @@ public final class Fate {
     }
 
     private static void hudStage(GuiGraphics g, float pt) {
+        PostFx.probe("en haut du HUD");
         CardEffect[] l = live;
         for (int i = l.length - 1; i >= 0; i--) {
             try {
